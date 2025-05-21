@@ -1,0 +1,56 @@
+#ifndef _CTRGX_HELPERS_FLUSHCACHEREGIONS_H
+#define _CTRGX_HELPERS_FLUSHCACHEREGIONS_H
+
+#include "GX/GX.h"
+
+typedef struct {
+    void* addr;
+    size_t size;
+} GXFlushCacheRegionsBuffer;
+
+CTRGX_INLINE void ctrgxMakeFlushCacheRegions(GXCmd* cmd, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
+    CTRGX_ASSERT(cmd);
+
+    cmd->header = CTRGX_CMDID_FLUSH_CACHE_REGIONS;
+
+    if (buffer0) {
+        cmd->params[0] = (u32)buffer0->addr;
+        cmd->params[1] = buffer0->size;
+    } else {
+        cmd->params[0] = cmd->params[1] = 0;
+    }
+
+    if (buffer1) {
+        cmd->params[2] = (u32)buffer1->addr;
+        cmd->params[3] = buffer1->size;
+    } else {
+        cmd->params[2] = cmd->params[3] = 0;
+    }
+
+    if (buffer2) {
+        cmd->params[4] = (u32)buffer2->addr;
+        cmd->params[5] = buffer2->size;
+    } else {
+        cmd->params[4] = cmd->params[5] = 0;
+    }
+
+    cmd->params[6] = 0;
+}
+
+CTRGX_INLINE bool ctrgxAddFlushCacheRegions(GXCmdBuffer* b, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
+    CTRGX_ASSERT(b);
+
+    GXCmd cmd;
+    ctrgxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
+    return ctrgxCmdBufferAdd(b, &cmd);
+}
+
+CTRGX_INLINE void ctrgxSyncFlushCacheRegions(GXCmdBuffer* b, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
+    CTRGX_ASSERT(b);
+
+    GXCmd cmd;
+    ctrgxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
+    ctrgxExecSync(&cmd);
+}
+
+#endif /* _CTRGX_HELPERS_FLUSHCACHEREGIONS_H */
