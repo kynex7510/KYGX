@@ -26,7 +26,7 @@ INCLUDES	:=	Include Source
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-Wall -Werror -O2 -mword-relocations -ffunction-sections $(ARCH)
+CFLAGS	:=	-Wall -Werror -O2 -DNDEBUG -mword-relocations -ffunction-sections $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -D__3DS__
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions

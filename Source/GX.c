@@ -52,14 +52,10 @@ static bool enqueueCommands(void) {
         return false;
 
     // Write commands to queue.
-    u8 numCommands = 0;
     for (u8 i = 0; i < cmdBuffer->count; ++i) {
         GXCmd* cmd;
         CTRGX_BREAK_UNLESS(ctrgxCmdBufferPeek(cmdBuffer, i, &cmd, NULL, NULL));
-
-        if (intrForCmd(cmd) != GX_INTR_UNKNOWN)
-            ++numCommands;
-
+        CTRGX_BREAK_UNLESS(intrForCmd(cmd) != GX_INTR_UNKNOWN);
         CTRGX_BREAK_UNLESS(ctrgxCmdQueueAdd(cmdQueue, cmd));
 
         if (cmd->header & CTRGX_CMDHEADER_FLAG_LAST)
@@ -67,15 +63,10 @@ static bool enqueueCommands(void) {
     }
 
     // Update state.
-    g_GlobalState.pendingCommands = numCommands;
+    g_GlobalState.pendingCommands = cmdQueue->count;
     g_GlobalState.completedCommands = 0;
 
     triggerCommandHandling();
-
-    // TODO: Handle the case where no interrupts are signaled (eg. single FlushCacheRegions).
-    CTRGX_ASSERT(numCommands);
-    //
-
     return true;
 }
 
@@ -112,9 +103,8 @@ static void onInterrupt(GXIntr intrID) {
             cb(data);
 
         // Proceed with the next batch if we weren't asked to halt.
-        if (ctrgxs_signal_halt(&g_GlobalState)) {
-            CTRGX_BREAK_UNLESS(enqueueCommands());
-        }
+        if (ctrgxs_signal_halt(&g_GlobalState))
+            enqueueCommands();
     }
 
     ctrgxs_exit_critical_section(&g_GlobalState, criticalOp);
@@ -168,12 +158,10 @@ GXCmdBuffer* ctrgxExchangeCmdBuffer(GXCmdBuffer* b, bool flush) {
 
 void ctrgxLock(void) { ctrgxs_enter_critical_section(&g_GlobalState, STATEOP_FIELD_ACCESS | STATEOP_EXEC_COMMANDS); }
 
-void ctrgxUnlock(bool exec) {
-    if (exec) {
-        CTRGX_BREAK_UNLESS(enqueueCommands());
-    }
-
+bool ctrgxUnlock(bool exec) {
+    const bool b = exec ? enqueueCommands() : true;
     ctrgxs_exit_critical_section(&g_GlobalState, STATEOP_FIELD_ACCESS | STATEOP_EXEC_COMMANDS);
+    return b;
 }
 
 GXIntrQueue* ctrgxGetIntrQueue(void) { return g_GlobalState.intrQueue; }

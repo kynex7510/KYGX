@@ -14,7 +14,7 @@ CTRGX_EXTERN void ctrgxExit(void);
 CTRGX_EXTERN GXCmdBuffer* ctrgxExchangeCmdBuffer(GXCmdBuffer* b, bool flush);
 
 CTRGX_EXTERN void ctrgxLock(void);
-CTRGX_EXTERN void ctrgxUnlock(bool exec);
+CTRGX_EXTERN bool ctrgxUnlock(bool exec);
 CTRGX_EXTERN GXIntrQueue* ctrgxGetIntrQueue(void);
 CTRGX_EXTERN GXCmdQueue* ctrgxGetCmdQueue(void);
 CTRGX_EXTERN GXCmdBuffer* ctrgxGetCmdBuffer(void);

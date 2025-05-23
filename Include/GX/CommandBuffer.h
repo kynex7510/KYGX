@@ -54,8 +54,13 @@ CTRGX_INLINE void ctrgxCmdBufferFinalize(GXCmdBuffer* b, GXCallback cb, void* cb
 CTRGX_INLINE bool ctrgxCmdBufferIsFinalized(GXCmdBuffer* b) {
     CTRGX_ASSERT(b);
 
-    // Make sure there exists at least one command with the flag set.
-    return b->count && b->cmdList[((b->count - 1) + b->index) % b->capacity].header & CTRGX_CMDHEADER_FLAG_LAST;
+    for (size_t i = b->count; i > 0; --i) {
+        const GXCmd* cmd = &b->cmdList[((i - 1) + b->index) % b->capacity];
+        if (cmd->header & CTRGX_CMDHEADER_FLAG_LAST)
+            return true;
+    }
+
+    return false;
 }
 
 CTRGX_INLINE bool ctrgxCmdBufferPeek(GXCmdBuffer* b, u8 index, GXCmd** cmd, GXCallback* cb, void** cbData) {

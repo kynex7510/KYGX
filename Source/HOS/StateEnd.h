@@ -8,6 +8,7 @@
 static u8 g_IntrMask = 0;
 static LightEvent g_IntrEvents[CTRGX_NUM_INTERRUPTS];
 
+// Defined in GX.c.
 static void onInterrupt(GXIntr intrID);
 
 static void gspIntrCb(void* intrID) {
