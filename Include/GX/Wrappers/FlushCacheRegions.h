@@ -11,7 +11,7 @@ typedef struct {
 CTRGX_INLINE void ctrgxMakeFlushCacheRegions(GXCmd* cmd, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
     CTRGX_ASSERT(cmd);
 
-    cmd->header = CTRGX_CMDID_FLUSH_CACHE_REGIONS;
+    cmd->header = CTRGX_CMDID_FLUSHCACHEREGIONS;
 
     if (buffer0) {
         cmd->params[0] = (u32)buffer0->addr;

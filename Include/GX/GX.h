@@ -5,6 +5,10 @@
 #include "GX/Interrupt.h"
 #include "GX/CommandBuffer.h"
 
+#define ctrgxWaitVBlank()         \
+    ctrgxClearIntr(GX_INTR_PDC0); \
+    ctrgxWaitIntr(GX_INTR_PDC0)
+
 CTRGX_EXTERN bool ctrgxInit(void);
 CTRGX_EXTERN void ctrgxExit(void);
 CTRGX_EXTERN GXCmdBuffer* ctrgxExchangeCmdBuffer(GXCmdBuffer* b, bool flush);
@@ -15,7 +19,6 @@ CTRGX_EXTERN GXIntrQueue* ctrgxGetIntrQueue(void);
 CTRGX_EXTERN GXCmdQueue* ctrgxGetCmdQueue(void);
 CTRGX_EXTERN GXCmdBuffer* ctrgxGetCmdBuffer(void);
 
-CTRGX_EXTERN GXIntr ctrgxWaitAnyIntr(void);
 CTRGX_EXTERN void ctrgxWaitIntr(GXIntr intrID);
 CTRGX_EXTERN void ctrgxClearIntr(GXIntr intrID);
 

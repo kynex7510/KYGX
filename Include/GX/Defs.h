@@ -2,9 +2,23 @@
 #define _CTRGX_DEFS_H
 
 #ifdef CTRGX_BAREMETAL
-// TODO
+#include <arm.h>
+#include <util.h>
+#include <kmutex.h>
+#include <ksemaphore.h>
+#include <drivers/gfx.h>
+#include <drivers/cache.h>
+#include <arm11/drivers/gx.h>
+#include <arm11/drivers/gpu_regs.h>
+#include <stdbool.h>
+
+#define CTRGX_EXMON_CAST(v) (u32*)(v)
+
 #else
 #include <3ds.h>
+
+#define CTRGX_EXMON_CAST(v) (s32*)(v)
+
 #endif // CTRGX_BAREMETAL
 
 #define CTRGX_PACKED __attribute__((packed))
@@ -21,7 +35,6 @@
 #define CTRGX_AS_STRING(x) #x
 #define CTRGX_STRINGIFY(x) CTRGX_AS_STRING(x)
 
-#define CTRGX_ABORT() ctrgx_platform_abort()
 #define CTRGX_BREAK() ctrgx_platform_break()
 
 #define CTRGX_BREAK_UNLESS(cond) \
@@ -39,7 +52,7 @@
             CTRGX_LOG("Assertion failed: " CTRGX_STRINGIFY(cond)); \
             CTRGX_LOG("In file: " CTRGX_STRINGIFY(__FILE__));      \
             CTRGX_LOG("On line: " CTRGX_STRINGIFY(__LINE__));      \
-            CTRGX_ABORT();                                         \
+            CTRGX_BREAK();                                         \
         }                                                          \
     } while (false)
 
@@ -51,11 +64,10 @@
 #define CTRGX_UNREACHABLE(s) \
     do {                     \
         CTRGX_LOG(s);        \
-        CTRGX_ABORT();       \
+        CTRGX_BREAK();       \
     } while (false)
 
 CTRGX_EXTERN __attribute__((noreturn)) void ctrgx_platform_break(void);
-CTRGX_EXTERN __attribute__((noreturn)) void ctrgx_platform_abort(void);
 CTRGX_EXTERN void ctrgx_platform_log(const char* s, size_t size);
 
 #endif /* _CTRGX_DEFS_H */

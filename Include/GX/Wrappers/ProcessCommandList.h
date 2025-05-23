@@ -6,7 +6,7 @@
 CTRGX_INLINE void ctrgxMakeProcessCommandList(GXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
     CTRGX_ASSERT(cmd);
 
-    cmd->header = CTRGX_CMDID_PROCESS_COMMAND_LIST;
+    cmd->header = CTRGX_CMDID_PROCESSCOMMANDLIST;
     cmd->params[0] = (u32)addr;
     cmd->params[1] = size;
     cmd->params[2] = updateGasAccMax ? 1 : 0;

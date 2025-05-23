@@ -6,17 +6,17 @@ static u32 g_Refc = 0;
 
 static GXIntr intrForCmd(const GXCmd* cmd) {
     switch (cmd->header & 0xFF) {
-        case CTRGX_CMDID_REQUEST_DMA:
+        case CTRGX_CMDID_REQUESTDMA:
             return GX_INTR_DMA;
-        case CTRGX_CMDID_PROCESS_COMMAND_LIST:
+        case CTRGX_CMDID_PROCESSCOMMANDLIST:
             return GX_INTR_P3D;
-        case CTRGX_CMDID_DISPLAY_TRANSFER:
-        case CTRGX_CMDID_TEXTURE_COPY:
+        case CTRGX_CMDID_DISPLAYTRANSFER:
+        case CTRGX_CMDID_TEXTURECOPY:
             return GX_INTR_PPF;
     }
 
     // When using two buffers MemoryFill only triggers PSC0.
-    if ((cmd->header & 0xFF) == CTRGX_CMDID_MEMORY_FILL) {
+    if ((cmd->header & 0xFF) == CTRGX_CMDID_MEMORYFILL) {
         const bool buf0 = cmd->params[0];
         const bool buf1 = cmd->params[3];
         return buf1 && !buf0 ? GX_INTR_PSC1 : GX_INTR_PSC0;
@@ -57,10 +57,8 @@ static bool enqueueCommands(void) {
         GXCmd* cmd;
         CTRGX_BREAK_UNLESS(ctrgxCmdBufferPeek(cmdBuffer, i, &cmd, NULL, NULL));
 
-        // TODO
-        // if (intrForCmd(&cmd) != GX_INTR_UNKNOWN)
+        if (intrForCmd(cmd) != GX_INTR_UNKNOWN)
             ++numCommands;
-        //
 
         CTRGX_BREAK_UNLESS(ctrgxCmdQueueAdd(cmdQueue, cmd));
 
@@ -75,12 +73,8 @@ static bool enqueueCommands(void) {
     triggerCommandHandling();
 
     // TODO: Handle the case where no interrupts are signaled (eg. single FlushCacheRegions).
-    /*
-    if (!numCommands) {
-        if (ctrgxs_signal_halt(&g_GlobalState))
-            return enqueueCommands();
-    }
-    */
+    CTRGX_ASSERT(numCommands);
+    //
 
     return true;
 }
@@ -108,6 +102,11 @@ static void onInterrupt(GXIntr intrID) {
 
     // Handle batch termination.
     if (!g_GlobalState.pendingCommands) {
+        // It's possible that, at this point, GSP still hasn't halted. Let's do it ourselves.
+        GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
+        CTRGX_ASSERT(cmdQueue && !cmdQueue->count);
+        ctrgxCmdQueueHalt(cmdQueue, true);
+
         // Invoke callback.
         if (cb)
             cb(data);
@@ -136,11 +135,6 @@ bool ctrgxInit(void) {
 
     if (ctrgxs_init(&g_GlobalState)) {
         resetCmdQueue(true);
-        ctrgxs_set_intr_cb(&g_GlobalState, GX_INTR_PSC0, onInterrupt);
-        ctrgxs_set_intr_cb(&g_GlobalState, GX_INTR_PSC1, onInterrupt);
-        ctrgxs_set_intr_cb(&g_GlobalState, GX_INTR_PPF, onInterrupt);
-        ctrgxs_set_intr_cb(&g_GlobalState, GX_INTR_P3D, onInterrupt);
-        ctrgxs_set_intr_cb(&g_GlobalState, GX_INTR_DMA, onInterrupt);
         return true;
     }
 
@@ -150,19 +144,12 @@ bool ctrgxInit(void) {
 
 void ctrgxExit(void) {
     if (!__atomic_sub_fetch(&g_Refc, 1, __ATOMIC_SEQ_CST)) {
-        ctrgxs_clear_intr_cb(&g_GlobalState, GX_INTR_PSC0);
-        ctrgxs_clear_intr_cb(&g_GlobalState, GX_INTR_PSC1);
-        ctrgxs_clear_intr_cb(&g_GlobalState, GX_INTR_PPF);
-        ctrgxs_clear_intr_cb(&g_GlobalState, GX_INTR_P3D);
-        ctrgxs_clear_intr_cb(&g_GlobalState, GX_INTR_DMA);
         resetCmdQueue(false);
         ctrgxs_cleanup(&g_GlobalState);
     }
 }
 
 GXCmdBuffer* ctrgxExchangeCmdBuffer(GXCmdBuffer* b, bool flush) {
-    CTRGX_ASSERT(b);
-
     const u32 criticalOp = STATEOP_FIELD_ACCESS | (flush ? STATEOP_COMMAND_COMPLETION : STATEOP_HALT);
     ctrgxs_enter_critical_section(&g_GlobalState, criticalOp);
 
@@ -193,23 +180,16 @@ GXIntrQueue* ctrgxGetIntrQueue(void) { return g_GlobalState.intrQueue; }
 GXCmdQueue* ctrgxGetCmdQueue(void) { return g_GlobalState.cmdQueue; }
 GXCmdBuffer* ctrgxGetCmdBuffer(void) { return g_GlobalState.cmdBuffer; }
 
-GXIntr ctrgxWaitAnyIntr(void) {
-    ctrgxs_enter_critical_section(&g_GlobalState, STATEOP_INTR_READ);
-    GXIntr intr = ctrgxs_wait_any_intr(&g_GlobalState);
-    ctrgxs_exit_critical_section(&g_GlobalState, STATEOP_INTR_READ);
-    return intr;
-}
-
 void ctrgxWaitIntr(GXIntr intrID) {
-    ctrgxs_enter_critical_section(&g_GlobalState, STATEOP_INTR_READ);
+    ctrgxs_enter_critical_section(&g_GlobalState, STATEOP_INTR);
     ctrgxs_wait_intr(&g_GlobalState, intrID);
-    ctrgxs_exit_critical_section(&g_GlobalState, STATEOP_INTR_READ);
+    ctrgxs_exit_critical_section(&g_GlobalState, STATEOP_INTR);
 }
 
 void ctrgxClearIntr(GXIntr intrID) {
-    ctrgxs_enter_critical_section(&g_GlobalState, STATEOP_INTR_WRITE);
+    ctrgxs_enter_critical_section(&g_GlobalState, STATEOP_INTR);
     ctrgxs_clear_intr(&g_GlobalState, intrID);
-    ctrgxs_exit_critical_section(&g_GlobalState, STATEOP_INTR_WRITE);
+    ctrgxs_exit_critical_section(&g_GlobalState, STATEOP_INTR);
 }
 
 bool ctrgxFlushBufferedCommands(void) {
@@ -237,14 +217,14 @@ CTRGX_EXTERN void ctrgxExecSync(const GXCmd* cmd) {
     cmdCopy.header |= CTRGX_CMDHEADER_FLAG_LAST;
 
     const GXIntr intrID = intrForCmd(&cmdCopy);
-    const u32 criticalOp = STATEOP_FIELD_ACCESS | STATEOP_HALT | STATEOP_INTRCB | STATEOP_INTR_READ | STATEOP_INTR_WRITE | STATEOP_EXEC_COMMANDS;
+    const u32 criticalOp = STATEOP_FIELD_ACCESS | STATEOP_HALT | STATEOP_INTR | STATEOP_EXEC_COMMANDS;
     ctrgxs_enter_critical_section(&g_GlobalState, criticalOp);
 
     // Wait batch processing.
     ctrgxs_request_halt(&g_GlobalState, true);
 
     if (intrID != GX_INTR_UNKNOWN) {
-        ctrgxs_clear_intr_cb(&g_GlobalState, intrID);
+        ctrgxs_disable_intr_cb(&g_GlobalState, intrID);
         ctrgxs_clear_intr(&g_GlobalState, intrID);
     }
 
@@ -255,7 +235,7 @@ CTRGX_EXTERN void ctrgxExecSync(const GXCmd* cmd) {
     // Wait for termination.
     if (intrID != GX_INTR_UNKNOWN) {
         ctrgxs_wait_intr(&g_GlobalState, intrID);
-        ctrgxs_set_intr_cb(&g_GlobalState, intrID, onInterrupt);
+        ctrgxs_enable_intr_cb(&g_GlobalState, intrID);
     }
 
     // Resume command buffer processing.

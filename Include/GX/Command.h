@@ -3,12 +3,12 @@
 
 #include "GX/Defs.h"
 
-#define CTRGX_CMDID_REQUEST_DMA 0x00
-#define CTRGX_CMDID_PROCESS_COMMAND_LIST 0x01
-#define CTRGX_CMDID_MEMORY_FILL 0x02
-#define CTRGX_CMDID_DISPLAY_TRANSFER 0x03
-#define CTRGX_CMDID_TEXTURE_COPY 0x04
-#define CTRGX_CMDID_FLUSH_CACHE_REGIONS 0x05
+#define CTRGX_CMDID_REQUESTDMA 0x00
+#define CTRGX_CMDID_PROCESSCOMMANDLIST 0x01
+#define CTRGX_CMDID_MEMORYFILL 0x02
+#define CTRGX_CMDID_DISPLAYTRANSFER 0x03
+#define CTRGX_CMDID_TEXTURECOPY 0x04
+#define CTRGX_CMDID_FLUSHCACHEREGIONS 0x05
 
 #define CTRGX_CMDHEADER_FLAG_LAST (1 << 16)
 #define CTRGX_CMDHEADER_FLAG_FAIL_ON_ALL_BUSY (1 << 24)
@@ -33,6 +33,7 @@ typedef struct {
 } GXCmdQueue;
 
 CTRGX_EXTERN bool ctrgxCmdQueueAdd(GXCmdQueue* q, GXCmd* cmd);
+CTRGX_EXTERN bool ctrgxCmdQueuePop(GXCmdQueue* q, GXCmd* cmd);
 
 CTRGX_INLINE void ctrgxCmdQueueClear(GXCmdQueue* q) {
     CTRGX_ASSERT(q);
@@ -48,13 +49,13 @@ CTRGX_INLINE void ctrgxCmdQueueHalt(GXCmdQueue* q, bool halt) {
     u32 h;
 
     do {
-        h = __ldrex((s32*)q);
+        h = __ldrex(CTRGX_EXMON_CAST(q));
         if (halt) {
             h |= 0x01010000;
         } else {
             h &= ~(0x01010000);
         }
-    } while (__strex((s32*)q, h));
+    } while (__strex(CTRGX_EXMON_CAST(q), h));
 }
 
 CTRGX_INLINE bool ctrgxCmdQueueIsHalted(GXCmdQueue* q) {
@@ -69,8 +70,8 @@ CTRGX_INLINE s32 ctrgxCmdQueueClearError(GXCmdQueue* q) {
     s32 err;
 
     do {
-        err = __ldrex(&q->lastError);
-    } while (__strex(&q->lastError, 0));
+        err = __ldrex(CTRGX_EXMON_CAST(&q->lastError));
+    } while (__strex(CTRGX_EXMON_CAST(&q->lastError), 0));
 
     do {
         status = __ldrexb(&q->status);

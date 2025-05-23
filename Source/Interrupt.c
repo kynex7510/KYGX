@@ -7,7 +7,7 @@ GXIntr ctrgxPopIntr(GXIntrQueue* q) {
     u32 header;
 
     do {
-        header = __ldrex((s32*)q);
+        header = __ldrex(CTRGX_EXMON_CAST(q));
 
         const u8 count = (header >> 8) & 0xFF;
         if (!count) {
@@ -19,7 +19,7 @@ GXIntr ctrgxPopIntr(GXIntrQueue* q) {
         intr = q->list[(index + count) % CTRGX_INTRQUEUE_MAX_INTERRUPTS];
 
         header = (header & 0xFFFF0000) | ((u16)(count - 1) << 8) | (index + 1);
-    } while (__strex((s32*)q, header));
+    } while (__strex(CTRGX_EXMON_CAST(q), header));
 
     return intr;
 }
