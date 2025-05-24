@@ -13,6 +13,7 @@ static void onInterrupt(GXIntr intrID);
 
 static void gspIntrCb(void* intrID) {
     const size_t index = (size_t)intrID;
+    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
 
     if (g_IntrMask & (1 << index))
         onInterrupt((GXIntr)intrID);
@@ -26,7 +27,10 @@ bool ctrgxs_init(State* state) {
     if (R_FAILED(gspInit()))
         return false;
 
-    g_IntrMask = 0xFF;
+    do {
+        __ldrexb(&g_IntrMask);
+    } while (__strexb(&g_IntrMask, 0xFF));
+
     for (size_t i = 0; i < CTRGX_NUM_INTERRUPTS; ++i)
         LightEvent_Init(&g_IntrEvents[i], RESET_STICKY);
 
