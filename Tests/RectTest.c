@@ -1,8 +1,8 @@
 // TODO: adapt for baremetal.
 
-#include "GX/Wrappers/MemoryFill.h"
-#include "GX/Wrappers/DisplayTransfer.h"
-#include "GX/Wrappers/TextureCopy.h"
+#include <GX/Wrappers/MemoryFill.h>
+#include <GX/Wrappers/DisplayTransfer.h>
+#include <GX/Wrappers/TextureCopy.h>
 
 #include <stdio.h>
 

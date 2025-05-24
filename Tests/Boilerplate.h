@@ -1,7 +1,7 @@
 #ifndef _BOILERPLATE_H
 #define _BOILERPLATE_H
 
-#include "GX/GX.h"
+#include <GX/GX.h>
 
 #ifdef CTRGX_BAREMETAL
 #include <arm11/console.h>
