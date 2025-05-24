@@ -1,27 +1,48 @@
 #include "Boilerplate.h"
 
 #include <GX/Wrappers/MemoryFill.h>
+#include <GX/Wrappers/DisplayTransfer.h>
 
 #include <stdio.h>
 
-#define FB_SIZE 240 * 400 * 3
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 400
+#define SCREEN_BPP 3
+#define FB_SIZE SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP
 
+static void* g_VRAMBuffer = NULL;
 static u8 g_Red = 0xFF;
 static u8 g_Green = 0xFF;
 static u8 g_Blue = 0xFF;
 
 static void clearScreen() {
+    // Prepare fill structure.
     GXMemoryFillBuffer fill;
-    fill.addr = getTopFB();
+    fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
     fill.value = CTRGX_MEMORYFILL_VALUE_RGB8(g_Red, g_Green, g_Blue);
     fill.width = CTRGX_MEMORYFILL_WIDTH_24;
+
+    // Prepare transfer flags.
+    GXDisplayTransferFlags transferFlags;
+    transferFlags.srcFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.dstFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.downscale = CTRGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
+    transferFlags.verticalFlip = false;
+    transferFlags.makeTiled = false;
+    transferFlags.dontMakeLinear = false;
+    transferFlags.blockMode32 = false;
+
+    // Fill framebuffer through VRAM.
     ctrgxSyncMemoryFill(&fill, NULL);
+    ctrgxSyncDisplayTransfer(g_VRAMBuffer, getTopFB(), SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, ctrgxMakeDisplayTransferFlags(&transferFlags));
 }
 
 int main(int argc, char* argv[]) {
     graphicsInit();
     ctrgxInit();
+
+    g_VRAMBuffer = vramAlloc(FB_SIZE);
 
     bool updateConsole = true;
     while (mainLoop()) {
@@ -57,6 +78,8 @@ int main(int argc, char* argv[]) {
         swapBuffers();
         ctrgxWaitVBlank();
     }
+
+    vramFree(g_VRAMBuffer);
 
     ctrgxExit();
     graphicsExit();

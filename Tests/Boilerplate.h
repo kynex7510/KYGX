@@ -21,7 +21,7 @@ CTRGX_INLINE void graphicsInit(void) {
     GFX_initDefault();
     consoleInit(GFX_LCD_BOT, NULL);
 #else
-    gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, true);
+    gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
 #endif // CTRGX_BAREMETAL
 }
