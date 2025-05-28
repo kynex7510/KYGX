@@ -65,7 +65,7 @@ An application may setup a "static" command buffer, which uses static buffers in
 
 `ctrgxCmdBufferClear` resets the content of a command buffer. Commands are inserted with `ctrgxCmdBufferAdd`, while batches are marked with `ctrgxCmdBufferFinalize`, where it's possible to set a callback that will be executed on batch completion.
 
-A finalized command buffer is a command buffer whose batches are all finalized. Command execution will fail if the currently set command buffer is not finalized.
+A finalized command buffer is a command buffer with at least 1 finalized batch. Command execution will fail if the currently set command buffer is not finalized.
 
 ## Flushing and halting
 
@@ -83,4 +83,8 @@ Each command batch is executed atomically, that is, all commands in a batch must
 
 ## Synchronous execution
 
-Sometimes an application has to wait for a command to be completed to continue, for example when using `TextureCopy` when copying some data. A command may be executed with `ctrgxExecSync`: this function halts execution of the current command buffer, executes the given command, wait for completion, and then resume the execution of the command buffer.
+Sometimes an application has to wait for a command to be completed to continue, for example when using `TextureCopy`, an application might want to invalidate the destination buffer's cache. A command may be executed with `ctrgxExecSync`: this function halts execution of the current command buffer, executes the given command, wait for completion, and then resume the execution of the command buffer.
+
+## Wrappers
+
+Wrappers for all GX commands are exposed by the headers under the [Wrappers](Include/GX/Wrappers) folder. `ctrgxAdd*` is used with a command buffer, while `ctrgxSync*` is used for synchronous execution.
