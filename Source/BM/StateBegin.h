@@ -48,6 +48,7 @@ CTRGX_INLINE void CV_Broadcast(CV* cv) {
     } while (__strex(&cv->waiters, 0));
 
     if (w) {
+        // TODO: reschedule?
         signalSemaphore(cv->sema, w, false);
     } else {
         __dmb();
