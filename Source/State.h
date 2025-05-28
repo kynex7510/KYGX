@@ -12,6 +12,8 @@ typedef struct {
     GXIntrQueue* intrQueue;
     GXCmdQueue* cmdQueue;
     GXCmdBuffer* cmdBuffer;
+    GXCallback currentCb;
+    void* currentCbData;
     u8 pendingCommands;
     u8 completedCommands;
 } State;

@@ -35,10 +35,8 @@ static void triggerCommandHandling(void) {
 }
 
 static bool enqueueCommands(void) {
-    GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
-    CTRGX_ASSERT(cmdQueue);
-
-    if (!ctrgxCmdQueueIsHalted(cmdQueue))
+    // Do not enqueue commands if there's any pending.
+    if (g_GlobalState.pendingCommands)
         return true;
 
     GXCmdBuffer* cmdBuffer = g_GlobalState.cmdBuffer;
@@ -52,17 +50,26 @@ static bool enqueueCommands(void) {
         return false;
 
     // Write commands to queue.
+    GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
+    CTRGX_ASSERT(cmdQueue && !cmdQueue->count && ctrgxCmdQueueIsHalted(cmdQueue));
+
     for (u8 i = 0; i < cmdBuffer->count; ++i) {
         GXCmd* cmd;
-        CTRGX_BREAK_UNLESS(ctrgxCmdBufferPeek(cmdBuffer, i, &cmd, NULL, NULL));
+        GXCallback cb;
+        void* cbData;
+        CTRGX_BREAK_UNLESS(ctrgxCmdBufferPeek(cmdBuffer, i, &cmd, &cb, &cbData));
         CTRGX_BREAK_UNLESS(intrForCmd(cmd) != GX_INTR_UNKNOWN);
         CTRGX_BREAK_UNLESS(ctrgxCmdQueueAdd(cmdQueue, cmd));
 
-        if (cmd->header & CTRGX_CMDHEADER_FLAG_LAST)
+        if (cmd->header & CTRGX_CMDHEADER_FLAG_LAST) {
+            g_GlobalState.currentCb = cb;
+            g_GlobalState.currentCbData = cbData;
             break;
+        }
     }
 
     // Update state.
+    ctrgxCmdBufferAdvance(cmdBuffer, cmdQueue->count);
     g_GlobalState.pendingCommands = cmdQueue->count;
     g_GlobalState.completedCommands = 0;
 
@@ -82,15 +89,6 @@ static void onInterrupt(GXIntr intrID) {
     ++g_GlobalState.completedCommands;
     --g_GlobalState.pendingCommands;
 
-    GXCmdBuffer* cmdBuffer = g_GlobalState.cmdBuffer;
-    CTRGX_ASSERT(cmdBuffer);
-
-    GXCallback cb = NULL;
-    void* data = NULL;
-
-    CTRGX_BREAK_UNLESS(ctrgxCmdBufferPeek(cmdBuffer, 0, NULL, &cb, &data));
-    ctrgxCmdBufferAdvance(cmdBuffer, 1);
-
     // Handle batch termination.
     if (!g_GlobalState.pendingCommands) {
         // It's possible that, at this point, GSP still hasn't halted. Let's do it ourselves.
@@ -99,8 +97,11 @@ static void onInterrupt(GXIntr intrID) {
         ctrgxCmdQueueHalt(cmdQueue, true);
 
         // Invoke callback.
-        if (cb)
-            cb(data);
+        if (g_GlobalState.currentCb) {
+            g_GlobalState.currentCb(g_GlobalState.currentCbData);
+            g_GlobalState.currentCb = NULL;
+            g_GlobalState.currentCbData = NULL;
+        }
 
         // Proceed with the next batch if we weren't asked to halt.
         if (ctrgxs_signal_halt(&g_GlobalState))
@@ -125,6 +126,10 @@ bool ctrgxInit(void) {
 
     if (ctrgxs_init(&g_GlobalState)) {
         resetCmdQueue(true);
+        g_GlobalState.currentCb = NULL;
+        g_GlobalState.currentCbData = NULL;
+        g_GlobalState.pendingCommands = 0;
+        g_GlobalState.completedCommands = 0;
         return true;
     }
 
@@ -133,6 +138,8 @@ bool ctrgxInit(void) {
 }
 
 void ctrgxExit(void) {
+    ctrgxHalt(true);
+
     if (!__atomic_sub_fetch(&g_Refc, 1, __ATOMIC_SEQ_CST)) {
         resetCmdQueue(false);
         ctrgxs_cleanup(&g_GlobalState);
