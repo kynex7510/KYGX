@@ -15,7 +15,16 @@ static KHandle g_IntrEvents[CTRGX_NUM_INTERRUPTS];
 // Defined in GX.c.
 static void onInterrupt(GXIntr intrID);
 
-// INTR HACK START
+// INTR HACK BEGIN
+
+/*
+    The following is a hack, which happens to work well enough for now.
+    Currently, libn3ds provides no way of setting a callback for GPU interrupts (akin to gspSetEventCallback in libctru).
+    The workaround is to spawn a thread for each interrupt. This hack is pretty bad because, other than being resource
+    inefficient and wasting context switches, it's not possible to signal each thread when to terminate, as we have no
+    control over the interrupt events, which are managed internally by libn3ds. This means an application shall not call
+    ctrgxInit and ctrgxExit more than once in its entire lifetime.
+*/
 
 static void intrThread(void* intrID) {
     const size_t index = (size_t)intrID;

@@ -1,21 +1,22 @@
-#include "Boilerplate.h"
+#include "GX/Wrappers/MemoryFill.h"
+#include "GX/Wrappers/DisplayTransfer.h"
 
-#include <GX/Wrappers/MemoryFill.h>
-#include <GX/Wrappers/DisplayTransfer.h>
+#include <arm11/fmt.h>
+#include <arm11/power.h>
+#include <arm11/console.h>
+#include <arm11/allocator/vram.h>
+#include <arm11/drivers/hid.h>
 
-#include <stdio.h>
-
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 400
-#define SCREEN_BPP 3
-#define FB_SIZE SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP
+#define FB_SIZE LCD_WIDTH_TOP * LCD_HEIGHT_TOP * 3
 
 static void* g_VRAMBuffer = NULL;
 static u8 g_Red = 0xFF;
 static u8 g_Green = 0xFF;
 static u8 g_Blue = 0xFF;
 
-static void clearScreen() {
+static void clearScreen(void) {
+    u8* fb = GFX_getBuffer(GFX_LCD_TOP, GFX_SIDE_LEFT);
+
     // Prepare fill structure.
     GXMemoryFillBuffer fill;
     fill.addr = g_VRAMBuffer;
@@ -35,17 +36,19 @@ static void clearScreen() {
 
     // Fill framebuffer through VRAM.
     ctrgxSyncMemoryFill(&fill, NULL);
-    ctrgxSyncDisplayTransfer(g_VRAMBuffer, getTopFB(), SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, ctrgxMakeDisplayTransferFlags(&transferFlags));
+    ctrgxSyncDisplayTransfer(g_VRAMBuffer, fb, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, ctrgxMakeDisplayTransferFlags(&transferFlags));
 }
 
-int main(int argc, char* argv[]) {
-    graphicsInit();
+int main(void) {
+    GFX_init(GFX_BGR8, GFX_BGR565, GFX_TOP_2D);
+    GFX_setLcdLuminance(80);
+    consoleInit(GFX_LCD_BOT, NULL);
     ctrgxInit();
 
     g_VRAMBuffer = vramAlloc(FB_SIZE);
 
     bool updateConsole = true;
-    while (mainLoop()) {
+    while (true) {
         hidScanInput();
         const u32 kDown = hidKeysDown();
 
@@ -54,7 +57,7 @@ int main(int argc, char* argv[]) {
 
         if (updateConsole) {
             consoleClear();
-            printf("RED: %u, GREEN: %u, BLUE: %u\n", g_Red, g_Green, g_Blue);
+            ee_printf("RED: %u, GREEN: %u, BLUE: %u\n", g_Red, g_Green, g_Blue);
             updateConsole = false;
         }
 
@@ -75,13 +78,14 @@ int main(int argc, char* argv[]) {
         }
 
         clearScreen();
-        swapBuffers();
+        GFX_swapBuffers();
         ctrgxWaitVBlank();
     }
 
     vramFree(g_VRAMBuffer);
 
     ctrgxExit();
-    graphicsExit();
+    GFX_deinit();
+    power_off();
     return 0;
 }

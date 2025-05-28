@@ -5,6 +5,7 @@
 #include <arm.h>
 #include <util.h>
 #include <kmutex.h>
+#include <kevent.h>
 #include <ksemaphore.h>
 #include <drivers/gfx.h>
 #include <drivers/cache.h>

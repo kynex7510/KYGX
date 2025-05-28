@@ -1,8 +1,6 @@
-// TODO: adapt for baremetal.
-
-#include <GX/Wrappers/MemoryFill.h>
-#include <GX/Wrappers/DisplayTransfer.h>
-#include <GX/Wrappers/TextureCopy.h>
+#include "GX/Wrappers/MemoryFill.h"
+#include "GX/Wrappers/DisplayTransfer.h"
+#include "GX/Wrappers/TextureCopy.h"
 
 #include <stdio.h>
 
@@ -46,6 +44,10 @@ static void clearScreen(void) {
     // Fill framebuffer with white through VRAM.
     ctrgxLock();
     ctrgxAddMemoryFill(&g_CmdBuffer, &fill, NULL);
+
+    // Finalize: the same buffer should not be used with different commands at the same time.
+    ctrgxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
+
     ctrgxAddDisplayTransfer(&g_CmdBuffer, g_VRAMBuffer, fb, screenWidth, screenHeight, screenWidth, screenHeight, ctrgxMakeDisplayTransferFlags(&transferFlags));
     ctrgxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
     ctrgxUnlock(true);
@@ -80,7 +82,7 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
     ctrgxLock();
     ctrgxAddMemoryFill(&g_CmdBuffer, NULL, &fill);
 
-    // We must finalize here: depending on the offset, MemoryFill might not have gotten there yet.
+    // Finalize: the same buffer should not be used with different commands at the same time.
     ctrgxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
 
     ctrgxAddTextureCopy(&g_CmdBuffer, (u8*)g_VRAMBuffer + offset, fb + offset, size, lineWidth, gap, lineWidth, gap);
