@@ -1,5 +1,5 @@
-#ifndef _CTRGX_HELPERS_MEMORYFILL_H
-#define _CTRGX_HELPERS_MEMORYFILL_H
+#ifndef _CTRGX_WRAPPERS_MEMORYFILL_H
+#define _CTRGX_WRAPPERS_MEMORYFILL_H
 
 #include "GX/GX.h"
 
@@ -58,4 +58,4 @@ CTRGX_INLINE void ctrgxSyncMemoryFill(const GXMemoryFillBuffer* buffer0, const G
     ctrgxExecSync(&cmd);
 }
 
-#endif /* _CTRGX_HELPERS_MEMORYFILL_H */
+#endif /* _CTRGX_WRAPPERS_MEMORYFILL_H */

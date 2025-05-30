@@ -1,5 +1,5 @@
-#ifndef _CTRGX_HELPERS_TEXTURECOPY_H
-#define _CTRGX_HELPERS_TEXTURECOPY_H
+#ifndef _CTRGX_WRAPPERS_TEXTURECOPY_H
+#define _CTRGX_WRAPPERS_TEXTURECOPY_H
 
 #include "GX/GX.h"
 
@@ -83,4 +83,4 @@ CTRGX_INLINE void ctrgxSyncTextureCopy(const void* src, void* dst, size_t size, 
     ctrgxExecSync(&cmd);
 }
 
-#endif /* _CTRGX_HELPERS_TEXTURECOPY_H */
+#endif /* _CTRGX_WRAPPERS_TEXTURECOPY_H */

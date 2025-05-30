@@ -1,5 +1,5 @@
-#ifndef _CTRGX_HELPERS_DISPLAYTRANSFER_H
-#define _CTRGX_HELPERS_DISPLAYTRANSFER_H
+#ifndef _CTRGX_WRAPPERS_DISPLAYTRANSFER_H
+#define _CTRGX_WRAPPERS_DISPLAYTRANSFER_H
 
 #include "GX/GX.h"
 
@@ -91,4 +91,4 @@ CTRGX_INLINE void ctrgxSyncDisplayTransfer(const void* src, void* dst, u16 srcWi
     ctrgxExecSync(&cmd);
 }
 
-#endif /* _CTRGX_HELPERS_DISPLAYTRANSFER_H */
+#endif /* _CTRGX_WRAPPERS_DISPLAYTRANSFER_H */

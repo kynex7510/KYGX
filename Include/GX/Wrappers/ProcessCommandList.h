@@ -1,5 +1,5 @@
-#ifndef _CTRGX_HELPERS_PROCESSCOMMANDLIST_H
-#define _CTRGX_HELPERS_PROCESSCOMMANDLIST_H
+#ifndef _CTRGX_WRAPPERS_PROCESSCOMMANDLIST_H
+#define _CTRGX_WRAPPERS_PROCESSCOMMANDLIST_H
 
 #include "GX/GX.h"
 
@@ -28,4 +28,4 @@ CTRGX_INLINE void ctrgxSyncProcessCommandList(void* addr, size_t size, bool upda
     ctrgxExecSync(&cmd);
 }
 
-#endif /* _CTRGX_HELPERS_PROCESSCOMMANDLIST_H */
+#endif /* _CTRGX_WRAPPERS_PROCESSCOMMANDLIST_H */

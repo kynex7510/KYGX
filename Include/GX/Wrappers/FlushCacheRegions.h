@@ -1,5 +1,5 @@
-#ifndef _CTRGX_HELPERS_FLUSHCACHEREGIONS_H
-#define _CTRGX_HELPERS_FLUSHCACHEREGIONS_H
+#ifndef _CTRGX_WRAPPERS_FLUSHCACHEREGIONS_H
+#define _CTRGX_WRAPPERS_FLUSHCACHEREGIONS_H
 
 #include "GX/GX.h"
 
@@ -46,4 +46,4 @@ CTRGX_INLINE void ctrgxSyncFlushCacheRegions(GXCmdBuffer* b, const GXFlushCacheR
     ctrgxExecSync(&cmd);
 }
 
-#endif /* _CTRGX_HELPERS_FLUSHCACHEREGIONS_H */
+#endif /* _CTRGX_WRAPPERS_FLUSHCACHEREGIONS_H */
