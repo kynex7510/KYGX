@@ -1,3 +1,6 @@
+#include <kevent.h>
+#include <drivers/gfx.h>
+
 #include "CmdImpl.h"
 
 #define SAFE_OPS STATEOP_INTR

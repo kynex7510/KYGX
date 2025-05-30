@@ -1,3 +1,8 @@
+#include <util.h>
+#include <drivers/cache.h>
+#include <arm11/drivers/gx.h>
+#include <arm11/drivers/gpu_regs.h>
+
 #include "../State.h"
 
 CTRGX_INLINE void doProcessCommandList(u32 addr, u32 size, bool updateGasAccMax, bool flush) {

@@ -2,24 +2,12 @@
 #define _CTRGX_DEFS_H
 
 #ifdef CTRGX_BAREMETAL
-#include <arm.h>
-#include <util.h>
-#include <kmutex.h>
-#include <kevent.h>
-#include <ksemaphore.h>
-#include <drivers/gfx.h>
-#include <drivers/cache.h>
-#include <arm11/drivers/gx.h>
-#include <arm11/drivers/gpu_regs.h>
+#include <arm.h> // ldrex, strex et al
 #include <stdbool.h>
-
 #define CTRGX_EXMON_CAST(v) (u32*)(v)
-
 #else
 #include <3ds.h>
-
 #define CTRGX_EXMON_CAST(v) (s32*)(v)
-
 #endif // CTRGX_BAREMETAL
 
 #define CTRGX_PACKED __attribute__((packed))

@@ -3,6 +3,9 @@
 
 #include "GX/GX.h"
 
+#include <kmutex.h>
+#include <ksemaphore.h>
+
 typedef struct {
     KHandle sema;
     u32 waiters;
