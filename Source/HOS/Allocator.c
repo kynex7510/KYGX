@@ -4,7 +4,7 @@
 #include <malloc.h> // malloc_usable_size
 
 void* ctrgxAllocAligned(GXMemType memType, size_t size, size_t alignment) {
-    if (alignment == GX_ALLOC_ALIGN_DEFAULT) {
+    if (!alignment) {
         switch (memType) {
             case GX_MEM_HEAP:
                 return malloc(size);
@@ -46,7 +46,7 @@ CTRGX_INLINE vramAllocPos getVRAMPos(GXVRAMBank bank) {
 }
 
 void* ctrgxAllocAlignedVRAM(GXVRAMBank bank, size_t size, size_t aligment) {
-    if (aligment == GX_ALLOC_ALIGN_DEFAULT)
+    if (!aligment)
         return vramAllocAt(size, getVRAMPos(bank));
     
     return vramMemAlignAt(size, aligment, getVRAMPos(bank));
@@ -65,7 +65,6 @@ void ctrgxFree(void* p) {
             break;
         case GX_MEM_QTM:
             // TODO
-            break;
         default:;
     }
 }

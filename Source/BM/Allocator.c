@@ -7,20 +7,19 @@
 #include <malloc.h> // malloc_usable_size
 
 void* ctrgxAllocAligned(GXMemType memType, size_t size, size_t alignment) {
-    if (alignment == GX_ALLOC_ALIGN_DEFAULT) {
+    if (!alignment) {
         switch (memType) {
             case GX_MEM_HEAP:
                 return malloc(size);
             case GX_MEM_LINEAR:
                 // TODO
                 CTRGX_UNREACHABLE("Unimplemented!");
-                break;
+                return NULL;
             case GX_MEM_VRAM:
                 return vramAlloc(size);
             case GX_MEM_QTM:
                 // TODO
                 CTRGX_UNREACHABLE("Unimplemented!");
-                break;
             default:
                 return NULL;
         }
@@ -32,13 +31,12 @@ void* ctrgxAllocAligned(GXMemType memType, size_t size, size_t alignment) {
         case GX_MEM_LINEAR:
             // TODO
             CTRGX_UNREACHABLE("Unimplemented!");
-            break;
+            return NULL;
         case GX_MEM_VRAM:
             return vramMemAlign(size, alignment);
         case GX_MEM_QTM:
             // TODO
             CTRGX_UNREACHABLE("Unimplemented!");
-            break;
         default:
             return NULL;
     }
@@ -55,7 +53,7 @@ CTRGX_INLINE vramAllocPos getVRAMPos(GXVRAMBank bank) {
 }
 
 void* ctrgxAllocAlignedVRAM(GXVRAMBank bank, size_t size, size_t aligment) {
-    if (aligment == GX_ALLOC_ALIGN_DEFAULT)
+    if (!aligment)
         return vramAllocAt(size, getVRAMPos(bank));
     
     return vramMemAlignAt(size, aligment, getVRAMPos(bank));
@@ -74,7 +72,6 @@ void ctrgxFree(void* p) {
             break;
         case GX_MEM_QTM:
             // TODO
-            break;
         default:;
     }
 }
@@ -82,10 +79,11 @@ void ctrgxFree(void* p) {
 GXMemType ctrgxGetMemType(const void* p) {
     const u32 addr = (u32)p;
 
+    // TODO: check this.
     if (addr >= AXI_RAM_BASE && addr <= A11_HEAP_END)
         return GX_MEM_HEAP;
 
-    if (addr >= FCRAM_BASE && addr <= (FCRAM_BASE + FCRAM_EXT_SIZE))
+    if (addr >= FCRAM_BASE && addr <= (FCRAM_BASE + FCRAM_SIZE + FCRAM_EXT_SIZE))
         return GX_MEM_LINEAR;
 
     if (addr >= VRAM_BASE && addr <= (VRAM_BASE + VRAM_SIZE))
@@ -95,4 +93,20 @@ GXMemType ctrgxGetMemType(const void* p) {
         return GX_MEM_QTM;
 
     return GX_MEM_UNKNOWN;
+}
+
+size_t ctrgxGetAllocSize(const void* p) {
+    switch (ctrgxGetAllocType(p)) {
+        case GX_MEM_HEAP:
+            return malloc_usable_size(p);
+        case GX_MEM_LINEAR:
+            // TODO
+            return 0;
+        case GX_MEM_VRAM:
+            return vramGetSize(p);
+        case GX_MEM_QTM:
+            // TODO
+        default:
+            return 0;
+    }
 }

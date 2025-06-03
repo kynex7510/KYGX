@@ -3,8 +3,6 @@
 
 #include <GX/Defs.h>
 
-#define GX_ALLOC_ALIGN_DEFAULT (size_t)(-1)
-
 typedef enum {
     GX_MEM_HEAP,
     GX_MEM_LINEAR,
@@ -25,8 +23,8 @@ void ctrgxFree(void* p);
 GXMemType ctrgxGetMemType(const void* p);
 size_t ctrgxGetAllocSize(const void* p);
 
-CTRGX_INLINE void* ctrgxAlloc(GXMemType memType, size_t size) { return ctrgxAllocAligned(memType, size, GX_ALLOC_ALIGN_DEFAULT); }
-CTRGX_INLINE void* ctrgxAllocVRAM(GXVRAMBank bank, size_t size) { return ctrgxAllocAlignedVRAM(bank, size, GX_ALLOC_ALIGN_DEFAULT); }
+CTRGX_INLINE void* ctrgxAlloc(GXMemType memType, size_t size) { return ctrgxAllocAligned(memType, size, 0); }
+CTRGX_INLINE void* ctrgxAllocVRAM(GXVRAMBank bank, size_t size) { return ctrgxAllocAlignedVRAM(bank, size, 0); }
 
 CTRGX_INLINE bool ctrgxIsHeapMem(const void* p) { return ctrgxGetMemType(p) == GX_MEM_HEAP; }
 CTRGX_INLINE bool ctrgxIsLinearMem(const void* p) { return ctrgxGetMemType(p) == GX_MEM_LINEAR; }
