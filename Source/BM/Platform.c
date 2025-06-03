@@ -1,4 +1,4 @@
-#include "GX/Defs.h"
+#include <GX/Defs.h>
 
 #ifdef CTRGX_BAREMETAL
 

@@ -1,7 +1,7 @@
 #ifndef _CTRGX_COMMAND_H
 #define _CTRGX_COMMAND_H
 
-#include "GX/Defs.h"
+#include <GX/Defs.h>
 
 #define CTRGX_CMDID_REQUESTDMA 0x00
 #define CTRGX_CMDID_PROCESSCOMMANDLIST 0x01

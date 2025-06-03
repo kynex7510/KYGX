@@ -1,7 +1,7 @@
 #ifndef _CTRGX_WRAPPERS_FLUSHCACHEREGIONS_H
 #define _CTRGX_WRAPPERS_FLUSHCACHEREGIONS_H
 
-#include "GX/GX.h"
+#include <GX/GX.h>
 
 typedef struct {
     void* addr;

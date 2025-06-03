@@ -1,7 +1,7 @@
 #ifndef _CTRGX_BM_STATEBEGIN_H
 #define _CTRGX_BM_STATEBEGIN_H
 
-#include "GX/GX.h"
+#include <GX/GX.h>
 
 #include <kmutex.h>
 #include <ksemaphore.h>

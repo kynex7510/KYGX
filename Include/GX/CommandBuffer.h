@@ -1,7 +1,7 @@
 #ifndef _CTRGX_COMMAND_BUFFER_H
 #define _CTRGX_COMMAND_BUFFER_H
 
-#include "GX/Command.h"
+#include <GX/Command.h>
 
 #include <string.h> // memcpy
 

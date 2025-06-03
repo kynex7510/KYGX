@@ -4,7 +4,7 @@
 // Baremetal doesn't support this command.
 #ifndef CTRGX_BAREMETAL
 
-#include "GX/GX.h"
+#include <GX/GX.h>
 
 CTRGX_INLINE void ctrgxMakeRequestDMA(GXCmd* cmd, const void* src, void* dst, size_t size, bool flush) {
     CTRGX_ASSERT(cmd);

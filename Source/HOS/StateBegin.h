@@ -1,7 +1,7 @@
 #ifndef _CTRGX_HOS_STATEBEGIN_H
 #define _CTRGX_HOS_STATEBEGIN_H
 
-#include "GX/GX.h"
+#include <GX/GX.h>
 
 typedef struct {
     LightLock lock;

@@ -1,9 +1,9 @@
 #ifndef _CTRGX_GX_H
 #define _CTRGX_GX_H
 
-#include "GX/Command.h"
-#include "GX/Interrupt.h"
-#include "GX/CommandBuffer.h"
+#include <GX/Command.h>
+#include <GX/Interrupt.h>
+#include <GX/CommandBuffer.h>
 
 #define ctrgxWaitVBlank()         \
     ctrgxClearIntr(GX_INTR_PDC0); \

@@ -50,6 +50,12 @@
 #define CTRGX_ASSERT(cond)
 #endif // !NDEBUG
 
+#define CTRGX_UNREACHABLE(s) \
+    do {                     \
+        CTRGX_LOG(s);        \
+        CTRGX_BREAK();       \
+    } while (false)
+
 CTRGX_EXTERN __attribute__((noreturn)) void ctrgx_platform_break(void);
 CTRGX_EXTERN void ctrgx_platform_log(const char* s, size_t size);
 

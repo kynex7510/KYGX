@@ -1,7 +1,7 @@
 #ifndef _CTRGX_WRAPPERS_TEXTURECOPY_H
 #define _CTRGX_WRAPPERS_TEXTURECOPY_H
 
-#include "GX/GX.h"
+#include <GX/GX.h>
 
 #define CTRGX_TEXTURECOPY_PIXEL_SIZE_RGBA8 4
 #define CTRGX_TEXTURECOPY_PIXEL_SIZE_RGB8 3
@@ -16,11 +16,11 @@ typedef struct {
     u16 height;
 } GXTextureCopyRect;
 
-CTRGX_INLINE void ctrgxConvertTextureCopyRect(const GXTextureCopyRect* rect, u16 screenWidth, u8 pixelSize, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
+CTRGX_INLINE void ctrgxConvertTextureCopyRect(const GXTextureCopyRect* rect, u16 surfaceWidth, u8 pixelSize, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
     CTRGX_ASSERT(rect);
 
     if (offset)
-        *offset = (screenWidth * rect->y * pixelSize) + (rect->x * pixelSize);
+        *offset = (surfaceWidth * rect->y * pixelSize) + (rect->x * pixelSize);
 
     if (size)
         *size = rect->width * rect->height * pixelSize;
@@ -29,10 +29,10 @@ CTRGX_INLINE void ctrgxConvertTextureCopyRect(const GXTextureCopyRect* rect, u16
         *lineWidth = (rect->width * pixelSize) >> 4;
 
     if (gap)
-        *gap = ((screenWidth - rect->width) * pixelSize) >> 4;
+        *gap = ((surfaceWidth - rect->width) * pixelSize) >> 4;
 }
 
-CTRGX_INLINE void ctrgxConvertTextureCopyRectRotated(const GXTextureCopyRect* rect, u16 screenHeight, u8 pixelSize, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
+CTRGX_INLINE void ctrgxConvertTextureCopyRectRotated(const GXTextureCopyRect* rect, u16 surfaceHeight, u8 pixelSize, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
     CTRGX_ASSERT(rect);
 
     GXTextureCopyRect tmp;
@@ -40,7 +40,7 @@ CTRGX_INLINE void ctrgxConvertTextureCopyRectRotated(const GXTextureCopyRect* re
     tmp.y = rect->x;
     tmp.width = rect->height;
     tmp.height = rect->width;
-    ctrgxConvertTextureCopyRect(&tmp, screenHeight, pixelSize, offset, size, lineWidth, gap);
+    ctrgxConvertTextureCopyRect(&tmp, surfaceHeight, pixelSize, offset, size, lineWidth, gap);
 }
 
 CTRGX_INLINE void ctrgxMakeTextureCopy(GXCmd* cmd, const void* src, void* dst, size_t size, u16 srcLineWidth, u16 srcGap, u16 dstLineWidth, u16 dstGap) {

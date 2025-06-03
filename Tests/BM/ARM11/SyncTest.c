@@ -1,5 +1,5 @@
-#include "GX/Wrappers/MemoryFill.h"
-#include "GX/Wrappers/DisplayTransfer.h"
+#include <GX/Wrappers/MemoryFill.h>
+#include <GX/Wrappers/DisplayTransfer.h>
 
 #include <arm11/fmt.h>
 #include <arm11/power.h>
@@ -26,12 +26,11 @@ static void clearScreen(void) {
 
     // Prepare transfer flags.
     GXDisplayTransferFlags transferFlags;
+    transferFlags.mode = CTRGX_DISPLAYTRANSFER_MODE_T2L;
     transferFlags.srcFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
     transferFlags.dstFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
     transferFlags.downscale = CTRGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
     transferFlags.verticalFlip = false;
-    transferFlags.makeTiled = false;
-    transferFlags.dontMakeLinear = false;
     transferFlags.blockMode32 = false;
 
     // Fill framebuffer through VRAM.

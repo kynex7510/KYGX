@@ -1,4 +1,4 @@
-#include "GX/Interrupt.h"
+#include <GX/Interrupt.h>
 
 GXIntr ctrgxPopIntr(GXIntrQueue* q) {
     CTRGX_ASSERT(q);

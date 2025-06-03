@@ -1,11 +1,12 @@
-#include "GX/CommandBuffer.h"
+#include <GX/CommandBuffer.h>
+#include <GX/Allocator.h>
 
 #include <stdlib.h> // malloc, free
 
 bool ctrgxCmdBufferAlloc(GXCmdBuffer* b, u8 capacity) {
     CTRGX_ASSERT(b);
 
-    void* buffer = malloc((sizeof(GXCmd) + sizeof(GXCallback) + sizeof(void*)) * capacity);
+    void* buffer = ctrgxAlloc(GX_MEM_HEAP, (sizeof(GXCmd) + sizeof(GXCallback) + sizeof(void*)) * capacity);
     if (buffer) {
         b->cmdList = (GXCmd*)buffer;
         b->callbackList = (GXCallback*)(&b->cmdList[capacity]);
@@ -20,7 +21,7 @@ bool ctrgxCmdBufferAlloc(GXCmdBuffer* b, u8 capacity) {
 void ctrgxCmdBufferFree(GXCmdBuffer* b) {
     CTRGX_ASSERT(b);
 
-    free(b->cmdList);
+    ctrgxFree(b->cmdList);
     b->cmdList = NULL;
     b->callbackList = NULL;
     b->userDataList = NULL;

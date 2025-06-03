@@ -1,4 +1,4 @@
-#include "GX/GX.h"
+#include <GX/GX.h>
 #include "State.h"
 
 static State g_GlobalState = {};

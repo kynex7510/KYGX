@@ -1,7 +1,7 @@
 #ifndef _CTRGX_INTERRUPT_H
 #define _CTRGX_INTERRUPT_H
 
-#include "GX/Defs.h"
+#include <GX/Defs.h>
 
 #define CTRGX_INTRQUEUE_MAX_INTERRUPTS 52
 #define CTRGX_INTRQUEUE_MAX_PDC_INTERRUPTS 32

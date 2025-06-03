@@ -1,7 +1,7 @@
 #ifndef _CTRGX_WRAPPERS_MEMORYFILL_H
 #define _CTRGX_WRAPPERS_MEMORYFILL_H
 
-#include "GX/GX.h"
+#include <GX/GX.h>
 
 #define CTRGX_MEMORYFILL_VALUE_RGBA8(r, g, b, a) (((r) << 24) | ((g) << 16) | ((b) << 8) | (a))
 #define CTRGX_MEMORYFILL_VALUE_RGB8(r, g, b) (((r) << 16) | ((g) << 8) | (b))

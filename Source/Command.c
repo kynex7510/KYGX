@@ -1,4 +1,4 @@
-#include "GX/Command.h"
+#include <GX/Command.h>
 
 #include <string.h> // memcpy
 

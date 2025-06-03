@@ -1,6 +1,7 @@
-#include "GX/Wrappers/MemoryFill.h"
-#include "GX/Wrappers/DisplayTransfer.h"
-#include "GX/Wrappers/TextureCopy.h"
+#include <GX/Allocator.h>
+#include <GX/Wrappers/MemoryFill.h>
+#include <GX/Wrappers/DisplayTransfer.h>
+#include <GX/Wrappers/TextureCopy.h>
 
 #include <arm11/fmt.h>
 #include <arm11/power.h>
@@ -37,12 +38,11 @@ static void clearScreen(void) {
 
     // Prepare transfer flags.
     GXDisplayTransferFlags transferFlags;
+    transferFlags.mode = CTRGX_DISPLAYTRANSFER_MODE_T2L;
     transferFlags.srcFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
     transferFlags.dstFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
     transferFlags.downscale = CTRGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
     transferFlags.verticalFlip = false;
-    transferFlags.makeTiled = false;
-    transferFlags.dontMakeLinear = false;
     transferFlags.blockMode32 = false;
 
     // Fill framebuffer with white through VRAM.
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     consoleInit(GFX_LCD_BOT, NULL);
     ctrgxInit();
 
-    g_VRAMBuffer = vramAlloc(FB_SIZE);
+    g_VRAMBuffer = ctrgxAlloc(GX_MEM_VRAM, FB_SIZE);
 
     ctrgxCmdBufferAlloc(&g_CmdBuffer, CMDBUFFER_CAPACITY);
     ctrgxExchangeCmdBuffer(&g_CmdBuffer, true);
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     ctrgxExchangeCmdBuffer(NULL, true);
     ctrgxCmdBufferFree(&g_CmdBuffer);
 
-    vramFree(g_VRAMBuffer);
+    ctrgxFree(g_VRAMBuffer);
 
     ctrgxExit();
     GFX_deinit();

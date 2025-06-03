@@ -1,7 +1,7 @@
 #ifndef _CTRGX_WRAPPERS_PROCESSCOMMANDLIST_H
 #define _CTRGX_WRAPPERS_PROCESSCOMMANDLIST_H
 
-#include "GX/GX.h"
+#include <GX/GX.h>
 
 CTRGX_INLINE void ctrgxMakeProcessCommandList(GXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
     CTRGX_ASSERT(cmd);
