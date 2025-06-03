@@ -50,10 +50,12 @@
 #define CTRGX_ASSERT(cond)
 #endif // !NDEBUG
 
-#define CTRGX_UNREACHABLE(s) \
-    do {                     \
-        CTRGX_LOG(s);        \
-        CTRGX_BREAK();       \
+#define CTRGX_UNREACHABLE(s)                              \
+    do {                                                  \
+        CTRGX_LOG("Unreachable point reached: " s);       \
+        CTRGX_LOG("In file: " CTRGX_STRINGIFY(__FILE__)); \
+        CTRGX_LOG("On line: " CTRGX_STRINGIFY(__LINE__)); \
+        CTRGX_BREAK();                                    \
     } while (false)
 
 CTRGX_EXTERN __attribute__((noreturn)) void ctrgx_platform_break(void);

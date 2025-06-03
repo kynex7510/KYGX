@@ -1,7 +1,5 @@
 #include <GX/Defs.h>
 
-#ifndef CTRGX_BAREMETAL
-
 #include <stdlib.h> // abort
 
 void ctrgx_platform_break(void) {
@@ -14,5 +12,3 @@ void ctrgx_platform_log(const char* s, size_t size) {
     svcOutputDebugString(s, size);
 #endif // !NDEBUG
 }
-
-#endif // !CTRGX_BAREMETAL

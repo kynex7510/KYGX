@@ -38,9 +38,7 @@ CTRGX_INLINE void ctrgxMakeFlushCacheRegions(GXCmd* cmd, const GXFlushCacheRegio
 }
 
 // This command only exists in synchronous mode because it doesn't trigger any interrupt, and there is no nice way to know when it has completed.
-CTRGX_INLINE void ctrgxSyncFlushCacheRegions(GXCmdBuffer* b, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
-    CTRGX_ASSERT(b);
-
+CTRGX_INLINE void ctrgxSyncFlushCacheRegions(const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
     GXCmd cmd;
     ctrgxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
     ctrgxExecSync(&cmd);
