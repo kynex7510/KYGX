@@ -68,7 +68,7 @@ bool ctrgxs_init(State* state) {
         g_IntrEvents[i] = createEvent(false);
 
     state->platform.lock = createMutex();
-    CTRGX_ASSERT(state->platform.lock != NULL);
+    CTRGX_ASSERT(state->platform.lock);
 
     CV_Init(&state->platform.completionCV);
     CV_Init(&state->platform.haltCV);

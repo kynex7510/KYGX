@@ -1,3 +1,4 @@
+#include <GX/Allocator.h>
 #include <GX/Wrappers/MemoryFill.h>
 #include <GX/Wrappers/DisplayTransfer.h>
 
@@ -44,7 +45,7 @@ int main(void) {
     consoleInit(GFX_LCD_BOT, NULL);
     ctrgxInit();
 
-    g_VRAMBuffer = vramAlloc(FB_SIZE);
+    g_VRAMBuffer = ctrgxAlloc(GX_MEM_VRAM, FB_SIZE);
 
     bool updateConsole = true;
     while (true) {
@@ -81,7 +82,7 @@ int main(void) {
         ctrgxWaitVBlank();
     }
 
-    vramFree(g_VRAMBuffer);
+    ctrgxFree(g_VRAMBuffer);
 
     ctrgxExit();
     GFX_deinit();

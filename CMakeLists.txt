@@ -22,9 +22,15 @@ set(GX_SOURCES
 )
 
 if (CTRGX_BAREMETAL)
-    set(GX_SOURCES ${GX_SOURCES} Source/BM/Platform.c)
+    set(GX_SOURCES ${GX_SOURCES}
+        Source/BM/Platform.c
+        Source/BM/Allocator.c
+    )
 else()
-    set(GX_SOURCES ${GX_SOURCES} Source/HOS/Platform.c)
+    set(GX_SOURCES ${GX_SOURCES}
+        Source/HOS/Platform.c
+        Source/HOS/Allocator.c
+    )
 endif()
 
 add_library(gx STATIC ${GX_SOURCES})

@@ -2,13 +2,27 @@
 
 #include <stdlib.h> // abort
 
-void ctrgx_platform_break(void) {
-    svcBreak(USERBREAK_PANIC);
-    while (true) {}
+static size_t findChar(const char* s, char c) {
+    size_t index = 0;
+    while (s[index] != c) {
+        if (!s[index])
+            return -1;
+
+        ++index;
+    }
+
+    return index;
 }
 
-void ctrgx_platform_log(const char* s, size_t size) {
-#ifndef NDEBUG
-    svcOutputDebugString(s, size);
-#endif // !NDEBUG
+void ctrgx_platform_break(const char* msg, size_t size) {
+    size_t pos = findChar(msg, '\n');
+    while (pos != -1) {
+        svcOutputDebugString(msg, pos);
+        msg = msg + pos + 1;
+        pos = findChar(msg, '\n');
+    }
+    
+    svcOutputDebugString(msg, findChar(msg, '\0'));
+    svcBreak(USERBREAK_PANIC);
+    while (true) {}
 }

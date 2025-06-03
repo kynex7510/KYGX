@@ -1,3 +1,4 @@
+#include <types.h>
 #include <mem_map.h>
 #include <arm11/allocator/vram.h>
 
@@ -60,7 +61,7 @@ void* ctrgxAllocAlignedVRAM(GXVRAMBank bank, size_t size, size_t aligment) {
 }
 
 void ctrgxFree(void* p) {
-    switch (ctrgxGetAllocType(p)) {
+    switch (ctrgxGetMemType(p)) {
         case GX_MEM_HEAP:
             free(p);
             break;
@@ -96,14 +97,14 @@ GXMemType ctrgxGetMemType(const void* p) {
 }
 
 size_t ctrgxGetAllocSize(const void* p) {
-    switch (ctrgxGetAllocType(p)) {
+    switch (ctrgxGetMemType(p)) {
         case GX_MEM_HEAP:
-            return malloc_usable_size(p);
+            return malloc_usable_size((void*)p);
         case GX_MEM_LINEAR:
             // TODO
             return 0;
         case GX_MEM_VRAM:
-            return vramGetSize(p);
+            return vramGetSize((void*)p);
         case GX_MEM_QTM:
             // TODO
         default:

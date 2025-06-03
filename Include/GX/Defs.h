@@ -24,41 +24,35 @@
 #define CTRGX_AS_STRING(x) #x
 #define CTRGX_STRINGIFY(x) CTRGX_AS_STRING(x)
 
-#define CTRGX_BREAK() ctrgx_platform_break()
+#define CTRGX_BREAK(reason) ctrgx_platform_break((reason), sizeof(reason) - 1)
 
-#define CTRGX_BREAK_UNLESS(cond) \
-    if (!CTRGX_LIKELY(cond)) {   \
-        CTRGX_BREAK();           \
+#define CTRGX_BREAK_UNLESS(cond)            \
+    if (!CTRGX_LIKELY(cond)) {              \
+        CTRGX_BREAK(CTRGX_STRINGIFY(cond)); \
     }
 
-#ifndef NDEBUG
+#define CTRGX_UNREACHABLE(s)                                  \
+    do {                                                      \
+        CTRGX_BREAK("Unreachable point reached: " s           \
+                    "\nIn file: " CTRGX_STRINGIFY(__FILE__)   \
+                    "\nOn line: " CTRGX_STRINGIFY(__LINE__)); \
+    } while (false)
 
-#define CTRGX_LOG(s) ctrgx_platform_log((s), sizeof(s) - 1)
+#ifndef NDEBUG
 
 #define CTRGX_ASSERT(cond)                                         \
     do {                                                           \
         if (!CTRGX_LIKELY(cond)) {                                 \
-            CTRGX_LOG("Assertion failed: " CTRGX_STRINGIFY(cond)); \
-            CTRGX_LOG("In file: " CTRGX_STRINGIFY(__FILE__));      \
-            CTRGX_LOG("On line: " CTRGX_STRINGIFY(__LINE__));      \
-            CTRGX_BREAK();                                         \
+            CTRGX_BREAK("Assertion failed: " CTRGX_STRINGIFY(cond) \
+                        "\nIn file: " CTRGX_STRINGIFY(__FILE__)    \
+                        "\nOn line: " CTRGX_STRINGIFY(__LINE__));  \
         }                                                          \
     } while (false)
 
 #else
-#define CTRGX_LOG(s) (void)(s)
 #define CTRGX_ASSERT(cond)
 #endif // !NDEBUG
 
-#define CTRGX_UNREACHABLE(s)                              \
-    do {                                                  \
-        CTRGX_LOG("Unreachable point reached: " s);       \
-        CTRGX_LOG("In file: " CTRGX_STRINGIFY(__FILE__)); \
-        CTRGX_LOG("On line: " CTRGX_STRINGIFY(__LINE__)); \
-        CTRGX_BREAK();                                    \
-    } while (false)
-
-CTRGX_EXTERN __attribute__((noreturn)) void ctrgx_platform_break(void);
-CTRGX_EXTERN void ctrgx_platform_log(const char* s, size_t size);
+CTRGX_EXTERN __attribute__((noreturn, cold)) void ctrgx_platform_break(const char*, size_t);
 
 #endif /* _CTRGX_DEFS_H */

@@ -1,11 +1,8 @@
-#include <debug.h> // panic
+#include <debug.h> // panicMsg
 
 #include <GX/Defs.h>
 
-void ctrgx_platform_break(void) { panic(); }
-
-void ctrgx_platform_log(const char* s, size_t size) {
-#ifndef NDEBUG
-    // TODO
-#endif // !NDEBUG
+void ctrgx_platform_break(const char* msg, size_t size) {
+    (void)size;
+    panicMsg(msg);
 }

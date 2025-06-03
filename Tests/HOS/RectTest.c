@@ -1,3 +1,4 @@
+#include <GX/Allocator.h>
 #include <GX/Wrappers/MemoryFill.h>
 #include <GX/Wrappers/DisplayTransfer.h>
 #include <GX/Wrappers/TextureCopy.h>
@@ -94,7 +95,7 @@ int main(int argc, char* argv[]) {
     consoleInit(GFX_BOTTOM, NULL);
     ctrgxInit();
 
-    g_VRAMBuffer = vramAlloc(FB_SIZE);
+    g_VRAMBuffer = ctrgxAlloc(GX_MEM_VRAM, FB_SIZE);
 
     ctrgxCmdBufferAlloc(&g_CmdBuffer, CMDBUFFER_CAPACITY);
     ctrgxExchangeCmdBuffer(&g_CmdBuffer, true);
@@ -120,7 +121,7 @@ int main(int argc, char* argv[]) {
     ctrgxExchangeCmdBuffer(NULL, true);
     ctrgxCmdBufferFree(&g_CmdBuffer);
 
-    vramFree(g_VRAMBuffer);
+    ctrgxFree(g_VRAMBuffer);
 
     ctrgxExit();
     gfxExit();
