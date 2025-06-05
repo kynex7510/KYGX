@@ -3,6 +3,8 @@
 
 #include <GX/Defs.h>
 
+#include <string.h> // memcpy
+
 #define CTRGX_CMDID_REQUESTDMA 0x00
 #define CTRGX_CMDID_PROCESSCOMMANDLIST 0x01
 #define CTRGX_CMDID_MEMORYFILL 0x02
@@ -26,56 +28,122 @@ typedef struct {
     u8 index;
     u8 count;
     u8 status;
-    u8 isHalted;
+    u8 requestHalt;
     s32 lastError;
     u8 _pad[0x18];
     GXCmd list[CTRGX_CMDQUEUE_MAX_COMMANDS];
 } GXCmdQueue;
 
-CTRGX_EXTERN bool ctrgxCmdQueueAdd(GXCmdQueue* q, GXCmd* cmd);
-CTRGX_EXTERN bool ctrgxCmdQueuePop(GXCmdQueue* q, GXCmd* cmd);
+CTRGX_INLINE bool ctrgxCmdQueueAdd(GXCmdQueue* q, GXCmd* cmd) {
+    CTRGX_ASSERT(q);
+    CTRGX_ASSERT(cmd);
 
-CTRGX_INLINE void ctrgxCmdQueueClear(GXCmdQueue* q) {
+    u32 header;
+    
+    do {
+        header = __ldrex(CTRGX_EXMON_CAST(q));
+        const u8 count = (header >> 8) & 0xFF;
+        if (count >= CTRGX_CMDQUEUE_MAX_COMMANDS) {
+            __clrex();
+            return false;
+        }
+
+        const u8 index = (count + (header & 0xFF)) % CTRGX_CMDQUEUE_MAX_COMMANDS;
+        memcpy(&q->list[index], cmd, sizeof(GXCmd));
+        __dsb();
+
+        header = (header & 0xFFFF00FF) | ((u16)(count + 1) << 8);
+    } while (__strex(CTRGX_EXMON_CAST(q), header));
+
+    return true;
+}
+
+CTRGX_INLINE bool ctrgxCmdQueuePop(GXCmdQueue* q, GXCmd* cmd) {
+    CTRGX_ASSERT(q);
+    CTRGX_ASSERT(cmd);
+
+    u32 header;
+
+    do {
+        header = __ldrex(CTRGX_EXMON_CAST(q));
+        const u8 count = (header >> 8) & 0xFF;
+        if (!count) {
+            __clrex();
+            return false;
+        }
+
+        const u8 index = (header & 0xFF) % CTRGX_CMDQUEUE_MAX_COMMANDS;
+        memcpy(cmd, &q->list[index], sizeof(GXCmd));
+
+        header = (header & 0xFFFF0000) | ((u16)(count - 1) << 8) | (index + 1);
+    } while (__strex(CTRGX_EXMON_CAST(q), header));
+
+    return true;
+}
+
+CTRGX_INLINE void ctrgxCmdQueueClearCommands(GXCmdQueue* q) {
     CTRGX_ASSERT(q);
 
     do {
-        __ldrexh((u16*)q);
+        u16 v = __ldrexh((u16*)q);
+        if (!v) {
+            __clrex();
+            break;
+        }
     } while (__strexh((u16*)q, 0));
 }
 
-CTRGX_INLINE void ctrgxCmdQueueHalt(GXCmdQueue* q, bool halt) {
+CTRGX_INLINE void ctrgxCmdQueueSetHalt(GXCmdQueue* q) {
     CTRGX_ASSERT(q);
-
-    u32 h;
 
     do {
-        h = __ldrex(CTRGX_EXMON_CAST(q));
-        if (halt) {
-            h |= 0x01010000;
-        } else {
-            h &= ~(0x01010000);
+        u8 v = __ldrexb(&q->status);
+        if (v == CTRGX_CMDQUEUE_STATUS_HALTED) {
+            __clrex();
+            break;
         }
-    } while (__strex(CTRGX_EXMON_CAST(q), h));
+    } while (__strexb(&q->status, CTRGX_CMDQUEUE_STATUS_HALTED));
 }
 
-CTRGX_INLINE bool ctrgxCmdQueueIsHalted(GXCmdQueue* q) {
+CTRGX_INLINE void ctrgxCmdQueueClearHalt(GXCmdQueue* q) {
     CTRGX_ASSERT(q);
-    return q->isHalted || (q->status & CTRGX_CMDQUEUE_STATUS_HALTED);
+
+    do {
+        u16 v = __ldrexh((u16*)&q->status);
+        if (!v) {
+            __clrex();
+            break;
+        }
+    } while (__strexh((u16*)&q->status, 0));
+}
+
+CTRGX_INLINE void ctrgxCmdQueueWaitHalt(GXCmdQueue* q) {
+    CTRGX_ASSERT(q);
+
+    while (q->status != CTRGX_CMDQUEUE_STATUS_HALTED)
+        CTRGX_YIELD();
 }
 
 CTRGX_INLINE s32 ctrgxCmdQueueClearError(GXCmdQueue* q) {
     CTRGX_ASSERT(q);
 
-    u8 status;
     s32 err;
 
     do {
         err = __ldrex(CTRGX_EXMON_CAST(&q->lastError));
+        if (!err) {
+            __clrex();
+            break;
+        }
     } while (__strex(CTRGX_EXMON_CAST(&q->lastError), 0));
 
     do {
-        status = __ldrexb(&q->status);
-    } while (__strexb(&q->status, status & ~CTRGX_CMDQUEUE_STATUS_ERRORED));
+        u8 status = __ldrexb(&q->status);
+        if (status != CTRGX_CMDQUEUE_STATUS_ERRORED) {
+            __clrex();
+            break;
+        }
+    } while (__strexb(&q->status, 0));
 
     return err;
 }

@@ -175,7 +175,7 @@ void ctrgxs_exec_commands(State* state) {
             break;
     }
 
-    ctrgxCmdQueueHalt(cmdQueue, true);
+    ctrgxCmdQueueSetHalt(cmdQueue);
 }
 
 void ctrgxs_wait_command_completion(State* state) {

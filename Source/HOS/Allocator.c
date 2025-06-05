@@ -1,4 +1,5 @@
 #include <GX/Allocator.h>
+#include "../QTMRAM.h"
 
 #include <stdlib.h> // malloc, free
 #include <malloc.h> // malloc_usable_size
@@ -12,9 +13,8 @@ void* ctrgxAllocAligned(GXMemType memType, size_t size, size_t alignment) {
                 return linearAlloc(size);
             case GX_MEM_VRAM:
                 return vramAlloc(size);
-            case GX_MEM_QTM:
-                // TODO
-                CTRGX_UNREACHABLE("Unimplemented!");
+            case GX_MEM_QTMRAM:
+                return qtmramAlloc(size);
             default:
                 return NULL;
         }
@@ -27,9 +27,8 @@ void* ctrgxAllocAligned(GXMemType memType, size_t size, size_t alignment) {
             return linearMemAlign(size, alignment);
         case GX_MEM_VRAM:
             return vramMemAlign(size, alignment);
-        case GX_MEM_QTM:
-            // TODO
-            CTRGX_UNREACHABLE("Unimplemented!");
+        case GX_MEM_QTMRAM:
+            return qtmramMemAlign(size, alignment);
         default:
             return NULL;
     }
@@ -63,8 +62,9 @@ void ctrgxFree(void* p) {
         case GX_MEM_VRAM:
             vramFree(p);
             break;
-        case GX_MEM_QTM:
-            // TODO
+        case GX_MEM_QTMRAM:
+            qtmramFree(p);
+            break;
         default:;
     }
 }
@@ -82,7 +82,7 @@ GXMemType ctrgxGetMemType(const void* p) {
         return GX_MEM_VRAM;
 
     if (addr >= OS_QTMRAM_VADDR && addr <= (OS_QTMRAM_VADDR + OS_QTMRAM_SIZE))
-        return GX_MEM_QTM;
+        return GX_MEM_QTMRAM;
 
     return GX_MEM_UNKNOWN;
 }
@@ -95,8 +95,8 @@ size_t ctrgxGetAllocSize(const void* p) {
             return linearGetSize((void*)p);
         case GX_MEM_VRAM:
             return vramGetSize((void*)p);
-        case GX_MEM_QTM:
-            // TODO
+        case GX_MEM_QTMRAM:
+            return qtmramGetSize(p);
         default:
             return 0;
     }

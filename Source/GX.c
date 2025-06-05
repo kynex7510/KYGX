@@ -30,7 +30,7 @@ static void triggerCommandHandling(void) {
     CTRGX_ASSERT(cmdQueue);
 
     ctrgxCmdQueueClearError(cmdQueue);
-    ctrgxCmdQueueHalt(cmdQueue, false);
+    ctrgxCmdQueueClearHalt(cmdQueue);
     ctrgxs_exec_commands(&g_GlobalState);
 }
 
@@ -51,7 +51,7 @@ static bool enqueueCommands(void) {
 
     // Write commands to queue.
     GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
-    CTRGX_ASSERT(cmdQueue && !cmdQueue->count && ctrgxCmdQueueIsHalted(cmdQueue));
+    CTRGX_ASSERT(cmdQueue && !cmdQueue->count && cmdQueue->status == CTRGX_CMDQUEUE_STATUS_HALTED);
 
     for (u8 i = 0; i < cmdBuffer->count; ++i) {
         GXCmd* cmd;
@@ -91,10 +91,10 @@ static void onInterrupt(GXIntr intrID) {
 
     // Handle batch termination.
     if (!g_GlobalState.pendingCommands) {
-        // It's possible that, at this point, GSP still hasn't halted. Let's do it ourselves.
+        // It's possible that, at this point, GSP still hasn't halted.
         GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
         CTRGX_ASSERT(cmdQueue && !cmdQueue->count);
-        ctrgxCmdQueueHalt(cmdQueue, true);
+        ctrgxCmdQueueWaitHalt(cmdQueue);
 
         // Invoke callback.
         if (g_GlobalState.currentCb) {
@@ -115,9 +115,14 @@ static void resetCmdQueue(bool halt) {
     GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
     CTRGX_ASSERT(cmdQueue);
 
-    ctrgxCmdQueueClear(cmdQueue);
+    ctrgxCmdQueueClearCommands(cmdQueue);
     ctrgxCmdQueueClearError(cmdQueue);
-    ctrgxCmdQueueHalt(cmdQueue, halt);
+
+    if (halt) {
+        ctrgxCmdQueueSetHalt(cmdQueue);
+    } else {
+        ctrgxCmdQueueClearHalt(cmdQueue);
+    }
 }
 
 bool ctrgxInit(void) {
@@ -206,7 +211,7 @@ void ctrgxHalt(bool wait) {
     ctrgxs_exit_critical_section(&g_GlobalState, STATEOP_HALT);
 }
 
-CTRGX_EXTERN void ctrgxExecSync(const GXCmd* cmd) {
+void ctrgxExecSync(const GXCmd* cmd) {
     GXCmd cmdCopy;
     memcpy(&cmdCopy, cmd, sizeof(GXCmd));
     cmdCopy.header |= CTRGX_CMDHEADER_FLAG_LAST;
@@ -224,13 +229,18 @@ CTRGX_EXTERN void ctrgxExecSync(const GXCmd* cmd) {
     }
 
     // Execute command.
-    CTRGX_BREAK_UNLESS(ctrgxCmdQueueAdd(g_GlobalState.cmdQueue, &cmdCopy));
+    GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
+    CTRGX_ASSERT(cmdQueue);
+
+    CTRGX_BREAK_UNLESS(ctrgxCmdQueueAdd(cmdQueue, &cmdCopy));
     triggerCommandHandling();
 
     // Wait for termination.
     if (intrID != GX_INTR_UNKNOWN) {
         ctrgxs_wait_intr(&g_GlobalState, intrID);
         ctrgxs_enable_intr_cb(&g_GlobalState, intrID);
+    } else {
+        ctrgxCmdQueueWaitHalt(cmdQueue);
     }
 
     // Resume command buffer processing.

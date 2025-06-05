@@ -58,6 +58,7 @@ int main(void) {
         if (updateConsole) {
             consoleClear();
             ee_printf("RED: %u, GREEN: %u, BLUE: %u\n", g_Red, g_Green, g_Blue);
+            ee_printf("Press START to exit\n");
             updateConsole = false;
         }
 

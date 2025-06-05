@@ -17,3 +17,10 @@ add_executable(GXTestSync SyncTest.c)
 target_link_libraries(GXTestSync PRIVATE gx)
 ctr_create_3dsx(GXTestSync)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GXTestSync.3dsx TYPE BIN)
+
+# QTMTest
+
+add_executable(GXTestQTM QTMTest.c)
+target_link_libraries(GXTestQTM PRIVATE gx)
+ctr_create_3dsx(GXTestQTM)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GXTestQTM.3dsx TYPE BIN)

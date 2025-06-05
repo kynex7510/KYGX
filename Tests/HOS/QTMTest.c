@@ -1,6 +1,7 @@
 #include <GX/Allocator.h>
 #include <GX/Wrappers/MemoryFill.h>
 #include <GX/Wrappers/DisplayTransfer.h>
+#include <GX/Wrappers/FlushCacheRegions.h>
 
 #include <stdio.h>
 
@@ -9,7 +10,7 @@
 #define SCREEN_BPP 3
 #define FB_SIZE SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_BPP
 
-static void* g_VRAMBuffer = NULL;
+static void* g_QTMRAMBuffer = NULL;
 static u8 g_Red = 0xFF;
 static u8 g_Green = 0xFF;
 static u8 g_Blue = 0xFF;
@@ -17,12 +18,10 @@ static u8 g_Blue = 0xFF;
 static void clearScreen(void) {
     u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
-    // Prepare fill structure.
-    GXMemoryFillBuffer fill;
-    fill.addr = g_VRAMBuffer;
-    fill.size = FB_SIZE;
-    fill.value = CTRGX_MEMORYFILL_VALUE_RGB8(g_Red, g_Green, g_Blue);
-    fill.width = CTRGX_MEMORYFILL_WIDTH_24;
+    // Prepare flush buffer.
+    GXFlushCacheRegionsBuffer flush;
+    flush.addr = g_QTMRAMBuffer;
+    flush.size = FB_SIZE;
 
     // Prepare transfer flags.
     GXDisplayTransferFlags transferFlags;
@@ -33,20 +32,45 @@ static void clearScreen(void) {
     transferFlags.verticalFlip = false;
     transferFlags.blockMode32 = false;
 
-    // Fill framebuffer through VRAM.
-    ctrgxSyncMemoryFill(&fill, NULL);
-    ctrgxSyncDisplayTransfer(g_VRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, ctrgxMakeDisplayTransferFlags(&transferFlags));
+    // Clear buffer.
+    u8* p = (u8*)g_QTMRAMBuffer;
+    for (size_t i = 0; i < FB_SIZE; i += 3) {
+        p[i] = g_Red;
+        p[i + 1] = g_Green;
+        p[i + 2] = g_Blue;
+    }
+
+    ctrgxSyncFlushCacheRegions(&flush, NULL, NULL);
+    ctrgxSyncDisplayTransfer(g_QTMRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, ctrgxMakeDisplayTransferFlags(&transferFlags));
 }
 
-int main(int argc, char* argv[]) {
+int main(void) {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
     ctrgxInit();
 
-    g_VRAMBuffer = ctrgxAlloc(GX_MEM_VRAM, FB_SIZE);
+    g_QTMRAMBuffer = ctrgxAlloc(GX_MEM_QTMRAM, FB_SIZE);
+    if (!g_QTMRAMBuffer) {
+        printf("QTMRAM buffer allocation failed\n");
+        printf("NOTE: this test is for N3DS only\n");
+        printf("Press START to exit\n");
+
+        while (true) {
+            hidScanInput();
+            if (hidKeysDown() & KEY_START)
+                break;
+
+            gfxSwapBuffers();
+            ctrgxWaitVBlank();
+        }
+
+         ctrgxExit();
+        gfxExit();
+        return 0;
+    }
 
     bool updateConsole = true;
-    while (aptMainLoop()) {
+    while (true) {
         hidScanInput();
         const u32 kDown = hidKeysDown();
 
@@ -77,11 +101,11 @@ int main(int argc, char* argv[]) {
         }
 
         clearScreen();
-        gfxSwapBuffers();
+        gfxSwapBuffers();;
         ctrgxWaitVBlank();
     }
 
-    ctrgxFree(g_VRAMBuffer);
+    ctrgxFree(g_QTMRAMBuffer);
 
     ctrgxExit();
     gfxExit();

@@ -14,12 +14,7 @@ if (CTRGX_BAREMETAL)
 endif()
 
 # Setup library.
-set(GX_SOURCES
-    Source/Command.c
-    Source/CommandBuffer.c
-    Source/GX.c
-    Source/Interrupt.c
-)
+set(GX_SOURCES Source/GX.c)
 
 if (CTRGX_BAREMETAL)
     set(GX_SOURCES ${GX_SOURCES}

@@ -24,7 +24,13 @@
 #define CTRGX_AS_STRING(x) #x
 #define CTRGX_STRINGIFY(x) CTRGX_AS_STRING(x)
 
-#define CTRGX_BREAK(reason) ctrgx_platform_break((reason), sizeof(reason) - 1)
+#define CTRGX_YIELD() ctrgx_platform_yield()
+
+#ifndef NDEBUG
+#define CTRGX_BREAK(reason) ctrgx_platform_break((reason))
+#else
+#define CTRGX_BREAK(reason) ctrgx_platform_break(NULL)
+#endif // !NDEBUG
 
 #define CTRGX_BREAK_UNLESS(cond)            \
     if (!CTRGX_LIKELY(cond)) {              \
@@ -38,8 +44,6 @@
                     "\nOn line: " CTRGX_STRINGIFY(__LINE__)); \
     } while (false)
 
-#ifndef NDEBUG
-
 #define CTRGX_ASSERT(cond)                                         \
     do {                                                           \
         if (!CTRGX_LIKELY(cond)) {                                 \
@@ -49,10 +53,7 @@
         }                                                          \
     } while (false)
 
-#else
-#define CTRGX_ASSERT(cond)
-#endif // !NDEBUG
-
-CTRGX_EXTERN __attribute__((noreturn, cold)) void ctrgx_platform_break(const char*, size_t);
+CTRGX_EXTERN void ctrgx_platform_yield(void);
+CTRGX_EXTERN __attribute__((noreturn, cold)) void ctrgx_platform_break(const char*);
 
 #endif /* _CTRGX_DEFS_H */
