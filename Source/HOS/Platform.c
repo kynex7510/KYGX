@@ -1,6 +1,6 @@
 #include <GX/Defs.h>
 
-void ctrgx_platform_yield(void) { svcSleepThread(0); }
+void kygx_platform_yield(void) { svcSleepThread(0); }
 
 #ifndef NDEBUG
 static size_t findChar(const char* s, char c) {
@@ -15,7 +15,7 @@ static size_t findChar(const char* s, char c) {
     return index;
 }
 
-void ctrgx_platform_break(const char* msg) {
+void kygx_platform_break(const char* msg) {
     if (msg) {
         size_t pos = findChar(msg, '\n');
         while (pos != -1) {
@@ -33,7 +33,7 @@ void ctrgx_platform_break(const char* msg) {
 
 #else
 
-void ctrgx_platform_break(const char* msg) {
+void kygx_platform_break(const char* msg) {
     (void)msg;
     svcBreak(USERBREAK_PANIC);
     while (true) {}

@@ -1,11 +1,11 @@
 # ARM11 has already been included.
 
-# SyncTest
-add_executable(SyncTest SyncTest.c)
-target_link_libraries(SyncTest PRIVATE gx n3ds11)
-make_firm_binary(SyncTest SyncTest_bin)
+# TestSync
+add_executable(KYGXTestSync TestSync.c)
+target_link_libraries(KYGXTestSync PRIVATE kygx n3ds11)
+make_firm_binary(KYGXTestSync KYGXTestSync_bin)
 
-# RectTest
-add_executable(RectTest RectTest.c)
-target_link_libraries(RectTest PRIVATE gx n3ds11)
-make_firm_binary(RectTest RectTest_bin)
+# TestAsync
+add_executable(KYGXTestAsync TestAsync.c)
+target_link_libraries(KYGXTestAsync PRIVATE kygx n3ds11)
+make_firm_binary(KYGXTestAsync KYGXTestAsync_bin)

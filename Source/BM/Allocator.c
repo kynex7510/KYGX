@@ -8,14 +8,14 @@
 #include <stdlib.h> // malloc, free
 #include <malloc.h> // malloc_usable_size
 
-void* ctrgxAllocAligned(GXMemType memType, size_t size, size_t alignment) {
+void* kygxAllocAligned(GXMemType memType, size_t size, size_t alignment) {
     if (!alignment) {
         switch (memType) {
             case GX_MEM_HEAP:
                 return malloc(size);
             case GX_MEM_LINEAR:
                 // TODO
-                CTRGX_UNREACHABLE("Unimplemented!");
+                KYGX_UNREACHABLE("Unimplemented!");
                 return NULL;
             case GX_MEM_VRAM:
                 return vramAlloc(size);
@@ -31,7 +31,7 @@ void* ctrgxAllocAligned(GXMemType memType, size_t size, size_t alignment) {
             return memalign(alignment, size);
         case GX_MEM_LINEAR:
             // TODO
-            CTRGX_UNREACHABLE("Unimplemented!");
+            KYGX_UNREACHABLE("Unimplemented!");
             return NULL;
         case GX_MEM_VRAM:
             return vramMemAlign(size, alignment);
@@ -42,7 +42,7 @@ void* ctrgxAllocAligned(GXMemType memType, size_t size, size_t alignment) {
     }
 }
 
-CTRGX_INLINE vramAllocPos getVRAMPos(GXVRAMBank bank) {
+KYGX_INLINE vramAllocPos getVRAMPos(GXVRAMBank bank) {
     if (bank == GX_ALLOC_VRAM_BANK_A)
         return VRAM_ALLOC_A;
 
@@ -52,15 +52,15 @@ CTRGX_INLINE vramAllocPos getVRAMPos(GXVRAMBank bank) {
     return VRAM_ALLOC_ANY;
 }
 
-void* ctrgxAllocAlignedVRAM(GXVRAMBank bank, size_t size, size_t aligment) {
+void* kygxAllocAlignedVRAM(GXVRAMBank bank, size_t size, size_t aligment) {
     if (!aligment)
         return vramAllocAt(size, getVRAMPos(bank));
     
     return vramMemAlignAt(size, aligment, getVRAMPos(bank));
 }
 
-void ctrgxFree(void* p) {
-    switch (ctrgxGetMemType(p)) {
+void kygxFree(void* p) {
+    switch (kygxGetMemType(p)) {
         case GX_MEM_HEAP:
             free(p);
             break;
@@ -77,7 +77,7 @@ void ctrgxFree(void* p) {
     }
 }
 
-GXMemType ctrgxGetMemType(const void* p) {
+GXMemType kygxGetMemType(const void* p) {
     const u32 addr = (u32)p;
 
     // TODO: check this.
@@ -96,8 +96,8 @@ GXMemType ctrgxGetMemType(const void* p) {
     return GX_MEM_UNKNOWN;
 }
 
-size_t ctrgxGetAllocSize(const void* p) {
-    switch (ctrgxGetMemType(p)) {
+size_t kygxGetAllocSize(const void* p) {
+    switch (kygxGetMemType(p)) {
         case GX_MEM_HEAP:
             return malloc_usable_size((void*)p);
         case GX_MEM_LINEAR:

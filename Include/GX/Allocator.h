@@ -1,5 +1,5 @@
-#ifndef _CTRGX_ALLOCATOR_H
-#define _CTRGX_ALLOCATOR_H
+#ifndef _KYGX_ALLOCATOR_H
+#define _KYGX_ALLOCATOR_H
 
 #include <GX/Defs.h>
 
@@ -17,18 +17,18 @@ typedef enum {
     GX_ALLOC_VRAM_BANK_ANY,
 } GXVRAMBank;
 
-void* ctrgxAllocAligned(GXMemType memType, size_t size, size_t alignment);
-void* ctrgxAllocAlignedVRAM(GXVRAMBank bank, size_t size, size_t aligment);
-void ctrgxFree(void* p);
-GXMemType ctrgxGetMemType(const void* p);
-size_t ctrgxGetAllocSize(const void* p);
+void* kygxAllocAligned(GXMemType memType, size_t size, size_t alignment);
+void* kygxAllocAlignedVRAM(GXVRAMBank bank, size_t size, size_t aligment);
+void kygxFree(void* p);
+GXMemType kygxGetMemType(const void* p);
+size_t kygxGetAllocSize(const void* p);
 
-CTRGX_INLINE void* ctrgxAlloc(GXMemType memType, size_t size) { return ctrgxAllocAligned(memType, size, 0); }
-CTRGX_INLINE void* ctrgxAllocVRAM(GXVRAMBank bank, size_t size) { return ctrgxAllocAlignedVRAM(bank, size, 0); }
+KYGX_INLINE void* kygxAlloc(GXMemType memType, size_t size) { return kygxAllocAligned(memType, size, 0); }
+KYGX_INLINE void* kygxAllocVRAM(GXVRAMBank bank, size_t size) { return kygxAllocAlignedVRAM(bank, size, 0); }
 
-CTRGX_INLINE bool ctrgxIsHeap(const void* p) { return ctrgxGetMemType(p) == GX_MEM_HEAP; }
-CTRGX_INLINE bool ctrgxIsLinear(const void* p) { return ctrgxGetMemType(p) == GX_MEM_LINEAR; }
-CTRGX_INLINE bool ctrgxIsVRAM(const void* p) { return ctrgxGetMemType(p) == GX_MEM_VRAM; }
-CTRGX_INLINE bool ctrgxIsQTMRAM(const void* p) { return ctrgxGetMemType(p) == GX_MEM_QTMRAM; }
+KYGX_INLINE bool kygxIsHeap(const void* p) { return kygxGetMemType(p) == GX_MEM_HEAP; }
+KYGX_INLINE bool kygxIsLinear(const void* p) { return kygxGetMemType(p) == GX_MEM_LINEAR; }
+KYGX_INLINE bool kygxIsVRAM(const void* p) { return kygxGetMemType(p) == GX_MEM_VRAM; }
+KYGX_INLINE bool kygxIsQTMRAM(const void* p) { return kygxGetMemType(p) == GX_MEM_QTMRAM; }
 
-#endif /* _CTRGX_ALLOCATOR_H */
+#endif /* _KYGX_ALLOCATOR_H */

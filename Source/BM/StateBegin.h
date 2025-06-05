@@ -1,5 +1,5 @@
-#ifndef _CTRGX_BM_STATEBEGIN_H
-#define _CTRGX_BM_STATEBEGIN_H
+#ifndef _KYGX_BM_STATEBEGIN_H
+#define _KYGX_BM_STATEBEGIN_H
 
 #include <GX/GX.h>
 
@@ -19,30 +19,30 @@ typedef struct {
     bool halted;
 } PlatformState;
 
-CTRGX_INLINE void CV_Init(CV* cv) {
-    CTRGX_ASSERT(cv);
+KYGX_INLINE void CV_Init(CV* cv) {
+    KYGX_ASSERT(cv);
 
     cv->sema = createSemaphore(0);
     cv->waiters = 0;
 }
 
-CTRGX_INLINE void CV_Destroy(CV* cv) {
-    CTRGX_ASSERT(cv);
+KYGX_INLINE void CV_Destroy(CV* cv) {
+    KYGX_ASSERT(cv);
     deleteSemaphore(cv->sema);
 }
 
-CTRGX_INLINE void CV_Wait(CV* cv, KHandle lock) {
+KYGX_INLINE void CV_Wait(CV* cv, KHandle lock) {
     u32 w;
     do {
         w = __ldrex(&cv->waiters);
     } while (__strex(&cv->waiters, w + 1));
 
-    CTRGX_BREAK_UNLESS(unlockMutex(lock) == KRES_OK);
-    CTRGX_BREAK_UNLESS(waitForSemaphore(cv->sema) == KRES_OK);
-    CTRGX_BREAK_UNLESS(lockMutex(lock) == KRES_OK);
+    KYGX_BREAK_UNLESS(unlockMutex(lock) == KRES_OK);
+    KYGX_BREAK_UNLESS(waitForSemaphore(cv->sema) == KRES_OK);
+    KYGX_BREAK_UNLESS(lockMutex(lock) == KRES_OK);
 }
 
-CTRGX_INLINE void CV_Broadcast(CV* cv) {
+KYGX_INLINE void CV_Broadcast(CV* cv) {
     u32 w;
 
     __dmb();
@@ -58,4 +58,4 @@ CTRGX_INLINE void CV_Broadcast(CV* cv) {
     }
 }
 
-#endif /* _CTRGX_BM_STATEBEGIN_H */
+#endif /* _KYGX_BM_STATEBEGIN_H */

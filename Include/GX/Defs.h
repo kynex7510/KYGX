@@ -1,59 +1,59 @@
-#ifndef _CTRGX_DEFS_H
-#define _CTRGX_DEFS_H
+#ifndef _KYGX_DEFS_H
+#define _KYGX_DEFS_H
 
-#ifdef CTRGX_BAREMETAL
+#ifdef KYGX_BAREMETAL
 #include <arm.h> // ldrex, strex et al
 #include <stdbool.h>
-#define CTRGX_EXMON_CAST(v) (u32*)(v)
+#define KYGX_EXMON_CAST(v) (u32*)(v)
 #else
 #include <3ds.h>
-#define CTRGX_EXMON_CAST(v) (s32*)(v)
-#endif // CTRGX_BAREMETAL
+#define KYGX_EXMON_CAST(v) (s32*)(v)
+#endif // KYGX_BAREMETAL
 
-#define CTRGX_PACKED __attribute__((packed))
-#define CTRGX_LIKELY(x) (bool)__builtin_expect((bool)(x), true)
+#define KYGX_PACKED __attribute__((packed))
+#define KYGX_LIKELY(x) (bool)__builtin_expect((bool)(x), true)
 
 #ifdef __cplusplus
-#define CTRGX_EXTERN extern "C"
-#define CTRGX_INLINE inline
+#define KYGX_EXTERN extern "C"
+#define KYGX_INLINE inline
 #else
-#define CTRGX_EXTERN
-#define CTRGX_INLINE static inline
+#define KYGX_EXTERN
+#define KYGX_INLINE static inline
 #endif // __cplusplus
 
-#define CTRGX_AS_STRING(x) #x
-#define CTRGX_STRINGIFY(x) CTRGX_AS_STRING(x)
+#define KYGX_AS_STRING(x) #x
+#define KYGX_STRINGIFY(x) KYGX_AS_STRING(x)
 
-#define CTRGX_YIELD() ctrgx_platform_yield()
+#define KYGX_YIELD() kygx_platform_yield()
 
 #ifndef NDEBUG
-#define CTRGX_BREAK(reason) ctrgx_platform_break((reason))
+#define KYGX_BREAK(reason) kygx_platform_break((reason))
 #else
-#define CTRGX_BREAK(reason) ctrgx_platform_break(NULL)
+#define KYGX_BREAK(reason) kygx_platform_break(NULL)
 #endif // !NDEBUG
 
-#define CTRGX_BREAK_UNLESS(cond)            \
-    if (!CTRGX_LIKELY(cond)) {              \
-        CTRGX_BREAK(CTRGX_STRINGIFY(cond)); \
+#define KYGX_BREAK_UNLESS(cond)            \
+    if (!KYGX_LIKELY(cond)) {              \
+        KYGX_BREAK(KYGX_STRINGIFY(cond)); \
     }
 
-#define CTRGX_UNREACHABLE(s)                                  \
-    do {                                                      \
-        CTRGX_BREAK("Unreachable point reached: " s           \
-                    "\nIn file: " CTRGX_STRINGIFY(__FILE__)   \
-                    "\nOn line: " CTRGX_STRINGIFY(__LINE__)); \
+#define KYGX_UNREACHABLE(s)                                  \
+    do {                                                     \
+        KYGX_BREAK("Unreachable point reached: " s           \
+                    "\nIn file: " KYGX_STRINGIFY(__FILE__)   \
+                    "\nOn line: " KYGX_STRINGIFY(__LINE__)); \
     } while (false)
 
-#define CTRGX_ASSERT(cond)                                         \
-    do {                                                           \
-        if (!CTRGX_LIKELY(cond)) {                                 \
-            CTRGX_BREAK("Assertion failed: " CTRGX_STRINGIFY(cond) \
-                        "\nIn file: " CTRGX_STRINGIFY(__FILE__)    \
-                        "\nOn line: " CTRGX_STRINGIFY(__LINE__));  \
-        }                                                          \
+#define KYGX_ASSERT(cond)                                        \
+    do {                                                         \
+        if (!KYGX_LIKELY(cond)) {                                \
+            KYGX_BREAK("Assertion failed: " KYGX_STRINGIFY(cond) \
+                        "\nIn file: " KYGX_STRINGIFY(__FILE__)   \
+                        "\nOn line: " KYGX_STRINGIFY(__LINE__)); \
+        }                                                        \
     } while (false)
 
-CTRGX_EXTERN void ctrgx_platform_yield(void);
-CTRGX_EXTERN __attribute__((noreturn, cold)) void ctrgx_platform_break(const char*);
+KYGX_EXTERN void kygx_platform_yield(void);
+KYGX_EXTERN __attribute__((noreturn, cold)) void kygx_platform_break(const char*);
 
-#endif /* _CTRGX_DEFS_H */
+#endif /* _KYGX_DEFS_H */

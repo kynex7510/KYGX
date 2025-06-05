@@ -7,13 +7,13 @@
 #define INTR_MASK(index) (1 << ((u32)index))
 
 // DMA interrupt is not supported.
-#undef CTRGX_NUM_INTERRUPTS
-#define CTRGX_NUM_INTERRUPTS 6
+#undef KYGX_NUM_INTERRUPTS
+#define KYGX_NUM_INTERRUPTS 6
 
 static GXCmdQueue g_CmdQueue;
 
 static u8 g_IntrMask = 0;
-static KHandle g_IntrEvents[CTRGX_NUM_INTERRUPTS];
+static KHandle g_IntrEvents[KYGX_NUM_INTERRUPTS];
 
 // Defined in GX.c.
 static void onInterrupt(GXIntr intrID);
@@ -26,12 +26,12 @@ static void onInterrupt(GXIntr intrID);
     The workaround is to spawn a thread for each interrupt. This hack is pretty bad because, other than being resource
     inefficient and wasting context switches, it's not possible to signal each thread when to terminate, as we have no
     control over the interrupt events, which are managed internally by libn3ds. This means an application shall not call
-    ctrgxInit and ctrgxExit more than once in its entire lifetime.
+    kygxInit and kygxExit more than once in its entire lifetime.
 */
 
 static void intrThread(void* intrID) {
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
     while (true) {
         GFX_waitForEvent((GfxEvent)intrID);
@@ -45,18 +45,18 @@ static void intrThread(void* intrID) {
 }
 
 static void initIntrThreads(void) {
-    CTRGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PSC0));
-    CTRGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PSC1));
-    CTRGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PDC0));
-    CTRGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PDC1));
-    CTRGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PPF));
-    CTRGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_P3D));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PSC0));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PSC1));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PDC0));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PDC1));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PPF));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_P3D));
 }
 
 // INTR HACK END
 
-bool ctrgxs_init(State* state) {
-    CTRGX_ASSERT(state);
+bool kygxs_init(State* state) {
+    KYGX_ASSERT(state);
 
     const u8 defaultIntrMask = INTR_MASK(GX_INTR_PSC0) | INTR_MASK(GX_INTR_PSC1) | INTR_MASK(GX_INTR_PPF) | INTR_MASK(GX_INTR_P3D);
 
@@ -64,11 +64,11 @@ bool ctrgxs_init(State* state) {
         __ldrexb(&g_IntrMask);
     } while (__strexb(&g_IntrMask, defaultIntrMask));
 
-    for (size_t i = 0; i < CTRGX_NUM_INTERRUPTS; ++i)
+    for (size_t i = 0; i < KYGX_NUM_INTERRUPTS; ++i)
         g_IntrEvents[i] = createEvent(false);
 
     state->platform.lock = createMutex();
-    CTRGX_ASSERT(state->platform.lock);
+    KYGX_ASSERT(state->platform.lock);
 
     CV_Init(&state->platform.completionCV);
     CV_Init(&state->platform.haltCV);
@@ -85,8 +85,8 @@ bool ctrgxs_init(State* state) {
     return true;
 }
 
-void ctrgxs_cleanup(State* state) {
-    CTRGX_ASSERT(state);
+void kygxs_cleanup(State* state) {
+    KYGX_ASSERT(state);
 
     // TODO: intr callback
 
@@ -97,31 +97,31 @@ void ctrgxs_cleanup(State* state) {
     CV_Destroy(&state->platform.completionCV);
     deleteMutex(state->platform.lock);
 
-    for (size_t i = 0; i< CTRGX_NUM_INTERRUPTS; ++i)
+    for (size_t i = 0; i< KYGX_NUM_INTERRUPTS; ++i)
         deleteEvent(g_IntrEvents[i]);
 }
 
-void ctrgxs_enter_critical_section(State* state, u32 op) {
-    CTRGX_ASSERT(state);
+void kygxs_enter_critical_section(State* state, u32 op) {
+    KYGX_ASSERT(state);
 
     if (op & ~SAFE_OPS) {
-        CTRGX_BREAK_UNLESS(lockMutex(state->platform.lock) == KRES_OK);
+        KYGX_BREAK_UNLESS(lockMutex(state->platform.lock) == KRES_OK);
     }
 }
 
-void ctrgxs_exit_critical_section(State* state, u32 op) {
-    CTRGX_ASSERT(state);
+void kygxs_exit_critical_section(State* state, u32 op) {
+    KYGX_ASSERT(state);
 
     if (op & ~SAFE_OPS) {
-        CTRGX_BREAK_UNLESS(unlockMutex(state->platform.lock) == KRES_OK);
+        KYGX_BREAK_UNLESS(unlockMutex(state->platform.lock) == KRES_OK);
     }
 }
 
-void ctrgxs_enable_intr_cb(State* state, GXIntr intrID) {
+void kygxs_enable_intr_cb(State* state, GXIntr intrID) {
     (void)state;
 
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
     u8 mask;
     do {
@@ -129,11 +129,11 @@ void ctrgxs_enable_intr_cb(State* state, GXIntr intrID) {
     } while (__strexb(&g_IntrMask, mask | INTR_MASK(index)));
 }
 
-void ctrgxs_disable_intr_cb(State* state, GXIntr intrID) {
+void kygxs_disable_intr_cb(State* state, GXIntr intrID) {
     (void)state;
 
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
     u8 mask;
     do {
@@ -141,45 +141,45 @@ void ctrgxs_disable_intr_cb(State* state, GXIntr intrID) {
     } while (__strexb(&g_IntrMask, mask & ~INTR_MASK(index)));
 }
 
-void ctrgxs_wait_intr(State* state, GXIntr intrID) {
+void kygxs_wait_intr(State* state, GXIntr intrID) {
     (void)state;
     
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
-    CTRGX_BREAK_UNLESS(waitForEvent(g_IntrEvents[index]) == KRES_OK);
+    KYGX_BREAK_UNLESS(waitForEvent(g_IntrEvents[index]) == KRES_OK);
 }
 
-void ctrgxs_clear_intr(State* state, GXIntr intrID) {
+void kygxs_clear_intr(State* state, GXIntr intrID) {
     (void)state;
     
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
     clearEvent(g_IntrEvents[index]);
 }
 
-void ctrgxs_exec_commands(State* state) {
-    CTRGX_ASSERT(state);
+void kygxs_exec_commands(State* state) {
+    KYGX_ASSERT(state);
 
     GXCmdQueue* cmdQueue = state->cmdQueue;
-    CTRGX_ASSERT(cmdQueue);
+    KYGX_ASSERT(cmdQueue);
 
     state->platform.halted = false;
 
     GXCmd cmd;
-    while (ctrgxCmdQueuePop(cmdQueue, &cmd)) {
+    while (kygxCmdQueuePop(cmdQueue, &cmd)) {
         execCommand(&cmd);
 
-        if (cmd.header & CTRGX_CMDHEADER_FLAG_LAST)
+        if (cmd.header & KYGX_CMDHEADER_FLAG_LAST)
             break;
     }
 
-    ctrgxCmdQueueSetHalt(cmdQueue);
+    kygxCmdQueueSetHalt(cmdQueue);
 }
 
-void ctrgxs_wait_command_completion(State* state) {
-    CTRGX_ASSERT(state);
+void kygxs_wait_command_completion(State* state) {
+    KYGX_ASSERT(state);
     
     const GXCmdBuffer* cmdBuffer = state->cmdBuffer;
     while (cmdBuffer && cmdBuffer->count) {
@@ -188,15 +188,15 @@ void ctrgxs_wait_command_completion(State* state) {
     }
 }
 
-void ctrgxs_signal_command_completion(State* state) {
-    CTRGX_ASSERT(state);
-    CTRGX_ASSERT(!state->cmdBuffer || !state->cmdBuffer->count);
+void kygxs_signal_command_completion(State* state) {
+    KYGX_ASSERT(state);
+    KYGX_ASSERT(!state->cmdBuffer || !state->cmdBuffer->count);
     
     CV_Broadcast(&state->platform.completionCV);
 }
 
-void ctrgxs_request_halt(State* state, bool wait) {
-    CTRGX_ASSERT(state);
+void kygxs_request_halt(State* state, bool wait) {
+    KYGX_ASSERT(state);
 
     if (!state->platform.halted) {
         state->platform.haltRequested = true;
@@ -208,8 +208,8 @@ void ctrgxs_request_halt(State* state, bool wait) {
     }
 }
 
-bool ctrgxs_signal_halt(State* state) {
-    CTRGX_ASSERT(state);
+bool kygxs_signal_halt(State* state) {
+    KYGX_ASSERT(state);
 
     state->platform.halted = true;
 

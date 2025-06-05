@@ -1,11 +1,11 @@
-#ifndef _CTRGX_STATE_H
-#define _CTRGX_STATE_H
+#ifndef _KYGX_STATE_H
+#define _KYGX_STATE_H
 
-#ifdef CTRGX_BAREMETAL
+#ifdef KYGX_BAREMETAL
 #include "BM/StateBegin.h"
 #else
 #include "HOS/StateBegin.h"
-#endif // CTRGX_BAREMETAL
+#endif // KYGX_BAREMETAL
 
 typedef struct {
     PlatformState platform;
@@ -26,31 +26,31 @@ typedef enum {
     STATEOP_HALT = 0x10, // halt, handle_halt_request
 } StateOp;
 
-CTRGX_INLINE bool ctrgxs_init(State* state);
-CTRGX_INLINE void ctrgxs_cleanup(State* state);
+KYGX_INLINE bool kygxs_init(State* state);
+KYGX_INLINE void kygxs_cleanup(State* state);
 
-CTRGX_INLINE void ctrgxs_enter_critical_section(State* state, u32 op);
-CTRGX_INLINE void ctrgxs_exit_critical_section(State* state, u32 op);
+KYGX_INLINE void kygxs_enter_critical_section(State* state, u32 op);
+KYGX_INLINE void kygxs_exit_critical_section(State* state, u32 op);
 
-CTRGX_INLINE void ctrgxs_enable_intr_cb(State* state, GXIntr intrID);
-CTRGX_INLINE void ctrgxs_disable_intr_cb(State* state, GXIntr intrID);
-CTRGX_INLINE void ctrgxs_wait_intr(State* state, GXIntr intrID);
-CTRGX_INLINE void ctrgxs_clear_intr(State* state, GXIntr intrID);
+KYGX_INLINE void kygxs_enable_intr_cb(State* state, GXIntr intrID);
+KYGX_INLINE void kygxs_disable_intr_cb(State* state, GXIntr intrID);
+KYGX_INLINE void kygxs_wait_intr(State* state, GXIntr intrID);
+KYGX_INLINE void kygxs_clear_intr(State* state, GXIntr intrID);
 
-CTRGX_INLINE void ctrgxs_exec_commands(State* state);
+KYGX_INLINE void kygxs_exec_commands(State* state);
 
 // Command completion is signaled when the command buffer becomes empty.
-CTRGX_INLINE void ctrgxs_wait_command_completion(State* state);
-CTRGX_INLINE void ctrgxs_signal_command_completion(State* state);
+KYGX_INLINE void kygxs_wait_command_completion(State* state);
+KYGX_INLINE void kygxs_signal_command_completion(State* state);
 
 // Halting is signaled every time a batch is completed.
-CTRGX_INLINE void ctrgxs_request_halt(State* state, bool wait);
-CTRGX_INLINE bool ctrgxs_signal_halt(State* state);
+KYGX_INLINE void kygxs_request_halt(State* state, bool wait);
+KYGX_INLINE bool kygxs_signal_halt(State* state);
 
-#ifdef CTRGX_BAREMETAL
+#ifdef KYGX_BAREMETAL
 #include "BM/StateEnd.h"
 #else
 #include "HOS/StateEnd.h"
-#endif // CTRGX_BAREMETAL
+#endif // KYGX_BAREMETAL
 
-#endif /* _CTRGX_STATE_H */
+#endif /* _KYGX_STATE_H */

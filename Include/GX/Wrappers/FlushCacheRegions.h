@@ -1,5 +1,5 @@
-#ifndef _CTRGX_WRAPPERS_FLUSHCACHEREGIONS_H
-#define _CTRGX_WRAPPERS_FLUSHCACHEREGIONS_H
+#ifndef _KYGX_WRAPPERS_FLUSHCACHEREGIONS_H
+#define _KYGX_WRAPPERS_FLUSHCACHEREGIONS_H
 
 #include <GX/GX.h>
 
@@ -8,10 +8,10 @@ typedef struct {
     size_t size;
 } GXFlushCacheRegionsBuffer;
 
-CTRGX_INLINE void ctrgxMakeFlushCacheRegions(GXCmd* cmd, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
-    CTRGX_ASSERT(cmd);
+KYGX_INLINE void kygxMakeFlushCacheRegions(GXCmd* cmd, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
+    KYGX_ASSERT(cmd);
 
-    cmd->header = CTRGX_CMDID_FLUSHCACHEREGIONS;
+    cmd->header = KYGX_CMDID_FLUSHCACHEREGIONS;
 
     if (buffer0) {
         cmd->params[0] = (u32)buffer0->addr;
@@ -38,10 +38,10 @@ CTRGX_INLINE void ctrgxMakeFlushCacheRegions(GXCmd* cmd, const GXFlushCacheRegio
 }
 
 // This command only exists in synchronous mode because it doesn't trigger any interrupt, and there is no nice way to know when it has completed.
-CTRGX_INLINE void ctrgxSyncFlushCacheRegions(const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
+KYGX_INLINE void kygxSyncFlushCacheRegions(const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
     GXCmd cmd;
-    ctrgxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
-    ctrgxExecSync(&cmd);
+    kygxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
+    kygxExecSync(&cmd);
 }
 
-#endif /* _CTRGX_WRAPPERS_FLUSHCACHEREGIONS_H */
+#endif /* _KYGX_WRAPPERS_FLUSHCACHEREGIONS_H */

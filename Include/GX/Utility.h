@@ -1,23 +1,23 @@
-#ifndef _CTRGX_UTILITY_H
-#define _CTRGX_UTILITY_H
+#ifndef _KYGX_UTILITY_H
+#define _KYGX_UTILITY_H
 
 #include <GX/Defs.h>
 
-CTRGX_INLINE bool ctrgxIsPo2(u32 v) { return !(v & (v - 1)); }
+KYGX_INLINE bool kygxIsPo2(u32 v) { return !(v & (v - 1)); }
 
-CTRGX_INLINE bool ctrgxIsAligned(u32 v, u32 alignment) {
-    CTRGX_ASSERT(ctrgxIsPo2(alignment));
+KYGX_INLINE bool kygxIsAligned(u32 v, u32 alignment) {
+    KYGX_ASSERT(kygxIsPo2(alignment));
     return !(v & (alignment - 1));
 }
 
-CTRGX_INLINE u32 ctrgxAlignDown(u32 v, u32 alignment) {
-    CTRGX_ASSERT(ctrgxIsPo2(alignment));
+KYGX_INLINE u32 kygxAlignDown(u32 v, u32 alignment) {
+    KYGX_ASSERT(kygxIsPo2(alignment));
     return v & ~(alignment - 1);
 }
 
-CTRGX_INLINE u32 ctrgxAlignUp(u32 v, u32 alignment) {
-    CTRGX_ASSERT(ctrgxIsPo2(alignment));
+KYGX_INLINE u32 kygxAlignUp(u32 v, u32 alignment) {
+    KYGX_ASSERT(kygxIsPo2(alignment));
     return (v + alignment) & ~(alignment - 1);
 }
 
-#endif /* _CTRGX_UTILITY_H */
+#endif /* _KYGX_UTILITY_H */

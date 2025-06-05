@@ -2,25 +2,25 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-project(gx-tests)
+project(kygx-tests)
 
-# RectTest
+# TestSync
 
-add_executable(GXTestRect RectTest.c)
-target_link_libraries(GXTestRect PRIVATE gx)
-ctr_create_3dsx(GXTestRect)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GXTestRect.3dsx TYPE BIN)
+add_executable(KYGXTestSync TestSync.c)
+target_link_libraries(KYGXTestSync PRIVATE kygx)
+ctr_create_3dsx(KYGXTestSync)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KYGXTestSync.3dsx TYPE BIN)
 
-# SyncTest
+# TestAsync
 
-add_executable(GXTestSync SyncTest.c)
-target_link_libraries(GXTestSync PRIVATE gx)
-ctr_create_3dsx(GXTestSync)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GXTestSync.3dsx TYPE BIN)
+add_executable(KYGXTestAsync TestAsync.c)
+target_link_libraries(KYGXTestAsync PRIVATE kygx)
+ctr_create_3dsx(KYGXTestAsync)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KYGXTestAsync.3dsx TYPE BIN)
 
-# QTMTest
+# TestQTM
 
-add_executable(GXTestQTM QTMTest.c)
-target_link_libraries(GXTestQTM PRIVATE gx)
-ctr_create_3dsx(GXTestQTM)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GXTestQTM.3dsx TYPE BIN)
+add_executable(KYGXTestQTM TestQTM.c)
+target_link_libraries(KYGXTestQTM PRIVATE kygx)
+ctr_create_3dsx(KYGXTestQTM)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KYGXTestQTM.3dsx TYPE BIN)

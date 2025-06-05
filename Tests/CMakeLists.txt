@@ -1,4 +1,4 @@
-if (CTRGX_BAREMETAL)
+if (KYGX_BAREMETAL)
     add_subdirectory(BM)
 else()
     add_subdirectory(HOS)

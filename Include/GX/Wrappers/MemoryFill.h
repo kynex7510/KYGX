@@ -1,17 +1,17 @@
-#ifndef _CTRGX_WRAPPERS_MEMORYFILL_H
-#define _CTRGX_WRAPPERS_MEMORYFILL_H
+#ifndef _KYGX_WRAPPERS_MEMORYFILL_H
+#define _KYGX_WRAPPERS_MEMORYFILL_H
 
 #include <GX/GX.h>
 
-#define CTRGX_MEMORYFILL_VALUE_RGBA8(r, g, b, a) (((r) << 24) | ((g) << 16) | ((b) << 8) | (a))
-#define CTRGX_MEMORYFILL_VALUE_RGB8(r, g, b) (((r) << 16) | ((g) << 8) | (b))
-#define CTRGX_MEMORYFILL_VALUE_RGB565(r, g, b) ((((r) & 0x1F) << 11) | (((g) & 0x3F) << 5) | ((b) & 0x1F))
-#define CTRGX_MEMORYFILL_VALUE_RGB5A1(r, g, b, a) ((((r) & 0x1F) << 11) | (((g) & 0x1F) << 6) | (((b) & 0x1F) << 1) | ((a) & 1))
-#define CTRGX_MEMORYFILL_VALUE_RGBA4(r, g, b, a) ((((r) & 0xF) << 12) | (((g) & 0xF) << 8) | (((b) & 0xF) << 4) | ((a) & 0xF))
+#define KYGX_MEMORYFILL_VALUE_RGBA8(r, g, b, a) (((r) << 24) | ((g) << 16) | ((b) << 8) | (a))
+#define KYGX_MEMORYFILL_VALUE_RGB8(r, g, b) (((r) << 16) | ((g) << 8) | (b))
+#define KYGX_MEMORYFILL_VALUE_RGB565(r, g, b) ((((r) & 0x1F) << 11) | (((g) & 0x3F) << 5) | ((b) & 0x1F))
+#define KYGX_MEMORYFILL_VALUE_RGB5A1(r, g, b, a) ((((r) & 0x1F) << 11) | (((g) & 0x1F) << 6) | (((b) & 0x1F) << 1) | ((a) & 1))
+#define KYGX_MEMORYFILL_VALUE_RGBA4(r, g, b, a) ((((r) & 0xF) << 12) | (((g) & 0xF) << 8) | (((b) & 0xF) << 4) | ((a) & 0xF))
 
-#define CTRGX_MEMORYFILL_WIDTH_16 0
-#define CTRGX_MEMORYFILL_WIDTH_24 1
-#define CTRGX_MEMORYFILL_WIDTH_32 2
+#define KYGX_MEMORYFILL_WIDTH_16 0
+#define KYGX_MEMORYFILL_WIDTH_24 1
+#define KYGX_MEMORYFILL_WIDTH_32 2
 
 typedef struct {
     void* addr;
@@ -20,10 +20,10 @@ typedef struct {
     u8 width;
 } GXMemoryFillBuffer;
 
-CTRGX_INLINE void ctrgxMakeMemoryFill(GXCmd* cmd, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
-    CTRGX_ASSERT(cmd);
+KYGX_INLINE void kygxMakeMemoryFill(GXCmd* cmd, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
+    KYGX_ASSERT(cmd);
 
-    cmd->header = CTRGX_CMDID_MEMORYFILL;
+    cmd->header = KYGX_CMDID_MEMORYFILL;
 
     if (buffer0 && buffer0->addr) {
         cmd->params[0] = (u32)buffer0->addr;
@@ -44,18 +44,18 @@ CTRGX_INLINE void ctrgxMakeMemoryFill(GXCmd* cmd, const GXMemoryFillBuffer* buff
     }
 }
 
-CTRGX_INLINE bool ctrgxAddMemoryFill(GXCmdBuffer* b, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
-    CTRGX_ASSERT(b);
+KYGX_INLINE bool kygxAddMemoryFill(GXCmdBuffer* b, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
+    KYGX_ASSERT(b);
     
     GXCmd cmd;
-    ctrgxMakeMemoryFill(&cmd, buffer0, buffer1);
-    return ctrgxCmdBufferAdd(b, &cmd);    
+    kygxMakeMemoryFill(&cmd, buffer0, buffer1);
+    return kygxCmdBufferAdd(b, &cmd);    
 }
 
-CTRGX_INLINE void ctrgxSyncMemoryFill(const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
+KYGX_INLINE void kygxSyncMemoryFill(const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
     GXCmd cmd;
-    ctrgxMakeMemoryFill(&cmd, buffer0, buffer1);
-    ctrgxExecSync(&cmd);
+    kygxMakeMemoryFill(&cmd, buffer0, buffer1);
+    kygxExecSync(&cmd);
 }
 
-#endif /* _CTRGX_WRAPPERS_MEMORYFILL_H */
+#endif /* _KYGX_WRAPPERS_MEMORYFILL_H */

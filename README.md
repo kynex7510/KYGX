@@ -1,15 +1,15 @@
-# CTRGX
+# KYGX
 
 Low level abstraction of the GX graphics system for the 3DS.
 
 ## Setup
 
-Download a [prebuilt](https://github.com/kynex7510/CTRGX/releases) version, use as a CMake dependency, or build manually.
+Download a [prebuilt](https://github.com/kynex7510/KYGX/releases) version, use as a CMake dependency, or build manually.
 
 ### HOS build (userland)
 
 ```sh
-cmake -B BuildHOS -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$DEVKITPRO/cmake/3DS.cmake" -DCMAKE_BUILD_TYPE=Release -DCTRGX_ENABLE_TESTS=ON
+cmake -B BuildHOS -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$DEVKITPRO/cmake/3DS.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_ENABLE_TESTS=ON
 cmake --build BuildHOS --config Release
 cmake --install BuildHOS --prefix BuildHOS/Release
 ```
@@ -17,7 +17,7 @@ cmake --install BuildHOS --prefix BuildHOS/Release
 ### Baremetal build
 
 ```sh
-cmake -B BuildBM -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$(pwd)/CMake/Toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -DCTRGX_BAREMETAL=ON -DCTRGX_ENABLE_TESTS=ON
+cmake -B BuildBM -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$(pwd)/CMake/Toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_BAREMETAL=ON -DKYGX_ENABLE_TESTS=ON
 cmake --build BuildBM --config Release
 cmake --install BuildBM --prefix BuildBM/Release
 ```

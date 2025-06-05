@@ -1,12 +1,12 @@
-#ifndef _CTRGX_WRAPPERS_PROCESSCOMMANDLIST_H
-#define _CTRGX_WRAPPERS_PROCESSCOMMANDLIST_H
+#ifndef _KYGX_WRAPPERS_PROCESSCOMMANDLIST_H
+#define _KYGX_WRAPPERS_PROCESSCOMMANDLIST_H
 
 #include <GX/GX.h>
 
-CTRGX_INLINE void ctrgxMakeProcessCommandList(GXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
-    CTRGX_ASSERT(cmd);
+KYGX_INLINE void kygxMakeProcessCommandList(GXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
+    KYGX_ASSERT(cmd);
 
-    cmd->header = CTRGX_CMDID_PROCESSCOMMANDLIST;
+    cmd->header = KYGX_CMDID_PROCESSCOMMANDLIST;
     cmd->params[0] = (u32)addr;
     cmd->params[1] = size;
     cmd->params[2] = updateGasAccMax ? 1 : 0;
@@ -14,18 +14,18 @@ CTRGX_INLINE void ctrgxMakeProcessCommandList(GXCmd* cmd, void* addr, size_t siz
     cmd->params[6] = flush ? 1 : 0;
 }
 
-CTRGX_INLINE bool ctrgxAddProcessCommandList(GXCmdBuffer* b, void* addr, size_t size, bool updateGasAccMax, bool flush) {
-    CTRGX_ASSERT(b);
+KYGX_INLINE bool kygxAddProcessCommandList(GXCmdBuffer* b, void* addr, size_t size, bool updateGasAccMax, bool flush) {
+    KYGX_ASSERT(b);
 
     GXCmd cmd;
-    ctrgxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
-    return ctrgxCmdBufferAdd(b, &cmd);
+    kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
+    return kygxCmdBufferAdd(b, &cmd);
 }
 
-CTRGX_INLINE void ctrgxSyncProcessCommandList(void* addr, size_t size, bool updateGasAccMax, bool flush) {
+KYGX_INLINE void kygxSyncProcessCommandList(void* addr, size_t size, bool updateGasAccMax, bool flush) {
     GXCmd cmd;
-    ctrgxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
-    ctrgxExecSync(&cmd);
+    kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
+    kygxExecSync(&cmd);
 }
 
-#endif /* _CTRGX_WRAPPERS_PROCESSCOMMANDLIST_H */
+#endif /* _KYGX_WRAPPERS_PROCESSCOMMANDLIST_H */

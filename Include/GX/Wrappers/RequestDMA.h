@@ -1,15 +1,15 @@
-#ifndef _CTRGX_WRAPPERS_REQUESTDMA_H
-#define _CTRGX_WRAPPERS_REQUESTDMA_H
+#ifndef _KYGX_WRAPPERS_REQUESTDMA_H
+#define _KYGX_WRAPPERS_REQUESTDMA_H
 
 // Baremetal doesn't support this command.
-#ifndef CTRGX_BAREMETAL
+#ifndef KYGX_BAREMETAL
 
 #include <GX/GX.h>
 
-CTRGX_INLINE void ctrgxMakeRequestDMA(GXCmd* cmd, const void* src, void* dst, size_t size, bool flush) {
-    CTRGX_ASSERT(cmd);
+KYGX_INLINE void kygxMakeRequestDMA(GXCmd* cmd, const void* src, void* dst, size_t size, bool flush) {
+    KYGX_ASSERT(cmd);
 
-    cmd->header = CTRGX_CMDID_REQUESTDMA;
+    cmd->header = KYGX_CMDID_REQUESTDMA;
     cmd->params[0] = (u32)src;
     cmd->params[1] = (u32)dst;
     cmd->params[2] = size;
@@ -17,20 +17,20 @@ CTRGX_INLINE void ctrgxMakeRequestDMA(GXCmd* cmd, const void* src, void* dst, si
     cmd->params[6] = flush ? 1 : 0;
 }
 
-CTRGX_INLINE bool ctrgxAddRequestDMA(GXCmdBuffer* b, const void* src, void* dst, size_t size, bool flush) {
-    CTRGX_ASSERT(b);
+KYGX_INLINE bool kygxAddRequestDMA(GXCmdBuffer* b, const void* src, void* dst, size_t size, bool flush) {
+    KYGX_ASSERT(b);
 
     GXCmd cmd;
-    ctrgxMakeRequestDMA(&cmd, src, dst, size, flush);
-    return ctrgxCmdBufferAdd(b, &cmd);
+    kygxMakeRequestDMA(&cmd, src, dst, size, flush);
+    return kygxCmdBufferAdd(b, &cmd);
 }
 
-CTRGX_INLINE void ctrgxSyncRequestDMA(const void* src, void* dst, size_t size, bool flush) {
+KYGX_INLINE void kygxSyncRequestDMA(const void* src, void* dst, size_t size, bool flush) {
     GXCmd cmd;
-    ctrgxMakeRequestDMA(&cmd, src, dst, size, flush);
-    ctrgxExecSync(&cmd);
+    kygxMakeRequestDMA(&cmd, src, dst, size, flush);
+    kygxExecSync(&cmd);
 }
 
-#endif // !CTRGX_BAREMETAL
+#endif // !KYGX_BAREMETAL
 
-#endif /* _CTRGX_WRAPPERS_REQUESTDMA_H */
+#endif /* _KYGX_WRAPPERS_REQUESTDMA_H */

@@ -6,14 +6,14 @@
 #define CMD_QUEUE_PTR(sharedMem, index) (GXCmdQueue*)((u8*)(sharedMem) + 0x800 + (0x200 * (index)))
 
 static u8 g_IntrMask = 0;
-static LightEvent g_IntrEvents[CTRGX_NUM_INTERRUPTS];
+static LightEvent g_IntrEvents[KYGX_NUM_INTERRUPTS];
 
 // Defined in GX.c.
 static void onInterrupt(GXIntr intrID);
 
 static void gspIntrCb(void* intrID) {
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
     if (g_IntrMask & (1 << index))
         onInterrupt((GXIntr)intrID);
@@ -21,8 +21,8 @@ static void gspIntrCb(void* intrID) {
     LightEvent_Signal(&g_IntrEvents[index]);
 }
 
-bool ctrgxs_init(State* state) {
-    CTRGX_ASSERT(state);
+bool kygxs_init(State* state) {
+    KYGX_ASSERT(state);
 
     if (R_FAILED(gspInit()))
         return false;
@@ -31,7 +31,7 @@ bool ctrgxs_init(State* state) {
         __ldrexb(&g_IntrMask);
     } while (__strexb(&g_IntrMask, 0xFF));
 
-    for (size_t i = 0; i < CTRGX_NUM_INTERRUPTS; ++i)
+    for (size_t i = 0; i < KYGX_NUM_INTERRUPTS; ++i)
         LightEvent_Init(&g_IntrEvents[i], RESET_STICKY);
 
     LightLock_Init(&state->platform.lock);
@@ -56,8 +56,8 @@ bool ctrgxs_init(State* state) {
     return true;
 }
 
-void ctrgxs_cleanup(State* state) {
-    CTRGX_ASSERT(state);
+void kygxs_cleanup(State* state) {
+    KYGX_ASSERT(state);
 
     gspSetEventCallback(GSPGPU_EVENT_PSC0, NULL, NULL, false);
     gspSetEventCallback(GSPGPU_EVENT_PSC1, NULL, NULL, false);
@@ -72,25 +72,25 @@ void ctrgxs_cleanup(State* state) {
     gspExit();
 }
 
-void ctrgxs_enter_critical_section(State* state, u32 op) {
-    CTRGX_ASSERT(state);
+void kygxs_enter_critical_section(State* state, u32 op) {
+    KYGX_ASSERT(state);
 
     if (op & ~SAFE_OPS)
         LightLock_Lock(&state->platform.lock);
 }
 
-void ctrgxs_exit_critical_section(State* state, u32 op) {
-    CTRGX_ASSERT(state);
+void kygxs_exit_critical_section(State* state, u32 op) {
+    KYGX_ASSERT(state);
 
     if (op & ~SAFE_OPS)
         LightLock_Unlock(&state->platform.lock);
 }
 
-void ctrgxs_enable_intr_cb(State* state, GXIntr intrID) {
+void kygxs_enable_intr_cb(State* state, GXIntr intrID) {
     (void)state;
 
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
     u8 mask;
     do {
@@ -98,11 +98,11 @@ void ctrgxs_enable_intr_cb(State* state, GXIntr intrID) {
     } while (__strexb(&g_IntrMask, mask | (1 << index)));
 }
 
-void ctrgxs_disable_intr_cb(State* state, GXIntr intrID) {
+void kygxs_disable_intr_cb(State* state, GXIntr intrID) {
     (void)state;
 
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
     u8 mask;
     do {
@@ -110,35 +110,35 @@ void ctrgxs_disable_intr_cb(State* state, GXIntr intrID) {
     } while (__strexb(&g_IntrMask, mask & ~(1 << index)));
 }
 
-void ctrgxs_wait_intr(State* state, GXIntr intrID) {
+void kygxs_wait_intr(State* state, GXIntr intrID) {
     (void)state;
     
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
     LightEvent_Wait(&g_IntrEvents[index]);
 }
 
-void ctrgxs_clear_intr(State* state, GXIntr intrID) {
+void kygxs_clear_intr(State* state, GXIntr intrID) {
     (void)state;
     
     const size_t index = (size_t)intrID;
-    CTRGX_ASSERT(index < CTRGX_NUM_INTERRUPTS);
+    KYGX_ASSERT(index < KYGX_NUM_INTERRUPTS);
 
     LightEvent_Clear(&g_IntrEvents[index]);
 }
 
-void ctrgxs_exec_commands(State* state) {
-    CTRGX_ASSERT(state);
+void kygxs_exec_commands(State* state) {
+    KYGX_ASSERT(state);
     state->platform.halted = false;
 
     LightLock_Unlock(&state->platform.lock);
-    CTRGX_BREAK_UNLESS(R_SUCCEEDED(GSPGPU_TriggerCmdReqQueue()));
+    KYGX_BREAK_UNLESS(R_SUCCEEDED(GSPGPU_TriggerCmdReqQueue()));
     LightLock_Lock(&state->platform.lock);
 }
 
-void ctrgxs_wait_command_completion(State* state) {
-    CTRGX_ASSERT(state);
+void kygxs_wait_command_completion(State* state) {
+    KYGX_ASSERT(state);
     
     const GXCmdBuffer* cmdBuffer = state->cmdBuffer;
     while (cmdBuffer && cmdBuffer->count) {
@@ -147,15 +147,15 @@ void ctrgxs_wait_command_completion(State* state) {
     }
 }
 
-void ctrgxs_signal_command_completion(State* state) {
-    CTRGX_ASSERT(state);
-    CTRGX_ASSERT(!state->cmdBuffer || !state->cmdBuffer->count);
+void kygxs_signal_command_completion(State* state) {
+    KYGX_ASSERT(state);
+    KYGX_ASSERT(!state->cmdBuffer || !state->cmdBuffer->count);
 
     CondVar_Broadcast(&state->platform.completionCV);
 }
 
-void ctrgxs_request_halt(State* state, bool wait) {
-    CTRGX_ASSERT(state);
+void kygxs_request_halt(State* state, bool wait) {
+    KYGX_ASSERT(state);
 
     if (!state->platform.halted) {
         state->platform.haltRequested = true;
@@ -167,8 +167,8 @@ void ctrgxs_request_halt(State* state, bool wait) {
     }
 }
 
-bool ctrgxs_signal_halt(State* state) {
-    CTRGX_ASSERT(state);
+bool kygxs_signal_halt(State* state) {
+    KYGX_ASSERT(state);
 
     state->platform.halted = true;
 

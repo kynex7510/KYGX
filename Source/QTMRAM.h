@@ -1,12 +1,12 @@
-#ifndef _CTRGX_QTMRAM_H
-#define _CTRGX_QTMRAM_H
+#ifndef _KYGX_QTMRAM_H
+#define _KYGX_QTMRAM_H
 
-#ifdef CTRGX_BAREMETAL
+#ifdef KYGX_BAREMETAL
 #include <mem_map.h>
 #include <arm11/util/rbtree.h>
 #else
 #include <3ds/util/rbtree.h>
-#endif // CTRGX_BAREMETAL
+#endif // KYGX_BAREMETAL
 
 #include <GX/Allocator.h>
 #include <GX/Utility.h>
@@ -23,7 +23,7 @@ static u32 g_AllocBase = 0;
 static u32 g_MaxAllocSize = 0;
 
 static bool initRegion(void) {
-#ifdef CTRGX_BAREMETAL
+#ifdef KYGX_BAREMETAL
     // TODO: mmu checks?
     // TODO: enable GPU access and stuff
     g_AllocBase = QTM_RAM_BASE;
@@ -41,7 +41,7 @@ static bool initRegion(void) {
         g_MaxAllocSize = out;
 
     return g_AllocBase && g_MaxAllocSize;
-#endif // CTRGX_BAREMETAL
+#endif // KYGX_BAREMETAL
 }
 
 static int blockComparator(const rbtree_node_t* lhs, const rbtree_node_t* rhs) {
@@ -70,7 +70,7 @@ static bool lazyInit(void) {
 }
 
 static void* insertNode(u32 base, size_t size) {
-    MemoryBlock* b = (MemoryBlock*)ctrgxAlloc(GX_MEM_HEAP, sizeof(MemoryBlock));
+    MemoryBlock* b = (MemoryBlock*)kygxAlloc(GX_MEM_HEAP, sizeof(MemoryBlock));
     if (b) {
         b->base = base;
         b->size = size;
@@ -81,13 +81,13 @@ static void* insertNode(u32 base, size_t size) {
     return NULL;
 }
 
-CTRGX_INLINE void* qtmramMemAlign(size_t size, size_t alignment) {
+KYGX_INLINE void* qtmramMemAlign(size_t size, size_t alignment) {
     lazyInit();
 
     if (alignment < 8)
         alignment = 8;
 
-    if (!ctrgxIsPo2(alignment))
+    if (!kygxIsPo2(alignment))
         return NULL;
 
     // Get last memory block.
@@ -98,7 +98,7 @@ CTRGX_INLINE void* qtmramMemAlign(size_t size, size_t alignment) {
     }
 
     // If there's space after the last block, use it.
-    const u32 lastEndAligned = ctrgxAlignUp(last->base + last->size, alignment);
+    const u32 lastEndAligned = kygxAlignUp(last->base + last->size, alignment);
     if ((g_AllocBase + g_MaxAllocSize) - lastEndAligned >= size)
         return insertNode(lastEndAligned, size);
 
@@ -107,7 +107,7 @@ CTRGX_INLINE void* qtmramMemAlign(size_t size, size_t alignment) {
     MemoryBlock* prev = (MemoryBlock*)rbtree_node_prev(&current->node);
 
     while (prev) {
-        const u32 prevEndAligned = ctrgxAlignUp(prev->base + prev->size, alignment);
+        const u32 prevEndAligned = kygxAlignUp(prev->base + prev->size, alignment);
         if (current->base - prevEndAligned >= size)
             return insertNode(prevEndAligned, size);
 
@@ -122,9 +122,9 @@ CTRGX_INLINE void* qtmramMemAlign(size_t size, size_t alignment) {
     return NULL;
 }
 
-CTRGX_INLINE void* qtmramAlloc(size_t size) { return qtmramMemAlign(size, 0); }
+KYGX_INLINE void* qtmramAlloc(size_t size) { return qtmramMemAlign(size, 0); }
 
-CTRGX_INLINE void qtmramFree(void* p) {
+KYGX_INLINE void qtmramFree(void* p) {
     lazyInit();
 
     MemoryBlock b;
@@ -133,11 +133,11 @@ CTRGX_INLINE void qtmramFree(void* p) {
     rbtree_node_t* found = rbtree_find(&g_Tree, &b.node);
     if (found) {
         rbtree_remove(&g_Tree, found, NULL);
-        ctrgxFree(found);
+        kygxFree(found);
     }
 }
 
-CTRGX_INLINE size_t qtmramGetSize(const void* p) {
+KYGX_INLINE size_t qtmramGetSize(const void* p) {
     lazyInit();
 
     MemoryBlock b;
@@ -147,4 +147,4 @@ CTRGX_INLINE size_t qtmramGetSize(const void* p) {
     return found ? ((MemoryBlock*)found)->size : 0;
 }
 
-#endif // CTRGX_QTMRAM_H
+#endif // KYGX_QTMRAM_H

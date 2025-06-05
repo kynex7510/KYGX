@@ -29,28 +29,28 @@ static void clearScreen(void) {
     GXMemoryFillBuffer fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
-    fill.value = CTRGX_MEMORYFILL_VALUE_RGB8(0xFF, 0xFF, 0xFF);
-    fill.width = CTRGX_MEMORYFILL_WIDTH_24;
+    fill.value = KYGX_MEMORYFILL_VALUE_RGB8(0xFF, 0xFF, 0xFF);
+    fill.width = KYGX_MEMORYFILL_WIDTH_24;
 
     // Prepare transfer flags.
     GXDisplayTransferFlags transferFlags;
-    transferFlags.mode = CTRGX_DISPLAYTRANSFER_MODE_T2L;
-    transferFlags.srcFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.dstFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.downscale = CTRGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
+    transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
+    transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.downscale = KYGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
     transferFlags.verticalFlip = false;
     transferFlags.blockMode32 = false;
 
     // Fill framebuffer with white through VRAM.
-    ctrgxLock();
-    ctrgxAddMemoryFill(&g_CmdBuffer, &fill, NULL);
+    kygxLock();
+    kygxAddMemoryFill(&g_CmdBuffer, &fill, NULL);
 
     // Finalize: the same buffer should not be used with different commands at the same time.
-    ctrgxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
+    kygxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
 
-    ctrgxAddDisplayTransfer(&g_CmdBuffer, g_VRAMBuffer, fb, screenWidth, screenHeight, screenWidth, screenHeight, ctrgxMakeDisplayTransferFlags(&transferFlags));
-    ctrgxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
-    ctrgxUnlock(true);
+    kygxAddDisplayTransfer(&g_CmdBuffer, g_VRAMBuffer, fb, screenWidth, screenHeight, screenWidth, screenHeight, kygxMakeDisplayTransferFlags(&transferFlags));
+    kygxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
+    kygxUnlock(true);
 }
 
 static void drawRect(u16 x, u16 y, u16 width, u16 height) {
@@ -62,8 +62,8 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
     GXMemoryFillBuffer fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
-    fill.value = CTRGX_MEMORYFILL_VALUE_RGB8(0xFF, 0x00, 0x00);
-    fill.width = CTRGX_MEMORYFILL_WIDTH_24;
+    fill.value = KYGX_MEMORYFILL_VALUE_RGB8(0xFF, 0x00, 0x00);
+    fill.width = KYGX_MEMORYFILL_WIDTH_24;
 
     // Prepare rect params.
     GXTextureCopyRect rect;
@@ -76,29 +76,29 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
     size_t size = 0;
     u16 lineWidth = 0;
     u16 gap = 0;
-    ctrgxConvertTextureCopyRectRotated(&rect, screenWidth, CTRGX_TEXTURECOPY_PIXEL_SIZE_RGB8, &offset, &size, &lineWidth, &gap);
+    kygxConvertTextureCopyRectRotated(&rect, screenWidth, KYGX_TEXTURECOPY_PIXEL_SIZE_RGB8, &offset, &size, &lineWidth, &gap);
 
     // Draw red rectangle through VRAM.
-    ctrgxLock();
-    ctrgxAddMemoryFill(&g_CmdBuffer, NULL, &fill);
+    kygxLock();
+    kygxAddMemoryFill(&g_CmdBuffer, NULL, &fill);
 
     // Finalize: the same buffer should not be used with different commands at the same time.
-    ctrgxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
+    kygxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
 
-    ctrgxAddTextureCopy(&g_CmdBuffer, (u8*)g_VRAMBuffer + offset, fb + offset, size, lineWidth, gap, lineWidth, gap);
-    ctrgxCmdBufferFinalize(&g_CmdBuffer, onCommandsCompleted, NULL);
-    ctrgxUnlock(true);
+    kygxAddTextureCopy(&g_CmdBuffer, (u8*)g_VRAMBuffer + offset, fb + offset, size, lineWidth, gap, lineWidth, gap);
+    kygxCmdBufferFinalize(&g_CmdBuffer, onCommandsCompleted, NULL);
+    kygxUnlock(true);
 }
 
 int main(int argc, char* argv[]) {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
-    ctrgxInit();
+    kygxInit();
 
-    g_VRAMBuffer = ctrgxAlloc(GX_MEM_VRAM, FB_SIZE);
+    g_VRAMBuffer = kygxAlloc(GX_MEM_VRAM, FB_SIZE);
 
-    ctrgxCmdBufferAlloc(&g_CmdBuffer, CMDBUFFER_CAPACITY);
-    ctrgxExchangeCmdBuffer(&g_CmdBuffer, true);
+    kygxCmdBufferAlloc(&g_CmdBuffer, CMDBUFFER_CAPACITY);
+    kygxExchangeCmdBuffer(&g_CmdBuffer, true);
 
     printf("- Rect X: %u\n", RECT_X);
     printf("- Rect Y: %u\n", RECT_Y);
@@ -115,15 +115,15 @@ int main(int argc, char* argv[]) {
 
         clearScreen();
         drawRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
-        ctrgxWaitVBlank();
+        kygxWaitVBlank();
     }
 
-    ctrgxExchangeCmdBuffer(NULL, true);
-    ctrgxCmdBufferFree(&g_CmdBuffer);
+    kygxExchangeCmdBuffer(NULL, true);
+    kygxCmdBufferFree(&g_CmdBuffer);
 
-    ctrgxFree(g_VRAMBuffer);
+    kygxFree(g_VRAMBuffer);
 
-    ctrgxExit();
+    kygxExit();
     gfxExit();
     return 0;
 }

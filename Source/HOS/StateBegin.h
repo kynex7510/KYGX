@@ -1,5 +1,5 @@
-#ifndef _CTRGX_HOS_STATEBEGIN_H
-#define _CTRGX_HOS_STATEBEGIN_H
+#ifndef _KYGX_HOS_STATEBEGIN_H
+#define _KYGX_HOS_STATEBEGIN_H
 
 #include <GX/GX.h>
 
@@ -11,4 +11,4 @@ typedef struct {
     bool halted;
 } PlatformState;
 
-#endif /* _CTRGX_HOS_STATEBEGIN_H */
+#endif /* _KYGX_HOS_STATEBEGIN_H */

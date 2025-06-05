@@ -21,29 +21,29 @@ static void clearScreen(void) {
     GXMemoryFillBuffer fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
-    fill.value = CTRGX_MEMORYFILL_VALUE_RGB8(g_Red, g_Green, g_Blue);
-    fill.width = CTRGX_MEMORYFILL_WIDTH_24;
+    fill.value = KYGX_MEMORYFILL_VALUE_RGB8(g_Red, g_Green, g_Blue);
+    fill.width = KYGX_MEMORYFILL_WIDTH_24;
 
     // Prepare transfer flags.
     GXDisplayTransferFlags transferFlags;
-    transferFlags.mode = CTRGX_DISPLAYTRANSFER_MODE_T2L;
-    transferFlags.srcFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.dstFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.downscale = CTRGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
+    transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
+    transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.downscale = KYGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
     transferFlags.verticalFlip = false;
     transferFlags.blockMode32 = false;
 
     // Fill framebuffer through VRAM.
-    ctrgxSyncMemoryFill(&fill, NULL);
-    ctrgxSyncDisplayTransfer(g_VRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, ctrgxMakeDisplayTransferFlags(&transferFlags));
+    kygxSyncMemoryFill(&fill, NULL);
+    kygxSyncDisplayTransfer(g_VRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, kygxMakeDisplayTransferFlags(&transferFlags));
 }
 
 int main(int argc, char* argv[]) {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
-    ctrgxInit();
+    kygxInit();
 
-    g_VRAMBuffer = ctrgxAlloc(GX_MEM_VRAM, FB_SIZE);
+    g_VRAMBuffer = kygxAlloc(GX_MEM_VRAM, FB_SIZE);
 
     bool updateConsole = true;
     while (aptMainLoop()) {
@@ -78,12 +78,12 @@ int main(int argc, char* argv[]) {
 
         clearScreen();
         gfxSwapBuffers();
-        ctrgxWaitVBlank();
+        kygxWaitVBlank();
     }
 
-    ctrgxFree(g_VRAMBuffer);
+    kygxFree(g_VRAMBuffer);
 
-    ctrgxExit();
+    kygxExit();
     gfxExit();
     return 0;
 }

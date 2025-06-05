@@ -5,7 +5,7 @@
 
 #include "../State.h"
 
-CTRGX_INLINE void doProcessCommandList(u32 addr, u32 size, bool updateGasAccMax, bool flush) {
+KYGX_INLINE void doProcessCommandList(u32 addr, u32 size, bool updateGasAccMax, bool flush) {
     // TODO: gas
 
     if (flush)
@@ -22,7 +22,7 @@ CTRGX_INLINE void doProcessCommandList(u32 addr, u32 size, bool updateGasAccMax,
     regs->p3d[GPUREG_CMDBUF_JUMP0] = 1;
 }
 
-CTRGX_INLINE void doMemoryFill(u32 buf0s, u32 buf0v, u32 buf0e, u32 buf1s, u32 buf1v, u32 buf1e, u32 ctl) {
+KYGX_INLINE void doMemoryFill(u32 buf0s, u32 buf0v, u32 buf0e, u32 buf1s, u32 buf1v, u32 buf1e, u32 ctl) {
     GxRegs* regs = getGxRegs();
 
     if (buf0s) {
@@ -40,7 +40,7 @@ CTRGX_INLINE void doMemoryFill(u32 buf0s, u32 buf0v, u32 buf0e, u32 buf1s, u32 b
     }
 }
 
-CTRGX_INLINE void doDisplayTransfer(u32 src, u32 dst, u32 srcDim, u32 dstDim, u32 flags) {
+KYGX_INLINE void doDisplayTransfer(u32 src, u32 dst, u32 srcDim, u32 dstDim, u32 flags) {
     GxRegs* regs = getGxRegs();
 
     regs->ppf.in_addr = src >> 3;
@@ -52,7 +52,7 @@ CTRGX_INLINE void doDisplayTransfer(u32 src, u32 dst, u32 srcDim, u32 dstDim, u3
     regs->ppf.cnt = PPF_EN;
 }
 
-CTRGX_INLINE void doTextureCopy(u32 src, u32 dst, u32 size, u32 srcParam, u32 dstParam, u32 flags) {
+KYGX_INLINE void doTextureCopy(u32 src, u32 dst, u32 size, u32 srcParam, u32 dstParam, u32 flags) {
     GxRegs* regs = getGxRegs();
 
     regs->ppf.in_addr = src >> 3;
@@ -64,7 +64,7 @@ CTRGX_INLINE void doTextureCopy(u32 src, u32 dst, u32 size, u32 srcParam, u32 ds
     regs->ppf.cnt = PPF_EN;
 }
 
-CTRGX_INLINE void doFlushCacheRegions(u32 addr0, u32 size0, u32 addr1, u32 size1, u32 addr2, u32 size2) {
+KYGX_INLINE void doFlushCacheRegions(u32 addr0, u32 size0, u32 addr1, u32 size1, u32 addr2, u32 size2) {
     flushDCacheRange((void*)addr0, size0);
 
     if (size1) {
@@ -75,21 +75,21 @@ CTRGX_INLINE void doFlushCacheRegions(u32 addr0, u32 size0, u32 addr1, u32 size1
     }
 }
 
-CTRGX_INLINE void execCommand(const GXCmd* cmd) {
+KYGX_INLINE void execCommand(const GXCmd* cmd) {
     switch (cmd->header & 0xFF) {
-        case CTRGX_CMDID_PROCESSCOMMANDLIST:
+        case KYGX_CMDID_PROCESSCOMMANDLIST:
             doProcessCommandList(cmd->params[0], cmd->params[1], cmd->params[2] == 1, cmd->params[6] == 1);
             break;
-        case CTRGX_CMDID_MEMORYFILL:
+        case KYGX_CMDID_MEMORYFILL:
             doMemoryFill(cmd->params[0], cmd->params[1], cmd->params[2], cmd->params[3], cmd->params[4], cmd->params[5], cmd->params[6]);
             break;
-        case CTRGX_CMDID_DISPLAYTRANSFER:
+        case KYGX_CMDID_DISPLAYTRANSFER:
             doDisplayTransfer(cmd->params[0], cmd->params[1], cmd->params[2], cmd->params[3], cmd->params[4]);
             break;
-        case CTRGX_CMDID_TEXTURECOPY:
+        case KYGX_CMDID_TEXTURECOPY:
             doTextureCopy(cmd->params[0], cmd->params[1], cmd->params[2], cmd->params[3], cmd->params[4], cmd->params[5]);
             break;
-        case CTRGX_CMDID_FLUSHCACHEREGIONS:
+        case KYGX_CMDID_FLUSHCACHEREGIONS:
             doFlushCacheRegions(cmd->params[0], cmd->params[1], cmd->params[2], cmd->params[3], cmd->params[4], cmd->params[5]);
             break;
     }

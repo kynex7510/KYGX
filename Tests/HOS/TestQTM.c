@@ -25,10 +25,10 @@ static void clearScreen(void) {
 
     // Prepare transfer flags.
     GXDisplayTransferFlags transferFlags;
-    transferFlags.mode = CTRGX_DISPLAYTRANSFER_MODE_T2L;
-    transferFlags.srcFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.dstFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.downscale = CTRGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
+    transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
+    transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.downscale = KYGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
     transferFlags.verticalFlip = false;
     transferFlags.blockMode32 = false;
 
@@ -40,16 +40,16 @@ static void clearScreen(void) {
         p[i + 2] = g_Blue;
     }
 
-    ctrgxSyncFlushCacheRegions(&flush, NULL, NULL);
-    ctrgxSyncDisplayTransfer(g_QTMRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, ctrgxMakeDisplayTransferFlags(&transferFlags));
+    kygxSyncFlushCacheRegions(&flush, NULL, NULL);
+    kygxSyncDisplayTransfer(g_QTMRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, kygxMakeDisplayTransferFlags(&transferFlags));
 }
 
 int main(void) {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
-    ctrgxInit();
+    kygxInit();
 
-    g_QTMRAMBuffer = ctrgxAlloc(GX_MEM_QTMRAM, FB_SIZE);
+    g_QTMRAMBuffer = kygxAlloc(GX_MEM_QTMRAM, FB_SIZE);
     if (!g_QTMRAMBuffer) {
         printf("QTMRAM buffer allocation failed\n");
         printf("NOTE: this test is for N3DS only\n");
@@ -61,10 +61,10 @@ int main(void) {
                 break;
 
             gfxSwapBuffers();
-            ctrgxWaitVBlank();
+            kygxWaitVBlank();
         }
 
-         ctrgxExit();
+        kygxExit();
         gfxExit();
         return 0;
     }
@@ -102,12 +102,12 @@ int main(void) {
 
         clearScreen();
         gfxSwapBuffers();;
-        ctrgxWaitVBlank();
+        kygxWaitVBlank();
     }
 
-    ctrgxFree(g_QTMRAMBuffer);
+    kygxFree(g_QTMRAMBuffer);
 
-    ctrgxExit();
+    kygxExit();
     gfxExit();
     return 0;
 }

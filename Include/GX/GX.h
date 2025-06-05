@@ -1,30 +1,30 @@
-#ifndef _CTRGX_GX_H
-#define _CTRGX_GX_H
+#ifndef _KYGX_GX_H
+#define _KYGX_GX_H
 
 #include <GX/Command.h>
 #include <GX/Interrupt.h>
 #include <GX/CommandBuffer.h>
 
-#define ctrgxWaitVBlank()         \
-    ctrgxClearIntr(GX_INTR_PDC0); \
-    ctrgxWaitIntr(GX_INTR_PDC0)
+#define kygxWaitVBlank()         \
+    kygxClearIntr(GX_INTR_PDC0); \
+    kygxWaitIntr(GX_INTR_PDC0)
 
-CTRGX_EXTERN bool ctrgxInit(void);
-CTRGX_EXTERN void ctrgxExit(void);
-CTRGX_EXTERN GXCmdBuffer* ctrgxExchangeCmdBuffer(GXCmdBuffer* b, bool flush);
+KYGX_EXTERN bool kygxInit(void);
+KYGX_EXTERN void kygxExit(void);
+KYGX_EXTERN GXCmdBuffer* kygxExchangeCmdBuffer(GXCmdBuffer* b, bool flush);
 
-CTRGX_EXTERN void ctrgxLock(void);
-CTRGX_EXTERN bool ctrgxUnlock(bool exec);
-CTRGX_EXTERN GXIntrQueue* ctrgxGetIntrQueue(void);
-CTRGX_EXTERN GXCmdQueue* ctrgxGetCmdQueue(void);
-CTRGX_EXTERN GXCmdBuffer* ctrgxGetCmdBuffer(void);
+KYGX_EXTERN void kygxLock(void);
+KYGX_EXTERN bool kygxUnlock(bool exec);
+KYGX_EXTERN GXIntrQueue* kygxGetIntrQueue(void);
+KYGX_EXTERN GXCmdQueue* kygxGetCmdQueue(void);
+KYGX_EXTERN GXCmdBuffer* kygxGetCmdBuffer(void);
 
-CTRGX_EXTERN void ctrgxWaitIntr(GXIntr intrID);
-CTRGX_EXTERN void ctrgxClearIntr(GXIntr intrID);
+KYGX_EXTERN void kygxWaitIntr(GXIntr intrID);
+KYGX_EXTERN void kygxClearIntr(GXIntr intrID);
 
-CTRGX_EXTERN bool ctrgxFlushBufferedCommands(void);
-CTRGX_EXTERN void ctrgxWaitCompletion(void);
-CTRGX_EXTERN void ctrgxHalt(bool wait);
-CTRGX_EXTERN void ctrgxExecSync(const GXCmd* cmd);
+KYGX_EXTERN bool kygxFlushBufferedCommands(void);
+KYGX_EXTERN void kygxWaitCompletion(void);
+KYGX_EXTERN void kygxHalt(bool wait);
+KYGX_EXTERN void kygxExecSync(const GXCmd* cmd);
 
-#endif /* _CTRGX_GX_H */
+#endif /* _KYGX_GX_H */

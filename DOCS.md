@@ -43,15 +43,15 @@ Lastly, applications would benefit from having multiple command queues, especial
 
 ## Initialization and cleanup
 
-To initialize the library, simply call `ctrgxInit`. To cleanup the library, call `ctrgxExit`. An application has to call `ctrgxExit` for as many times as `ctrgxInit` has been called.
+To initialize the library, simply call `kygxInit`. To cleanup the library, call `kygxExit`. An application has to call `kygxExit` for as many times as `kygxInit` has been called.
 
 All functions are thread safe, with regard to both other threads and the internal worker thread, except for state accessors:
 
-- `ctrgxGetIntrQueue`
-- `ctrgxGetCmdQueue`
-- `ctrgxGetCmdBuffer`
+- `kygxGetIntrQueue`
+- `kygxGetCmdQueue`
+- `kygxGetCmdBuffer`
 
-An application must call `ctrgxLock` to acquire exclusive access on internal state, this includes adding commands to the currently set command buffer. Once the application no longer needs to access internal state, `ctrgxUnlock` must be called to release exclusive access.
+An application must call `kygxLock` to acquire exclusive access on internal state, this includes adding commands to the currently set command buffer. Once the application no longer needs to access internal state, `kygxUnlock` must be called to release exclusive access.
 
 ## Command buffer
 
@@ -59,32 +59,32 @@ An application must call `ctrgxLock` to acquire exclusive access on internal sta
 
 Command buffers are the central parts of this library. Each command buffer holds GX commands, which are split into **command batches**. In the most simple form, each command batch contains one command, and each batch represents that command.
 
-Asynchronous commands require a command buffer to be run. To set a command buffer, call `ctrgxExchangeCmdBuffer`. This function returns the current command buffer. A halt is performed if flushing is not requested.
+Asynchronous commands require a command buffer to be run. To set a command buffer, call `kygxExchangeCmdBuffer`. This function returns the current command buffer. A halt is performed if flushing is not requested.
 
-An application may setup a "static" command buffer, which uses static buffers internally, or a "dynamic" one, which is initialized through `ctrgxCmdBufferAlloc`, and offloads initialization to the library, at the cost of using heap memory. Dynamic command buffers must be freed with `ctrgxCmdBufferFree` once they're not needed anymore.
+An application may setup a "static" command buffer, which uses static buffers internally, or a "dynamic" one, which is initialized through `kygxCmdBufferAlloc`, and offloads initialization to the library, at the cost of using heap memory. Dynamic command buffers must be freed with `kygxCmdBufferFree` once they're not needed anymore.
 
-`ctrgxCmdBufferClear` resets the content of a command buffer. Commands are inserted with `ctrgxCmdBufferAdd`, while batches are marked with `ctrgxCmdBufferFinalize`, where it's possible to set a callback that will be executed on batch completion.
+`kygxCmdBufferClear` resets the content of a command buffer. Commands are inserted with `kygxCmdBufferAdd`, while batches are marked with `kygxCmdBufferFinalize`, where it's possible to set a callback that will be executed on batch completion.
 
 A finalized command buffer is a command buffer with at least 1 finalized batch. Command execution will fail if the currently set command buffer is not finalized.
 
 ## Flushing and halting
 
-Once command processing has started batches are processed continuously, eg. when one batch has completed, the next one is processed, until all batches are completed. Once all batches are completed, command execution is halted, and can be restarted by calling `ctrgxFlushBufferedCommands` or, if the application has added new commands to the command buffer, by passing `true` for `exec` in `ctrgxUnlock`. `ctrgxWaitCompletion` will block until the command buffer becomes empty.
+Once command processing has started batches are processed continuously, eg. when one batch has completed, the next one is processed, until all batches are completed. Once all batches are completed, command execution is halted, and can be restarted by calling `kygxFlushBufferedCommands` or, if the application has added new commands to the command buffer, by passing `true` for `exec` in `kygxUnlock`. `kygxWaitCompletion` will block until the command buffer becomes empty.
 
-Applications are allowed to halt the execution by calling `ctrgxHalt`. If an application passes `true` for `wait`, then the function returns only after execution has halted. Otherwise, halting will be requested, and the function returns immediately. This makes it possible for applications to run code inbetween the halting process:
+Applications are allowed to halt the execution by calling `kygxHalt`. If an application passes `true` for `wait`, then the function returns only after execution has halted. Otherwise, halting will be requested, and the function returns immediately. This makes it possible for applications to run code inbetween the halting process:
 
 ```c
-ctrgxHalt(false); // Request halt
+kygxHalt(false); // Request halt
 // Run some code
-ctrgxHalt(true); // Wait until execution has halted
+kygxHalt(true); // Wait until execution has halted
 ```
 
 Each command batch is executed atomically, that is, all commands in a batch must be processed before the application has a chance to halt execution.
 
 ## Synchronous execution
 
-Sometimes an application has to wait for a command to be completed to continue, for example when using `TextureCopy`, an application might want to invalidate the destination buffer's cache. A command may be executed with `ctrgxExecSync`: this function halts execution of the current command buffer, executes the given command, wait for completion, and then resume the execution of the command buffer.
+Sometimes an application has to wait for a command to be completed to continue, for example when using `TextureCopy`, an application might want to invalidate the destination buffer's cache. A command may be executed with `kygxExecSync`: this function halts execution of the current command buffer, executes the given command, wait for completion, and then resume the execution of the command buffer.
 
 ## Wrappers
 
-Wrappers for all GX commands are exposed by the headers under the [Wrappers](Include/GX/Wrappers) folder. `ctrgxAdd*` is used with a command buffer, while `ctrgxSync*` is used for synchronous execution.
+Wrappers for all GX commands are exposed by the headers under the [Wrappers](Include/GX/Wrappers) folder. `kygxAdd*` is used with a command buffer, while `kygxSync*` is used for synchronous execution.

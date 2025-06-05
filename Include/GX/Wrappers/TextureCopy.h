@@ -1,13 +1,13 @@
-#ifndef _CTRGX_WRAPPERS_TEXTURECOPY_H
-#define _CTRGX_WRAPPERS_TEXTURECOPY_H
+#ifndef _KYGX_WRAPPERS_TEXTURECOPY_H
+#define _KYGX_WRAPPERS_TEXTURECOPY_H
 
 #include <GX/GX.h>
 
-#define CTRGX_TEXTURECOPY_PIXEL_SIZE_RGBA8 4
-#define CTRGX_TEXTURECOPY_PIXEL_SIZE_RGB8 3
-#define CTRGX_TEXTURECOPY_PIXEL_SIZE_RGB565 2
-#define CTRGX_TEXTURECOPY_PIXEL_SIZE_RGB5A1 2
-#define CTRGX_TEXTURECOPY_PIXEL_SIZE_RGBA4 2
+#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGBA8 4
+#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGB8 3
+#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGB565 2
+#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGB5A1 2
+#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGBA4 2
 
 typedef struct {
     u16 x;
@@ -16,8 +16,8 @@ typedef struct {
     u16 height;
 } GXTextureCopyRect;
 
-CTRGX_INLINE void ctrgxConvertTextureCopyRect(const GXTextureCopyRect* rect, u16 surfaceWidth, u8 pixelSize, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
-    CTRGX_ASSERT(rect);
+KYGX_INLINE void kygxConvertTextureCopyRect(const GXTextureCopyRect* rect, u16 surfaceWidth, u8 pixelSize, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
+    KYGX_ASSERT(rect);
 
     if (offset)
         *offset = (surfaceWidth * rect->y * pixelSize) + (rect->x * pixelSize);
@@ -32,19 +32,19 @@ CTRGX_INLINE void ctrgxConvertTextureCopyRect(const GXTextureCopyRect* rect, u16
         *gap = ((surfaceWidth - rect->width) * pixelSize) >> 4;
 }
 
-CTRGX_INLINE void ctrgxConvertTextureCopyRectRotated(const GXTextureCopyRect* rect, u16 surfaceHeight, u8 pixelSize, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
-    CTRGX_ASSERT(rect);
+KYGX_INLINE void kygxConvertTextureCopyRectRotated(const GXTextureCopyRect* rect, u16 surfaceHeight, u8 pixelSize, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
+    KYGX_ASSERT(rect);
 
     GXTextureCopyRect tmp;
     tmp.x = rect->y;
     tmp.y = rect->x;
     tmp.width = rect->height;
     tmp.height = rect->width;
-    ctrgxConvertTextureCopyRect(&tmp, surfaceHeight, pixelSize, offset, size, lineWidth, gap);
+    kygxConvertTextureCopyRect(&tmp, surfaceHeight, pixelSize, offset, size, lineWidth, gap);
 }
 
-CTRGX_INLINE void ctrgxMakeTextureCopy(GXCmd* cmd, const void* src, void* dst, size_t size, u16 srcLineWidth, u16 srcGap, u16 dstLineWidth, u16 dstGap) {
-    CTRGX_ASSERT(cmd);
+KYGX_INLINE void kygxMakeTextureCopy(GXCmd* cmd, const void* src, void* dst, size_t size, u16 srcLineWidth, u16 srcGap, u16 dstLineWidth, u16 dstGap) {
+    KYGX_ASSERT(cmd);
 
     u32 flags = 0;
     if (srcGap || dstGap)
@@ -52,13 +52,13 @@ CTRGX_INLINE void ctrgxMakeTextureCopy(GXCmd* cmd, const void* src, void* dst, s
 
     // TODO: dst width? dst gap?
     if (srcGap) {
-        CTRGX_ASSERT(size >= 192);
-        CTRGX_ASSERT(srcLineWidth);
+        KYGX_ASSERT(size >= 192);
+        KYGX_ASSERT(srcLineWidth);
     } else {
-        CTRGX_ASSERT(size >= 16);
+        KYGX_ASSERT(size >= 16);
     }
 
-    cmd->header = CTRGX_CMDID_TEXTURECOPY;
+    cmd->header = KYGX_CMDID_TEXTURECOPY;
 
     cmd->params[0] = (u32)src;
     cmd->params[1] = (u32)dst;
@@ -69,18 +69,18 @@ CTRGX_INLINE void ctrgxMakeTextureCopy(GXCmd* cmd, const void* src, void* dst, s
     cmd->params[6] = 0;
 }
 
-CTRGX_INLINE bool ctrgxAddTextureCopy(GXCmdBuffer* b, const void* src, void* dst, size_t size, u16 srcLineWidth, u16 srcGap, u16 dstLineWidth, u16 dstGap) {
-    CTRGX_ASSERT(b);
+KYGX_INLINE bool kygxAddTextureCopy(GXCmdBuffer* b, const void* src, void* dst, size_t size, u16 srcLineWidth, u16 srcGap, u16 dstLineWidth, u16 dstGap) {
+    KYGX_ASSERT(b);
     
     GXCmd cmd;
-    ctrgxMakeTextureCopy(&cmd, src, dst, size, srcLineWidth, srcGap, dstLineWidth, dstGap);
-    return ctrgxCmdBufferAdd(b, &cmd);    
+    kygxMakeTextureCopy(&cmd, src, dst, size, srcLineWidth, srcGap, dstLineWidth, dstGap);
+    return kygxCmdBufferAdd(b, &cmd);    
 }
 
-CTRGX_INLINE void ctrgxSyncTextureCopy(const void* src, void* dst, size_t size, u16 srcLineWidth, u16 srcGap, u16 dstLineWidth, u16 dstGap) {
+KYGX_INLINE void kygxSyncTextureCopy(const void* src, void* dst, size_t size, u16 srcLineWidth, u16 srcGap, u16 dstLineWidth, u16 dstGap) {
     GXCmd cmd;
-    ctrgxMakeTextureCopy(&cmd, src, dst, size, srcLineWidth, srcGap, dstLineWidth, dstGap);
-    ctrgxExecSync(&cmd);
+    kygxMakeTextureCopy(&cmd, src, dst, size, srcLineWidth, srcGap, dstLineWidth, dstGap);
+    kygxExecSync(&cmd);
 }
 
-#endif /* _CTRGX_WRAPPERS_TEXTURECOPY_H */
+#endif /* _KYGX_WRAPPERS_TEXTURECOPY_H */

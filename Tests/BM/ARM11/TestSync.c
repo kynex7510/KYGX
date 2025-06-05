@@ -22,30 +22,30 @@ static void clearScreen(void) {
     GXMemoryFillBuffer fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
-    fill.value = CTRGX_MEMORYFILL_VALUE_RGB8(g_Red, g_Green, g_Blue);
-    fill.width = CTRGX_MEMORYFILL_WIDTH_24;
+    fill.value = KYGX_MEMORYFILL_VALUE_RGB8(g_Red, g_Green, g_Blue);
+    fill.width = KYGX_MEMORYFILL_WIDTH_24;
 
     // Prepare transfer flags.
     GXDisplayTransferFlags transferFlags;
-    transferFlags.mode = CTRGX_DISPLAYTRANSFER_MODE_T2L;
-    transferFlags.srcFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.dstFmt = CTRGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.downscale = CTRGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
+    transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
+    transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
+    transferFlags.downscale = KYGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
     transferFlags.verticalFlip = false;
     transferFlags.blockMode32 = false;
 
     // Fill framebuffer through VRAM.
-    ctrgxSyncMemoryFill(&fill, NULL);
-    ctrgxSyncDisplayTransfer(g_VRAMBuffer, fb, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, ctrgxMakeDisplayTransferFlags(&transferFlags));
+    kygxSyncMemoryFill(&fill, NULL);
+    kygxSyncDisplayTransfer(g_VRAMBuffer, fb, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, kygxMakeDisplayTransferFlags(&transferFlags));
 }
 
 int main(void) {
     GFX_init(GFX_BGR8, GFX_BGR565, GFX_TOP_2D);
     GFX_setLcdLuminance(80);
     consoleInit(GFX_LCD_BOT, NULL);
-    ctrgxInit();
+    kygxInit();
 
-    g_VRAMBuffer = ctrgxAlloc(GX_MEM_VRAM, FB_SIZE);
+    g_VRAMBuffer = kygxAlloc(GX_MEM_VRAM, FB_SIZE);
 
     bool updateConsole = true;
     while (true) {
@@ -80,12 +80,12 @@ int main(void) {
 
         clearScreen();
         GFX_swapBuffers();
-        ctrgxWaitVBlank();
+        kygxWaitVBlank();
     }
 
-    ctrgxFree(g_VRAMBuffer);
+    kygxFree(g_VRAMBuffer);
 
-    ctrgxExit();
+    kygxExit();
     GFX_deinit();
     power_off();
     return 0;
