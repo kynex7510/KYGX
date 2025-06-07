@@ -20,4 +20,6 @@ KYGX_INLINE u32 kygxAlignUp(u32 v, u32 alignment) {
     return (v + alignment) & ~(alignment - 1);
 }
 
+KYGX_EXTERN void kygxInvalidateDataCache(void* addr, size_t size);
+
 #endif /* _KYGX_UTILITY_H */
