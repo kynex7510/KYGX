@@ -35,7 +35,7 @@ static void clearScreen(void) {
 
     // Fill framebuffer through VRAM.
     kygxSyncMemoryFill(&fill, NULL);
-    kygxSyncDisplayTransfer(g_VRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, kygxMakeDisplayTransferFlags(&transferFlags));
+    kygxSyncDisplayTransferChecked(g_VRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, &transferFlags);
 }
 
 int main(int argc, char* argv[]) {

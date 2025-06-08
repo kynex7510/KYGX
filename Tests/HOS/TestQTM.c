@@ -41,7 +41,7 @@ static void clearScreen(void) {
     }
 
     kygxSyncFlushCacheRegions(&flush, NULL, NULL);
-    kygxSyncDisplayTransfer(g_QTMRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, kygxMakeDisplayTransferFlags(&transferFlags));
+    kygxSyncDisplayTransferChecked(g_QTMRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, &transferFlags);
 }
 
 int main(void) {

@@ -2,6 +2,7 @@
 #define _KYGX_WRAPPERS_DISPLAYTRANSFER_H
 
 #include <GX/GX.h>
+#include <GX/Utility.h>
 
 #define KYGX_DISPLAYTRANSFER_MODE_T2L 0
 #define KYGX_DISPLAYTRANSFER_MODE_L2T (1 << 1)
@@ -61,18 +62,6 @@ KYGX_INLINE u32 kygxMakeDisplayTransferFlags(const GXDisplayTransferFlags* flags
 KYGX_INLINE void kygxMakeDisplayTransfer(GXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
     KYGX_ASSERT(cmd);
 
-    // TODO: bit1 and bit5?
-    //KYGX_ASSERT((flags & (KYGX_DISPLAYTRANSFER_FLAG_MAKE_TILED | KYGX_DISPLAYTRANSFER_FLAG_DONT_MAKE_LINEAR)) != (KYGX_DISPLAYTRANSFER_FLAG_MAKE_TILED | KYGX_DISPLAYTRANSFER_FLAG_DONT_MAKE_LINEAR));
-
-    // Transfer engine doesn't support anything lower than 64.
-    // TODO: dst?
-    KYGX_ASSERT(srcWidth >= 64 && srcHeight >= 64);
-
-    // Source and destination format must match, or source must be RGBA8 and destination must be RGB8.
-    const u8 srcFmt = (flags >> 8) & 0x7;
-    const u8 dstFmt = (flags >> 12) & 0x7;
-    KYGX_ASSERT(srcFmt == dstFmt || (srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGBA8 && dstFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8));
-
     cmd->header = KYGX_CMDID_DISPLAYTRANSFER;
 
     cmd->params[0] = (u32)src;
@@ -82,17 +71,96 @@ KYGX_INLINE void kygxMakeDisplayTransfer(GXCmd* cmd, const void* src, void* dst,
     cmd->params[4] = flags & ~0x8u;
 }
 
+KYGX_INLINE void kygxMakeDisplayTransferChecked(GXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
+    KYGX_ASSERT(cmd);
+    KYGX_ASSERT(flags);
+
+    // Handle tiled -> linear mode.
+    // TODO: test block mode 32.
+    if (flags->mode == KYGX_DISPLAYTRANSFER_MODE_T2L) {
+        // RGBA8 can convert into any other format.
+        if (flags->srcFmt != KYGX_DISPLAYTRANSFER_FMT_RGBA8) {
+            // RGB8 can only convert into itself.
+            if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
+                KYGX_ASSERT(flags->srcFmt == flags->dstFmt);
+            } else {
+                // other formats can only convert to other 16 bits formats.
+                const bool isDst16 = flags->dstFmt == KYGX_DISPLAYTRANSFER_FMT_RGB565 ||
+                    flags->dstFmt == KYGX_DISPLAYTRANSFER_FMT_RGB5A1 ||
+                    flags->dstFmt == KYGX_DISPLAYTRANSFER_FMT_RGBA4;
+
+                KYGX_ASSERT(isDst16);
+            }
+        }
+
+        // Input and output dimensions must be the same.
+        KYGX_ASSERT(srcWidth == dstWidth && srcHeight == dstHeight);
+
+        // Width dimensions must be >= 64.
+        KYGX_ASSERT(srcWidth >= 64);
+
+        // Height dimensions must be >= 16.
+        KYGX_ASSERT(srcHeight >= 16);
+
+        // Width dimensions are required to be aligned to 16 bytes when doing RGB8 transfers.
+        if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
+            KYGX_ASSERT(kygxIsAligned(srcWidth, 16));
+        } else {
+             // Otherwise they are required to be aligned to 8 bytes.
+            KYGX_ASSERT(kygxIsAligned(srcWidth, 8));
+        }
+
+        // When downscaling, width/2 must also follow alignment constraints.
+        if (flags->downscale != KYGX_DISPLAYTRANSFER_DOWNSCALE_NONE) {
+            const u16 wHalf = srcWidth / 2;
+            
+            if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
+                KYGX_ASSERT(kygxIsAligned(wHalf, 16));
+            } else {
+                KYGX_ASSERT(kygxIsAligned(wHalf, 8));
+            }
+        }
+    }
+    
+    // Handle linear -> tiled mode.
+    if (flags->mode == KYGX_DISPLAYTRANSFER_MODE_L2T) {
+        // TODO
+    }
+    
+    // Handle tiled -> tiled mode.
+    if (flags->mode == KYGX_DISPLAYTRANSFER_MODE_T2T) {
+        // TODO
+    }
+
+    kygxMakeDisplayTransfer(cmd, src, dst, srcWidth, srcHeight, dstHeight, dstHeight, kygxMakeDisplayTransferFlags(flags));
+}
+
 KYGX_INLINE bool kygxAddDisplayTransfer(GXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
     KYGX_ASSERT(b);
     
     GXCmd cmd;
     kygxMakeDisplayTransfer(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
-    return kygxCmdBufferAdd(b, &cmd);    
+    return kygxCmdBufferAdd(b, &cmd);
+}
+
+KYGX_INLINE bool kygxAddDisplayTransferChecked(GXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
+    KYGX_ASSERT(b);
+    KYGX_ASSERT(flags);
+    
+    GXCmd cmd;
+    kygxMakeDisplayTransferChecked(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
+    return kygxCmdBufferAdd(b, &cmd);
 }
 
 KYGX_INLINE void kygxSyncDisplayTransfer(const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
     GXCmd cmd;
     kygxMakeDisplayTransfer(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
+    kygxExecSync(&cmd);
+}
+
+KYGX_INLINE void kygxSyncDisplayTransferChecked(const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
+    GXCmd cmd;
+    kygxMakeDisplayTransferChecked(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
     kygxExecSync(&cmd);
 }
 

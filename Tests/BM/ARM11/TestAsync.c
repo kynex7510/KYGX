@@ -52,7 +52,7 @@ static void clearScreen(void) {
     // Finalize: the same buffer should not be used with different commands at the same time.
     kygxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
 
-    kygxAddDisplayTransfer(&g_CmdBuffer, g_VRAMBuffer, fb, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, kygxMakeDisplayTransferFlags(&transferFlags));
+    kygxAddDisplayTransferChecked(&g_CmdBuffer, g_VRAMBuffer, fb, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, &transferFlags);
     kygxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
     kygxUnlock(true);
 }
