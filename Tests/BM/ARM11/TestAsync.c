@@ -9,14 +9,34 @@
 #include <arm11/allocator/vram.h>
 #include <arm11/drivers/hid.h>
 
-#define FB_SIZE LCD_WIDTH_TOP * LCD_HEIGHT_TOP * 3
-
 #define CMDBUFFER_CAPACITY 32
+
+#define SCREEN_ROTATED 1
+
+#if SCREEN_ROTATED
+
+#define SCREEN_WIDTH 400
+#define SCREEN_HEIGHT 240
 
 #define RECT_X 100
 #define RECT_Y 80
 #define RECT_WIDTH 200
 #define RECT_HEIGHT 80
+
+#else
+
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 400
+
+#define RECT_X 80
+#define RECT_Y 100
+#define RECT_WIDTH 80
+#define RECT_HEIGHT 200
+
+#endif // SCREEN_ROTATED
+
+#define SCREEN_PIXEL_SIZE 3
+#define FB_SIZE SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_PIXEL_SIZE
 
 static GXCmdBuffer g_CmdBuffer;
 static void* g_VRAMBuffer;
@@ -68,17 +88,25 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
     fill.width = KYGX_MEMORYFILL_WIDTH_24;
 
     // Prepare rect params.
-    GXTextureCopyRect rect;
-    rect.x = x;
-    rect.y = y;
-    rect.width = width;
-    rect.height = height;
+    GXTextureCopySurface srcSurface;
+    srcSurface.addr = g_VRAMBuffer;
+    srcSurface.width = SCREEN_WIDTH;
+    srcSurface.height = SCREEN_HEIGHT;
+    srcSurface.pixelSize = SCREEN_PIXEL_SIZE;
+    srcSurface.rotated = SCREEN_ROTATED;
 
-    size_t offset = 0;
-    size_t size = 0;
-    u16 lineWidth = 0;
-    u16 gap = 0;
-    kygxConvertTextureCopyRectRotated(&rect, LCD_WIDTH_TOP, KYGX_TEXTURECOPY_PIXEL_SIZE_RGB8, &offset, &size, &lineWidth, &gap);
+    GXTextureCopySurface dstSurface;
+    dstSurface.addr = fb;
+    dstSurface.width = SCREEN_WIDTH;
+    dstSurface.height = SCREEN_HEIGHT;
+    dstSurface.pixelSize = SCREEN_PIXEL_SIZE;
+    dstSurface.rotated = SCREEN_ROTATED;
+
+    GXTextureCopyRect rect;
+    rect.x = RECT_X;
+    rect.y = RECT_Y;
+    rect.width = RECT_WIDTH;
+    rect.height = RECT_HEIGHT;
 
     // Draw red rectangle through VRAM.
     kygxLock();
@@ -87,7 +115,7 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
     // Finalize: the same buffer should not be used with different commands at the same time.
     kygxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
 
-    kygxAddTextureCopy(&g_CmdBuffer, (u8*)g_VRAMBuffer + offset, fb + offset, size, lineWidth, gap, lineWidth, gap);
+    kygxAddRectCopy(&g_CmdBuffer, &srcSurface, &rect, &dstSurface, &rect);
     kygxCmdBufferFinalize(&g_CmdBuffer, onCommandsCompleted, NULL);
     kygxUnlock(true);
 }
@@ -107,6 +135,7 @@ int main(int argc, char* argv[]) {
     ee_printf("- Rect Y: %u\n", RECT_Y);
     ee_printf("- Rect width: %u\n", RECT_WIDTH);
     ee_printf("- Rect height: %u\n", RECT_HEIGHT);
+    ee_printf("- Is rotated? %s\n", (SCREEN_ROTATED ? "Yes" : "No"));
     ee_printf("Press START to exit\n");
 
     while (true) {
