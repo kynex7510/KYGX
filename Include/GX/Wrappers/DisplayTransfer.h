@@ -132,7 +132,7 @@ KYGX_INLINE void kygxMakeDisplayTransferChecked(GXCmd* cmd, const void* src, voi
         // TODO
     }
 
-    kygxMakeDisplayTransfer(cmd, src, dst, srcWidth, srcHeight, dstHeight, dstHeight, kygxMakeDisplayTransferFlags(flags));
+    kygxMakeDisplayTransfer(cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, kygxMakeDisplayTransferFlags(flags));
 }
 
 KYGX_INLINE bool kygxAddDisplayTransfer(GXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {

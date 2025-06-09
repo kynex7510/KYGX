@@ -18,6 +18,8 @@ typedef struct {
 } GXTextureCopySurface;
 
 typedef struct {
+    // Normal: (0, 0) is bottom left.
+    // Rotated: (0, 0) is top left.
     u16 x;
     u16 y;
     u16 width;
