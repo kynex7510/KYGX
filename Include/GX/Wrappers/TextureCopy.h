@@ -18,8 +18,8 @@ typedef struct {
 } GXTextureCopySurface;
 
 typedef struct {
-    // Normal: (0, 0) is bottom left.
-    // Rotated: (0, 0) is top left.
+    // Normal: (0, 0) is top left.
+    // Rotated: (0, 0) is bottom left.
     u16 x;
     u16 y;
     u16 width;
@@ -89,7 +89,7 @@ KYGX_INLINE void kygxMakeTextureCopy(GXCmd* cmd, const void* src, void* dst, siz
     cmd->params[2] = size;
     cmd->params[3] = (srcGap << 16) | srcLineWidth;
     cmd->params[4] = (dstGap << 16) | dstLineWidth;
-    cmd->params[5] = flags | 0x8;
+    cmd->params[5] = flags | 0x8; // Enforce TextureCopy bit.
     cmd->params[6] = 0;
 }
 

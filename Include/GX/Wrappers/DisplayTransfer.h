@@ -33,7 +33,7 @@ typedef struct {
     bool blockMode32;
 } GXDisplayTransferFlags;
 
-KYGX_INLINE u32 kygxMakeDisplayTransferFlags(const GXDisplayTransferFlags* flags) {
+KYGX_INLINE u32 kygxGetDisplayTransferFlags(const GXDisplayTransferFlags* flags) {
     KYGX_ASSERT(flags);
 
     KYGX_ASSERT(flags->mode == KYGX_DISPLAYTRANSFER_MODE_T2L ||
@@ -62,13 +62,17 @@ KYGX_INLINE u32 kygxMakeDisplayTransferFlags(const GXDisplayTransferFlags* flags
 KYGX_INLINE void kygxMakeDisplayTransfer(GXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
     KYGX_ASSERT(cmd);
 
+    // Set crop bit.
+    if (dstWidth < srcWidth)
+        flags |= 0x4;
+
     cmd->header = KYGX_CMDID_DISPLAYTRANSFER;
 
     cmd->params[0] = (u32)src;
     cmd->params[1] = (u32)dst;
     cmd->params[2] = (srcHeight << 16) | srcWidth;
     cmd->params[3] = (dstHeight << 16) | dstWidth;
-    cmd->params[4] = flags & ~0x8u;
+    cmd->params[4] = flags & ~0x8u; // clear TextureCopy bit.
 }
 
 KYGX_INLINE void kygxMakeDisplayTransferChecked(GXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
@@ -93,27 +97,30 @@ KYGX_INLINE void kygxMakeDisplayTransferChecked(GXCmd* cmd, const void* src, voi
             }
         }
 
-        // Input and output dimensions must be the same.
-        KYGX_ASSERT(srcWidth == dstWidth && srcHeight == dstHeight);
+        // Output dimensions must not be bigger than input ones.
+        KYGX_ASSERT(srcWidth >= dstWidth && srcHeight >= dstHeight);
 
         // Width dimensions must be >= 64.
-        KYGX_ASSERT(srcWidth >= 64);
+        KYGX_ASSERT(srcWidth >= 64 && dstWidth >= 64);
 
         // Height dimensions must be >= 16.
-        KYGX_ASSERT(srcHeight >= 16);
+        KYGX_ASSERT(srcHeight >= 16 && srcHeight >= 16);
 
         // Width dimensions are required to be aligned to 16 bytes when doing RGB8 transfers.
         if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
-            KYGX_ASSERT(kygxIsAligned(srcWidth, 16));
+            KYGX_ASSERT(kygxIsAligned(srcWidth, 16) && kygxIsAligned(dstWidth, 16));
         } else {
              // Otherwise they are required to be aligned to 8 bytes.
-            KYGX_ASSERT(kygxIsAligned(srcWidth, 8));
+            KYGX_ASSERT(kygxIsAligned(srcWidth, 8) && kygxIsAligned(dstWidth, 8));
         }
 
-        // When downscaling, width/2 must also follow alignment constraints.
+        // Check downscale.
         if (flags->downscale != KYGX_DISPLAYTRANSFER_DOWNSCALE_NONE) {
+            // Input and output dimensions must be the same.
+            KYGX_ASSERT(srcWidth == dstWidth && srcHeight == dstHeight);
+
+            // Width/2 must also follow alignment constraints.
             const u16 wHalf = srcWidth / 2;
-            
             if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
                 KYGX_ASSERT(kygxIsAligned(wHalf, 16));
             } else {
@@ -132,7 +139,7 @@ KYGX_INLINE void kygxMakeDisplayTransferChecked(GXCmd* cmd, const void* src, voi
         // TODO
     }
 
-    kygxMakeDisplayTransfer(cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, kygxMakeDisplayTransferFlags(flags));
+    kygxMakeDisplayTransfer(cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, kygxGetDisplayTransferFlags(flags));
 }
 
 KYGX_INLINE bool kygxAddDisplayTransfer(GXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
