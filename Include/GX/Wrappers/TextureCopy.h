@@ -26,6 +26,10 @@ typedef struct {
     u16 height;
 } GXTextureCopyRect;
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE void kygxGetTextureCopyRectParams(const GXTextureCopySurface* surface, const GXTextureCopyRect* rect, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
     KYGX_ASSERT(surface);
     KYGX_ASSERT(rect);
@@ -153,5 +157,9 @@ KYGX_INLINE void kygxSyncRectCopy(const GXTextureCopySurface* srcSurface, const 
     kygxMakeRectCopy(&cmd, srcSurface, srcRect, dstSurface, dstRect);
     kygxExecSync(&cmd);
 }
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_WRAPPERS_TEXTURECOPY_H */

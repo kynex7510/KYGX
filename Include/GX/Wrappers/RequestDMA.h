@@ -6,6 +6,10 @@
 
 #include <GX/GX.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE void kygxMakeRequestDMA(GXCmd* cmd, const void* src, void* dst, size_t size, bool flush) {
     KYGX_ASSERT(cmd);
 
@@ -32,5 +36,9 @@ KYGX_INLINE void kygxSyncRequestDMA(const void* src, void* dst, size_t size, boo
 }
 
 #endif // !KYGX_BAREMETAL
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_WRAPPERS_REQUESTDMA_H */

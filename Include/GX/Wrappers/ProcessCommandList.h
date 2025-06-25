@@ -3,6 +3,10 @@
 
 #include <GX/GX.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE void kygxMakeProcessCommandList(GXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
     KYGX_ASSERT(cmd);
 
@@ -27,5 +31,9 @@ KYGX_INLINE void kygxSyncProcessCommandList(void* addr, size_t size, bool update
     kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
     kygxExecSync(&cmd);
 }
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_WRAPPERS_PROCESSCOMMANDLIST_H */

@@ -3,6 +3,10 @@
 
 #include <GX/Defs.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE bool kygxIsPo2(u32 v) { return !(v & (v - 1)); }
 
 KYGX_INLINE bool kygxIsAligned(u32 v, u32 alignment) {
@@ -20,6 +24,10 @@ KYGX_INLINE u32 kygxAlignUp(u32 v, u32 alignment) {
     return (v + alignment) & ~(alignment - 1);
 }
 
-KYGX_EXTERN void kygxInvalidateDataCache(void* addr, size_t size);
+void kygxInvalidateDataCache(void* addr, size_t size);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_UTILITY_H */

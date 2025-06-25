@@ -17,6 +17,10 @@ typedef struct {
     u8 capacity;
 } GXCmdBuffer;
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE bool kygxCmdBufferAlloc(GXCmdBuffer* b, u8 capacity) {
     KYGX_ASSERT(b);
 
@@ -114,5 +118,9 @@ KYGX_INLINE void kygxCmdBufferAdvance(GXCmdBuffer* b, u8 size) {
     b->index += size;
     b->count -= size;
 }
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_COMMAND_BUFFER_H */

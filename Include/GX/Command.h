@@ -34,6 +34,10 @@ typedef struct {
     GXCmd list[KYGX_CMDQUEUE_MAX_COMMANDS];
 } GXCmdQueue;
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE bool kygxCmdQueueAdd(GXCmdQueue* q, GXCmd* cmd) {
     KYGX_ASSERT(q);
     KYGX_ASSERT(cmd);
@@ -147,5 +151,9 @@ KYGX_INLINE s32 kygxCmdQueueClearError(GXCmdQueue* q) {
 
     return err;
 }
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_COMMAND_H */

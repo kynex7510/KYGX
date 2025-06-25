@@ -8,6 +8,10 @@ typedef struct {
     size_t size;
 } GXFlushCacheRegionsBuffer;
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE void kygxMakeFlushCacheRegions(GXCmd* cmd, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
     KYGX_ASSERT(cmd);
 
@@ -43,5 +47,9 @@ KYGX_INLINE void kygxSyncFlushCacheRegions(const GXFlushCacheRegionsBuffer* buff
     kygxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
     kygxExecSync(&cmd);
 }
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_WRAPPERS_FLUSHCACHEREGIONS_H */

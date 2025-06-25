@@ -20,6 +20,10 @@ typedef struct {
     u8 width;
 } GXMemoryFillBuffer;
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE void kygxMakeMemoryFill(GXCmd* cmd, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
     KYGX_ASSERT(cmd);
 
@@ -57,5 +61,9 @@ KYGX_INLINE void kygxSyncMemoryFill(const GXMemoryFillBuffer* buffer0, const GXM
     kygxMakeMemoryFill(&cmd, buffer0, buffer1);
     kygxExecSync(&cmd);
 }
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_WRAPPERS_MEMORYFILL_H */

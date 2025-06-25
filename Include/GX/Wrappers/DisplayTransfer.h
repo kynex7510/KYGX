@@ -18,6 +18,7 @@
 #define KYGX_DISPLAYTRANSFER_DOWNSCALE_2X1 1
 #define KYGX_DISPLAYTRANSFER_DOWNSCALE_2X2 2
 
+#define KYGX_DISPLAYTRANSFER_FLAG_MODE(v) (v)
 #define KYGX_DISPLAYTRANSFER_FLAG_VERTICAL_FLIP (1 << 0)
 #define KYGX_DISPLAYTRANSFER_FLAG_SRC_FORMAT(fmt) ((fmt) << 8)
 #define KYGX_DISPLAYTRANSFER_FLAG_DST_FORMAT(fmt) ((fmt) << 12)
@@ -33,13 +34,17 @@ typedef struct {
     bool blockMode32;
 } GXDisplayTransferFlags;
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE u32 kygxGetDisplayTransferFlags(const GXDisplayTransferFlags* flags) {
     KYGX_ASSERT(flags);
 
     KYGX_ASSERT(flags->mode == KYGX_DISPLAYTRANSFER_MODE_T2L ||
         flags->mode == KYGX_DISPLAYTRANSFER_MODE_L2T ||
         flags->mode == KYGX_DISPLAYTRANSFER_MODE_T2T);
-    u32 ret = flags->mode;
+    u32 ret = KYGX_DISPLAYTRANSFER_FLAG_MODE(flags->mode);
 
     KYGX_ASSERT(flags->srcFmt <= KYGX_DISPLAYTRANSFER_FMT_RGBA4);
     ret |= KYGX_DISPLAYTRANSFER_FLAG_SRC_FORMAT(flags->srcFmt);
@@ -104,7 +109,7 @@ KYGX_INLINE void kygxMakeDisplayTransferChecked(GXCmd* cmd, const void* src, voi
         KYGX_ASSERT(srcWidth >= 64 && dstWidth >= 64);
 
         // Height dimensions must be >= 16.
-        KYGX_ASSERT(srcHeight >= 16 && srcHeight >= 16);
+        KYGX_ASSERT(srcHeight >= 16 && dstHeight >= 16);
 
         // Width dimensions are required to be aligned to 16 bytes when doing RGB8 transfers.
         if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
@@ -170,5 +175,9 @@ KYGX_INLINE void kygxSyncDisplayTransferChecked(const void* src, void* dst, u16 
     kygxMakeDisplayTransferChecked(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
     kygxExecSync(&cmd);
 }
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_WRAPPERS_DISPLAYTRANSFER_H */

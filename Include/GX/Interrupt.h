@@ -30,6 +30,10 @@ typedef struct KYGX_PACKED {
     u8 list[KYGX_INTRQUEUE_MAX_INTERRUPTS];
 } GXIntrQueue;
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 KYGX_INLINE GXIntr kygxPopIntr(GXIntrQueue* q) {
     KYGX_ASSERT(q);
 
@@ -62,5 +66,9 @@ KYGX_INLINE void kygxIntrQueueSkipPDC(GXIntrQueue* q, bool skip) {
         f = __ldrexb(&q->flags);
     } while (__strexb(&q->flags, skip ? (f | KYGX_INTRQUEUE_FLAG_SKIP_PDC) : (f & ~KYGX_INTRQUEUE_FLAG_SKIP_PDC)));
 }
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_INTERRUPT_H */

@@ -14,10 +14,8 @@
 #define KYGX_LIKELY(x) (bool)__builtin_expect((bool)(x), true)
 
 #ifdef __cplusplus
-#define KYGX_EXTERN extern "C"
 #define KYGX_INLINE inline
 #else
-#define KYGX_EXTERN
 #define KYGX_INLINE static inline
 #endif // __cplusplus
 
@@ -53,7 +51,16 @@
         }                                                        \
     } while (false)
 
-KYGX_EXTERN void kygx_platform_yield(void);
-KYGX_EXTERN __attribute__((noreturn, cold)) void kygx_platform_break(const char*);
+#ifdef __cplusplus
+extern "C"
+{
+#endif // __cplusplus
+
+void kygx_platform_yield(void);
+__attribute__((noreturn, cold)) void kygx_platform_break(const char*);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_DEFS_H */

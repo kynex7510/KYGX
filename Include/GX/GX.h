@@ -9,22 +9,30 @@
     kygxClearIntr(GX_INTR_PDC0); \
     kygxWaitIntr(GX_INTR_PDC0)
 
-KYGX_EXTERN bool kygxInit(void);
-KYGX_EXTERN void kygxExit(void);
-KYGX_EXTERN GXCmdBuffer* kygxExchangeCmdBuffer(GXCmdBuffer* b, bool flush);
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-KYGX_EXTERN void kygxLock(void);
-KYGX_EXTERN bool kygxUnlock(bool exec);
-KYGX_EXTERN GXIntrQueue* kygxGetIntrQueue(void);
-KYGX_EXTERN GXCmdQueue* kygxGetCmdQueue(void);
-KYGX_EXTERN GXCmdBuffer* kygxGetCmdBuffer(void);
+bool kygxInit(void);
+void kygxExit(void);
+GXCmdBuffer* kygxExchangeCmdBuffer(GXCmdBuffer* b, bool flush);
 
-KYGX_EXTERN void kygxWaitIntr(GXIntr intrID);
-KYGX_EXTERN void kygxClearIntr(GXIntr intrID);
+void kygxLock(void);
+bool kygxUnlock(bool exec);
+GXIntrQueue* kygxGetIntrQueue(void);
+GXCmdQueue* kygxGetCmdQueue(void);
+GXCmdBuffer* kygxGetCmdBuffer(void);
 
-KYGX_EXTERN bool kygxFlushBufferedCommands(void);
-KYGX_EXTERN void kygxWaitCompletion(void);
-KYGX_EXTERN void kygxHalt(bool wait);
-KYGX_EXTERN void kygxExecSync(const GXCmd* cmd);
+void kygxWaitIntr(GXIntr intrID);
+void kygxClearIntr(GXIntr intrID);
+
+bool kygxFlushBufferedCommands(void);
+void kygxWaitCompletion(void);
+void kygxHalt(bool wait);
+void kygxExecSync(const GXCmd* cmd);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif /* _KYGX_GX_H */
