@@ -40,13 +40,3 @@ void kygx_platform_break(const char* msg) {
 }
 
 #endif // !NDEBUG
-
-void kygxInvalidateDataCache(void* addr, size_t size) {
-    // GSP will return an error if the address is not in FCRAM/VRAM.
-    const bool fcram = (u32)addr >= OS_FCRAM_VADDR && (u32)addr <= (OS_FCRAM_VADDR + OS_FCRAM_SIZE);
-    const bool vram = (u32)addr >= OS_VRAM_VADDR && (u32)addr <= (OS_VRAM_VADDR + OS_VRAM_SIZE);
-
-    if (fcram || vram) {
-        KYGX_BREAK_UNLESS(R_SUCCEEDED(GSPGPU_InvalidateDataCache(addr, size)));
-    }
-}
