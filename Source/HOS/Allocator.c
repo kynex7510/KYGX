@@ -101,3 +101,22 @@ size_t kygxGetAllocSize(const void* p) {
             return 0;
     }
 }
+
+u32 kygxGetPhysicalAddress(const void* addr) { osConvertVirtToPhys(addr); }
+
+void* kygxGetVirtualAddress(u32 addr) {
+    #define CONVERT_REGION(_name)                                         \
+    if (addr >= OS_##_name##_PADDR &&                                     \
+        addr < (OS_##_name##_PADDR + OS_##_name##_SIZE))                  \
+        return (void*)(addr - (OS_##_name##_PADDR + OS_##_name##_VADDR));
+
+    CONVERT_REGION(FCRAM);
+    CONVERT_REGION(VRAM);
+    CONVERT_REGION(OLD_FCRAM);
+    CONVERT_REGION(DSPRAM);
+    CONVERT_REGION(QTMRAM);
+    CONVERT_REGION(MMIO);
+
+#undef CONVERT_REGION
+    return NULL;
+}

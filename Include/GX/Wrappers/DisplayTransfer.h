@@ -135,13 +135,31 @@ KYGX_INLINE void kygxMakeDisplayTransferChecked(GXCmd* cmd, const void* src, voi
     }
     
     // Handle linear -> tiled mode.
+    // TODO: test block mode 32.
     if (flags->mode == KYGX_DISPLAYTRANSFER_MODE_L2T) {
-        // TODO
+        // RGBA8, RGB8 can only convert to themselves.
+        if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGBA8 || flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
+            KYGX_ASSERT(flags->srcFmt == flags->dstFmt);
+        } else {
+            // Other formats can convert to all other formats except RGB8.
+            KYGX_ASSERT(flags->dstFmt != KYGX_DISPLAYTRANSFER_FMT_RGB8);
+        }
+
+        // TODO: dimension checks, downscale checks.
     }
     
     // Handle tiled -> tiled mode.
+    // TODO: test block mode 32.
     if (flags->mode == KYGX_DISPLAYTRANSFER_MODE_T2T) {
-        // TODO
+        // RGBA8, RGB8 can only convert to themselves.
+        if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGBA8 || flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
+            KYGX_ASSERT(flags->srcFmt == flags->dstFmt);
+        } else {
+            // Other formats can convert to all other formats except RGB8.
+            KYGX_ASSERT(flags->dstFmt != KYGX_DISPLAYTRANSFER_FMT_RGB8);
+        }
+
+        // TODO: dimension checks, downscale checks.
     }
 
     kygxMakeDisplayTransfer(cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, kygxGetDisplayTransferFlags(flags));

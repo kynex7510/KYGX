@@ -37,6 +37,9 @@ KYGX_INLINE bool kygxIsLinear(const void* p) { return kygxGetMemType(p) == GX_ME
 KYGX_INLINE bool kygxIsVRAM(const void* p) { return kygxGetMemType(p) == GX_MEM_VRAM; }
 KYGX_INLINE bool kygxIsQTMRAM(const void* p) { return kygxGetMemType(p) == GX_MEM_QTMRAM; }
 
+u32 kygxGetPhysicalAddress(const void* addr);
+void* kygxGetVirtualAddress(u32 addr);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
