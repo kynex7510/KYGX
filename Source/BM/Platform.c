@@ -6,3 +6,4 @@
 
 void kygx_platform_yield(void) { yieldTask(); }
 void kygx_platform_break(const char* msg) { panicMsg(msg); }
+void kygxInvalidateDataCache(void* addr, size_t size) { invalidateDCacheRange(addr, size); }

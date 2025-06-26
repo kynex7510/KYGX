@@ -24,6 +24,8 @@ KYGX_INLINE u32 kygxAlignUp(u32 v, u32 alignment) {
     return (v + alignment) & ~(alignment - 1);
 }
 
+void kygxInvalidateDataCache(void* addr, size_t size);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
