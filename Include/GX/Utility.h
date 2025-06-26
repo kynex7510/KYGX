@@ -24,7 +24,10 @@ KYGX_INLINE u32 kygxAlignUp(u32 v, u32 alignment) {
     return (v + alignment) & ~(alignment - 1);
 }
 
-void kygxInvalidateDataCache(void* addr, size_t size);
+void kygxInvalidateDataCache(const void* addr, size_t size);
+
+u32 kygxGetPhysicalAddress(const void* addr);
+void* kygxGetVirtualAddress(u32 addr);
 
 #ifdef __cplusplus
 }

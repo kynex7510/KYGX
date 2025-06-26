@@ -6,4 +6,6 @@
 
 void kygx_platform_yield(void) { yieldTask(); }
 void kygx_platform_break(const char* msg) { panicMsg(msg); }
-void kygxInvalidateDataCache(void* addr, size_t size) { invalidateDCacheRange(addr, size); }
+void kygxInvalidateDataCache(const void* addr, size_t size) { invalidateDCacheRange(addr, size); }
+u32 kygxGetPhysicalAddress(const void* addr) { return (u32)addr; }
+void* kygxGetVirtualAddress(u32 addr) { return (void*)addr; }

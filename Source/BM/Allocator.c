@@ -111,6 +111,3 @@ size_t kygxGetAllocSize(const void* p) {
             return 0;
     }
 }
-
-u32 kygxGetPhysicalAddress(const void* addr) { return (u32)addr; }
-void* kygxGetVirtualAddress(u32 addr) { return (void*)addr; }

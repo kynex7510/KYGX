@@ -4,7 +4,7 @@
 #include <GX/GX.h>
 
 typedef struct {
-    void* addr;
+    const void* addr;
     size_t size;
 } GXFlushCacheRegionsBuffer;
 

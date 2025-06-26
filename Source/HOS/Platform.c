@@ -41,7 +41,7 @@ void kygx_platform_break(const char* msg) {
 
 #endif // !NDEBUG
 
-void kygxInvalidateDataCache(void* addr, size_t size) {
+void kygxInvalidateDataCache(const void* addr, size_t size) {
     // GSP will return an error if the address is not in FCRAM/VRAM.
     const bool fcram = (u32)addr >= OS_FCRAM_VADDR && (u32)addr <= (OS_FCRAM_VADDR + OS_FCRAM_SIZE);
     const bool vram = (u32)addr >= OS_VRAM_VADDR && (u32)addr <= (OS_VRAM_VADDR + OS_VRAM_SIZE);
@@ -49,4 +49,23 @@ void kygxInvalidateDataCache(void* addr, size_t size) {
     if (fcram || vram) {
         KYGX_BREAK_UNLESS(R_SUCCEEDED(GSPGPU_InvalidateDataCache(addr, size)));
     }
+}
+
+u32 kygxGetPhysicalAddress(const void* addr) { return osConvertVirtToPhys(addr); }
+
+void* kygxGetVirtualAddress(u32 addr) {
+    #define CONVERT_REGION(_name)                                         \
+    if (addr >= OS_##_name##_PADDR &&                                     \
+        addr < (OS_##_name##_PADDR + OS_##_name##_SIZE))                  \
+        return (void*)(addr - (OS_##_name##_PADDR + OS_##_name##_VADDR));
+
+    CONVERT_REGION(FCRAM);
+    CONVERT_REGION(VRAM);
+    CONVERT_REGION(OLD_FCRAM);
+    CONVERT_REGION(DSPRAM);
+    CONVERT_REGION(QTMRAM);
+    CONVERT_REGION(MMIO);
+
+#undef CONVERT_REGION
+    return NULL;
 }
