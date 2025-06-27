@@ -10,7 +10,7 @@
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxMakeRequestDMA(GXCmd* cmd, const void* src, void* dst, size_t size, bool flush) {
+KYGX_INLINE void kygxMakeRequestDMA(KYGXCmd* cmd, const void* src, void* dst, size_t size, bool flush) {
     KYGX_ASSERT(cmd);
 
     cmd->header = KYGX_CMDID_REQUESTDMA;
@@ -21,16 +21,16 @@ KYGX_INLINE void kygxMakeRequestDMA(GXCmd* cmd, const void* src, void* dst, size
     cmd->params[6] = flush ? 1 : 0;
 }
 
-KYGX_INLINE bool kygxAddRequestDMA(GXCmdBuffer* b, const void* src, void* dst, size_t size, bool flush) {
+KYGX_INLINE bool kygxAddRequestDMA(KYGXCmdBuffer* b, const void* src, void* dst, size_t size, bool flush) {
     KYGX_ASSERT(b);
 
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeRequestDMA(&cmd, src, dst, size, flush);
     return kygxCmdBufferAdd(b, &cmd);
 }
 
 KYGX_INLINE void kygxSyncRequestDMA(const void* src, void* dst, size_t size, bool flush) {
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeRequestDMA(&cmd, src, dst, size, flush);
     kygxExecSync(&cmd);
 }

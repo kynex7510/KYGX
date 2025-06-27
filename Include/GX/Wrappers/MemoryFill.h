@@ -24,7 +24,7 @@ typedef struct {
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxMakeMemoryFill(GXCmd* cmd, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
+KYGX_INLINE void kygxMakeMemoryFill(KYGXCmd* cmd, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
     KYGX_ASSERT(cmd);
 
     cmd->header = KYGX_CMDID_MEMORYFILL;
@@ -48,16 +48,16 @@ KYGX_INLINE void kygxMakeMemoryFill(GXCmd* cmd, const GXMemoryFillBuffer* buffer
     }
 }
 
-KYGX_INLINE bool kygxAddMemoryFill(GXCmdBuffer* b, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
+KYGX_INLINE bool kygxAddMemoryFill(KYGXCmdBuffer* b, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
     KYGX_ASSERT(b);
     
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeMemoryFill(&cmd, buffer0, buffer1);
     return kygxCmdBufferAdd(b, &cmd);    
 }
 
 KYGX_INLINE void kygxSyncMemoryFill(const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeMemoryFill(&cmd, buffer0, buffer1);
     kygxExecSync(&cmd);
 }

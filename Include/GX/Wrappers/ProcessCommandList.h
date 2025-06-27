@@ -7,7 +7,7 @@
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxMakeProcessCommandList(GXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
+KYGX_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
     KYGX_ASSERT(cmd);
 
     cmd->header = KYGX_CMDID_PROCESSCOMMANDLIST;
@@ -18,16 +18,16 @@ KYGX_INLINE void kygxMakeProcessCommandList(GXCmd* cmd, void* addr, size_t size,
     cmd->params[6] = flush ? 1 : 0;
 }
 
-KYGX_INLINE bool kygxAddProcessCommandList(GXCmdBuffer* b, void* addr, size_t size, bool updateGasAccMax, bool flush) {
+KYGX_INLINE bool kygxAddProcessCommandList(KYGXCmdBuffer* b, void* addr, size_t size, bool updateGasAccMax, bool flush) {
     KYGX_ASSERT(b);
 
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
     return kygxCmdBufferAdd(b, &cmd);
 }
 
 KYGX_INLINE void kygxSyncProcessCommandList(void* addr, size_t size, bool updateGasAccMax, bool flush) {
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
     kygxExecSync(&cmd);
 }

@@ -10,13 +10,13 @@
 #undef KYGX_NUM_INTERRUPTS
 #define KYGX_NUM_INTERRUPTS 6
 
-static GXCmdQueue g_CmdQueue;
+static KYGXCmdQueue g_CmdQueue;
 
 static u8 g_IntrMask = 0;
 static KHandle g_IntrEvents[KYGX_NUM_INTERRUPTS];
 
 // Defined in GX.c.
-static void onInterrupt(GXIntr intrID);
+static void onInterrupt(KYGXIntr intrID);
 
 // INTR HACK BEGIN
 
@@ -37,7 +37,7 @@ static void intrThread(void* intrID) {
         GFX_waitForEvent((GfxEvent)intrID);
 
         if (g_IntrMask & INTR_MASK(index))
-            onInterrupt((GXIntr)intrID);
+            onInterrupt((KYGXIntr)intrID);
 
         // TODO: reschedule?
         signalEvent(g_IntrEvents[index], false);
@@ -45,12 +45,12 @@ static void intrThread(void* intrID) {
 }
 
 static void initIntrThreads(void) {
-    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PSC0));
-    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PSC1));
-    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PDC0));
-    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PDC1));
-    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_PPF));
-    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)GX_INTR_P3D));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PSC0));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PSC1));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PDC0));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PDC1));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PPF));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_P3D));
 }
 
 // INTR HACK END
@@ -58,7 +58,7 @@ static void initIntrThreads(void) {
 bool kygxs_init(State* state) {
     KYGX_ASSERT(state);
 
-    const u8 defaultIntrMask = INTR_MASK(GX_INTR_PSC0) | INTR_MASK(GX_INTR_PSC1) | INTR_MASK(GX_INTR_PPF) | INTR_MASK(GX_INTR_P3D);
+    const u8 defaultIntrMask = INTR_MASK(KYGX_INTR_PSC0) | INTR_MASK(KYGX_INTR_PSC1) | INTR_MASK(KYGX_INTR_PPF) | INTR_MASK(KYGX_INTR_P3D);
 
     do {
         __ldrexb(&g_IntrMask);
@@ -117,7 +117,7 @@ void kygxs_exit_critical_section(State* state, u32 op) {
     }
 }
 
-void kygxs_enable_intr_cb(State* state, GXIntr intrID) {
+void kygxs_enable_intr_cb(State* state, KYGXIntr intrID) {
     (void)state;
 
     const size_t index = (size_t)intrID;
@@ -129,7 +129,7 @@ void kygxs_enable_intr_cb(State* state, GXIntr intrID) {
     } while (__strexb(&g_IntrMask, mask | INTR_MASK(index)));
 }
 
-void kygxs_disable_intr_cb(State* state, GXIntr intrID) {
+void kygxs_disable_intr_cb(State* state, KYGXIntr intrID) {
     (void)state;
 
     const size_t index = (size_t)intrID;
@@ -141,7 +141,7 @@ void kygxs_disable_intr_cb(State* state, GXIntr intrID) {
     } while (__strexb(&g_IntrMask, mask & ~INTR_MASK(index)));
 }
 
-void kygxs_wait_intr(State* state, GXIntr intrID) {
+void kygxs_wait_intr(State* state, KYGXIntr intrID) {
     (void)state;
     
     const size_t index = (size_t)intrID;
@@ -150,7 +150,7 @@ void kygxs_wait_intr(State* state, GXIntr intrID) {
     KYGX_BREAK_UNLESS(waitForEvent(g_IntrEvents[index]) == KRES_OK);
 }
 
-void kygxs_clear_intr(State* state, GXIntr intrID) {
+void kygxs_clear_intr(State* state, KYGXIntr intrID) {
     (void)state;
     
     const size_t index = (size_t)intrID;
@@ -162,12 +162,12 @@ void kygxs_clear_intr(State* state, GXIntr intrID) {
 void kygxs_exec_commands(State* state) {
     KYGX_ASSERT(state);
 
-    GXCmdQueue* cmdQueue = state->cmdQueue;
+    KYGXCmdQueue* cmdQueue = state->cmdQueue;
     KYGX_ASSERT(cmdQueue);
 
     state->platform.halted = false;
 
-    GXCmd cmd;
+    KYGXCmd cmd;
     while (kygxCmdQueuePop(cmdQueue, &cmd)) {
         execCommand(&cmd);
 
@@ -181,7 +181,7 @@ void kygxs_exec_commands(State* state) {
 void kygxs_wait_command_completion(State* state) {
     KYGX_ASSERT(state);
     
-    const GXCmdBuffer* cmdBuffer = state->cmdBuffer;
+    const KYGXCmdBuffer* cmdBuffer = state->cmdBuffer;
     while (cmdBuffer && cmdBuffer->count) {
         CV_Wait(&state->platform.completionCV, state->platform.lock);
         cmdBuffer = state->cmdBuffer;

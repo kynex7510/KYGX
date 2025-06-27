@@ -22,7 +22,7 @@
 typedef struct {
     u32 header;
     u32 params[7];
-} GXCmd;
+} KYGXCmd;
 
 typedef struct {
     u8 index;
@@ -31,14 +31,14 @@ typedef struct {
     u8 requestHalt;
     s32 lastError;
     u8 _pad[0x18];
-    GXCmd list[KYGX_CMDQUEUE_MAX_COMMANDS];
-} GXCmdQueue;
+    KYGXCmd list[KYGX_CMDQUEUE_MAX_COMMANDS];
+} KYGXCmdQueue;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE bool kygxCmdQueueAdd(GXCmdQueue* q, GXCmd* cmd) {
+KYGX_INLINE bool kygxCmdQueueAdd(KYGXCmdQueue* q, const KYGXCmd* cmd) {
     KYGX_ASSERT(q);
     KYGX_ASSERT(cmd);
 
@@ -53,7 +53,7 @@ KYGX_INLINE bool kygxCmdQueueAdd(GXCmdQueue* q, GXCmd* cmd) {
         }
 
         const u8 index = (count + (header & 0xFF)) % KYGX_CMDQUEUE_MAX_COMMANDS;
-        memcpy(&q->list[index], cmd, sizeof(GXCmd));
+        memcpy(&q->list[index], cmd, sizeof(KYGXCmd));
         __dsb();
 
         header = (header & 0xFFFF00FF) | ((u16)(count + 1) << 8);
@@ -62,7 +62,7 @@ KYGX_INLINE bool kygxCmdQueueAdd(GXCmdQueue* q, GXCmd* cmd) {
     return true;
 }
 
-KYGX_INLINE bool kygxCmdQueuePop(GXCmdQueue* q, GXCmd* cmd) {
+KYGX_INLINE bool kygxCmdQueuePop(KYGXCmdQueue* q, KYGXCmd* cmd) {
     KYGX_ASSERT(q);
     KYGX_ASSERT(cmd);
 
@@ -77,7 +77,7 @@ KYGX_INLINE bool kygxCmdQueuePop(GXCmdQueue* q, GXCmd* cmd) {
         }
 
         const u8 index = (header & 0xFF) % KYGX_CMDQUEUE_MAX_COMMANDS;
-        memcpy(cmd, &q->list[index], sizeof(GXCmd));
+        memcpy(cmd, &q->list[index], sizeof(KYGXCmd));
 
         header = (header & 0xFFFF0000) | ((u16)(count - 1) << 8) | (index + 1);
     } while (__strex(KYGX_EXMON_CAST(q), header));
@@ -85,7 +85,7 @@ KYGX_INLINE bool kygxCmdQueuePop(GXCmdQueue* q, GXCmd* cmd) {
     return true;
 }
 
-KYGX_INLINE void kygxCmdQueueClearCommands(GXCmdQueue* q) {
+KYGX_INLINE void kygxCmdQueueClearCommands(KYGXCmdQueue* q) {
     KYGX_ASSERT(q);
 
     do {
@@ -97,7 +97,7 @@ KYGX_INLINE void kygxCmdQueueClearCommands(GXCmdQueue* q) {
     } while (__strexh((u16*)q, 0));
 }
 
-KYGX_INLINE void kygxCmdQueueSetHalt(GXCmdQueue* q) {
+KYGX_INLINE void kygxCmdQueueSetHalt(KYGXCmdQueue* q) {
     KYGX_ASSERT(q);
 
     do {
@@ -109,7 +109,7 @@ KYGX_INLINE void kygxCmdQueueSetHalt(GXCmdQueue* q) {
     } while (__strexb(&q->status, KYGX_CMDQUEUE_STATUS_HALTED));
 }
 
-KYGX_INLINE void kygxCmdQueueClearHalt(GXCmdQueue* q) {
+KYGX_INLINE void kygxCmdQueueClearHalt(KYGXCmdQueue* q) {
     KYGX_ASSERT(q);
 
     do {
@@ -121,14 +121,14 @@ KYGX_INLINE void kygxCmdQueueClearHalt(GXCmdQueue* q) {
     } while (__strexh((u16*)&q->status, 0));
 }
 
-KYGX_INLINE void kygxCmdQueueWaitHalt(GXCmdQueue* q) {
+KYGX_INLINE void kygxCmdQueueWaitHalt(KYGXCmdQueue* q) {
     KYGX_ASSERT(q);
 
     while (q->status != KYGX_CMDQUEUE_STATUS_HALTED)
         KYGX_YIELD();
 }
 
-KYGX_INLINE s32 kygxCmdQueueClearError(GXCmdQueue* q) {
+KYGX_INLINE s32 kygxCmdQueueClearError(KYGXCmdQueue* q) {
     KYGX_ASSERT(q);
 
     s32 err;

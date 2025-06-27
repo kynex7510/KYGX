@@ -34,7 +34,7 @@
 #define SCREEN_PIXEL_SIZE 3
 #define FB_SIZE SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_PIXEL_SIZE
 
-static GXCmdBuffer g_CmdBuffer;
+static KYGXCmdBuffer g_CmdBuffer;
 static void* g_VRAMBuffer;
 
 static void onCommandsCompleted(void* data) {
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     consoleInit(GFX_BOTTOM, NULL);
     kygxInit();
 
-    g_VRAMBuffer = kygxAlloc(GX_MEM_VRAM, FB_SIZE);
+    g_VRAMBuffer = kygxAlloc(KYGX_MEM_VRAM, FB_SIZE);
 
     kygxCmdBufferAlloc(&g_CmdBuffer, CMDBUFFER_CAPACITY);
     kygxExchangeCmdBuffer(&g_CmdBuffer, true);

@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     consoleInit(GFX_BOTTOM, NULL);
     kygxInit();
 
-    g_VRAMBuffer = kygxAlloc(GX_MEM_VRAM, FB_SIZE);
+    g_VRAMBuffer = kygxAlloc(KYGX_MEM_VRAM, FB_SIZE);
 
     bool updateConsole = true;
     while (aptMainLoop()) {

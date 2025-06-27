@@ -75,7 +75,7 @@ KYGX_INLINE void doFlushCacheRegions(u32 addr0, u32 size0, u32 addr1, u32 size1,
     }
 }
 
-KYGX_INLINE void execCommand(const GXCmd* cmd) {
+KYGX_INLINE void execCommand(const KYGXCmd* cmd) {
     switch (cmd->header & 0xFF) {
         case KYGX_CMDID_PROCESSCOMMANDLIST:
             doProcessCommandList(cmd->params[0], cmd->params[1], cmd->params[2] == 1, cmd->params[6] == 1);

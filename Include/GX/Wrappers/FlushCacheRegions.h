@@ -12,7 +12,7 @@ typedef struct {
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxMakeFlushCacheRegions(GXCmd* cmd, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
+KYGX_INLINE void kygxMakeFlushCacheRegions(KYGXCmd* cmd, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
     KYGX_ASSERT(cmd);
 
     cmd->header = KYGX_CMDID_FLUSHCACHEREGIONS;
@@ -43,7 +43,7 @@ KYGX_INLINE void kygxMakeFlushCacheRegions(GXCmd* cmd, const GXFlushCacheRegions
 
 // This command only exists in synchronous mode because it doesn't trigger any interrupt, and there is no nice way to know when it has completed.
 KYGX_INLINE void kygxSyncFlushCacheRegions(const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
     kygxExecSync(&cmd);
 }

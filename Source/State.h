@@ -9,10 +9,10 @@
 
 typedef struct {
     PlatformState platform;
-    GXIntrQueue* intrQueue;
-    GXCmdQueue* cmdQueue;
-    GXCmdBuffer* cmdBuffer;
-    GXCallback currentCb;
+    KYGXIntrQueue* intrQueue;
+    KYGXCmdQueue* cmdQueue;
+    KYGXCmdBuffer* cmdBuffer;
+    KYGXCallback currentCb;
     void* currentCbData;
     u8 pendingCommands;
     u8 completedCommands;
@@ -32,10 +32,10 @@ KYGX_INLINE void kygxs_cleanup(State* state);
 KYGX_INLINE void kygxs_enter_critical_section(State* state, u32 op);
 KYGX_INLINE void kygxs_exit_critical_section(State* state, u32 op);
 
-KYGX_INLINE void kygxs_enable_intr_cb(State* state, GXIntr intrID);
-KYGX_INLINE void kygxs_disable_intr_cb(State* state, GXIntr intrID);
-KYGX_INLINE void kygxs_wait_intr(State* state, GXIntr intrID);
-KYGX_INLINE void kygxs_clear_intr(State* state, GXIntr intrID);
+KYGX_INLINE void kygxs_enable_intr_cb(State* state, KYGXIntr intrID);
+KYGX_INLINE void kygxs_disable_intr_cb(State* state, KYGXIntr intrID);
+KYGX_INLINE void kygxs_wait_intr(State* state, KYGXIntr intrID);
+KYGX_INLINE void kygxs_clear_intr(State* state, KYGXIntr intrID);
 
 KYGX_INLINE void kygxs_exec_commands(State* state);
 

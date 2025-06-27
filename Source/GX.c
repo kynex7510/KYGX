@@ -4,29 +4,29 @@
 static State g_GlobalState = {};
 static u32 g_Refc = 0;
 
-static GXIntr intrForCmd(const GXCmd* cmd) {
+static KYGXIntr intrForCmd(const KYGXCmd* cmd) {
     switch (cmd->header & 0xFF) {
         case KYGX_CMDID_REQUESTDMA:
-            return GX_INTR_DMA;
+            return KYGX_INTR_DMA;
         case KYGX_CMDID_PROCESSCOMMANDLIST:
-            return GX_INTR_P3D;
+            return KYGX_INTR_P3D;
         case KYGX_CMDID_DISPLAYTRANSFER:
         case KYGX_CMDID_TEXTURECOPY:
-            return GX_INTR_PPF;
+            return KYGX_INTR_PPF;
     }
 
     // When using two buffers MemoryFill only triggers PSC0.
     if ((cmd->header & 0xFF) == KYGX_CMDID_MEMORYFILL) {
         const bool buf0 = cmd->params[0];
         const bool buf1 = cmd->params[3];
-        return buf1 && !buf0 ? GX_INTR_PSC1 : GX_INTR_PSC0;
+        return buf1 && !buf0 ? KYGX_INTR_PSC1 : KYGX_INTR_PSC0;
     }
 
-    return GX_INTR_UNKNOWN;
+    return KYGX_INTR_UNKNOWN;
 }
 
 static void triggerCommandHandling(void) {
-    GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
+    KYGXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
     KYGX_ASSERT(cmdQueue);
 
     kygxCmdQueueClearError(cmdQueue);
@@ -39,7 +39,7 @@ static bool enqueueCommands(void) {
     if (g_GlobalState.pendingCommands)
         return true;
 
-    GXCmdBuffer* cmdBuffer = g_GlobalState.cmdBuffer;
+    KYGXCmdBuffer* cmdBuffer = g_GlobalState.cmdBuffer;
     if (!cmdBuffer || !cmdBuffer->count) {
         kygxs_signal_command_completion(&g_GlobalState);
         return true;
@@ -50,15 +50,15 @@ static bool enqueueCommands(void) {
         return false;
 
     // Write commands to queue.
-    GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
+    KYGXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
     KYGX_ASSERT(cmdQueue && !cmdQueue->count && cmdQueue->status == KYGX_CMDQUEUE_STATUS_HALTED);
 
     for (u8 i = 0; i < cmdBuffer->count; ++i) {
-        GXCmd* cmd;
-        GXCallback cb;
+        KYGXCmd* cmd;
+        KYGXCallback cb;
         void* cbData;
         KYGX_BREAK_UNLESS(kygxCmdBufferPeek(cmdBuffer, i, &cmd, &cb, &cbData));
-        KYGX_BREAK_UNLESS(intrForCmd(cmd) != GX_INTR_UNKNOWN);
+        KYGX_BREAK_UNLESS(intrForCmd(cmd) != KYGX_INTR_UNKNOWN);
         KYGX_BREAK_UNLESS(kygxCmdQueueAdd(cmdQueue, cmd));
 
         if (cmd->header & KYGX_CMDHEADER_FLAG_LAST) {
@@ -77,9 +77,9 @@ static bool enqueueCommands(void) {
     return true;
 }
 
-static void onInterrupt(GXIntr intrID) {
+static void onInterrupt(KYGXIntr intrID) {
     // We don't care about PDC.
-    if (intrID == GX_INTR_PDC0 || intrID == GX_INTR_PDC1)
+    if (intrID == KYGX_INTR_PDC0 || intrID == KYGX_INTR_PDC1)
         return;
 
     const u32 criticalOp = STATEOP_FIELD_ACCESS | STATEOP_EXEC_COMMANDS | STATEOP_COMMAND_COMPLETION | STATEOP_HALT;
@@ -92,7 +92,7 @@ static void onInterrupt(GXIntr intrID) {
     // Handle batch termination.
     if (!g_GlobalState.pendingCommands) {
         // It's possible that, at this point, GSP still hasn't halted.
-        GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
+        KYGXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
         KYGX_ASSERT(cmdQueue && !cmdQueue->count);
         kygxCmdQueueWaitHalt(cmdQueue);
 
@@ -112,7 +112,7 @@ static void onInterrupt(GXIntr intrID) {
 }
 
 static void resetCmdQueue(bool halt) {
-    GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
+    KYGXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
     KYGX_ASSERT(cmdQueue);
 
     kygxCmdQueueClearCommands(cmdQueue);
@@ -151,7 +151,7 @@ void kygxExit(void) {
     }
 }
 
-GXCmdBuffer* kygxExchangeCmdBuffer(GXCmdBuffer* b, bool flush) {
+KYGXCmdBuffer* kygxExchangeCmdBuffer(KYGXCmdBuffer* b, bool flush) {
     const u32 criticalOp = STATEOP_FIELD_ACCESS | (flush ? STATEOP_COMMAND_COMPLETION : STATEOP_HALT);
     kygxs_enter_critical_section(&g_GlobalState, criticalOp);
 
@@ -161,7 +161,7 @@ GXCmdBuffer* kygxExchangeCmdBuffer(GXCmdBuffer* b, bool flush) {
         kygxs_request_halt(&g_GlobalState, true);
     }
     
-    GXCmdBuffer* old = g_GlobalState.cmdBuffer;
+    KYGXCmdBuffer* old = g_GlobalState.cmdBuffer;
     g_GlobalState.cmdBuffer = b;
 
     kygxs_exit_critical_section(&g_GlobalState, criticalOp);
@@ -176,17 +176,17 @@ bool kygxUnlock(bool exec) {
     return b;
 }
 
-GXIntrQueue* kygxGetIntrQueue(void) { return g_GlobalState.intrQueue; }
-GXCmdQueue* kygxGetCmdQueue(void) { return g_GlobalState.cmdQueue; }
-GXCmdBuffer* kygxGetCmdBuffer(void) { return g_GlobalState.cmdBuffer; }
+KYGXIntrQueue* kygxGetIntrQueue(void) { return g_GlobalState.intrQueue; }
+KYGXCmdQueue* kygxGetCmdQueue(void) { return g_GlobalState.cmdQueue; }
+KYGXCmdBuffer* kygxGetCmdBuffer(void) { return g_GlobalState.cmdBuffer; }
 
-void kygxWaitIntr(GXIntr intrID) {
+void kygxWaitIntr(KYGXIntr intrID) {
     kygxs_enter_critical_section(&g_GlobalState, STATEOP_INTR);
     kygxs_wait_intr(&g_GlobalState, intrID);
     kygxs_exit_critical_section(&g_GlobalState, STATEOP_INTR);
 }
 
-void kygxClearIntr(GXIntr intrID) {
+void kygxClearIntr(KYGXIntr intrID) {
     kygxs_enter_critical_section(&g_GlobalState, STATEOP_INTR);
     kygxs_clear_intr(&g_GlobalState, intrID);
     kygxs_exit_critical_section(&g_GlobalState, STATEOP_INTR);
@@ -211,32 +211,32 @@ void kygxHalt(bool wait) {
     kygxs_exit_critical_section(&g_GlobalState, STATEOP_HALT);
 }
 
-void kygxExecSync(const GXCmd* cmd) {
-    GXCmd cmdCopy;
-    memcpy(&cmdCopy, cmd, sizeof(GXCmd));
+void kygxExecSync(const KYGXCmd* cmd) {
+    KYGXCmd cmdCopy;
+    memcpy(&cmdCopy, cmd, sizeof(KYGXCmd));
     cmdCopy.header |= KYGX_CMDHEADER_FLAG_LAST;
 
-    const GXIntr intrID = intrForCmd(&cmdCopy);
+    const KYGXIntr intrID = intrForCmd(&cmdCopy);
     const u32 criticalOp = STATEOP_FIELD_ACCESS | STATEOP_HALT | STATEOP_INTR | STATEOP_EXEC_COMMANDS;
     kygxs_enter_critical_section(&g_GlobalState, criticalOp);
 
     // Wait batch processing.
     kygxs_request_halt(&g_GlobalState, true);
 
-    if (intrID != GX_INTR_UNKNOWN) {
+    if (intrID != KYGX_INTR_UNKNOWN) {
         kygxs_disable_intr_cb(&g_GlobalState, intrID);
         kygxs_clear_intr(&g_GlobalState, intrID);
     }
 
     // Execute command.
-    GXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
+    KYGXCmdQueue* cmdQueue = g_GlobalState.cmdQueue;
     KYGX_ASSERT(cmdQueue);
 
     KYGX_BREAK_UNLESS(kygxCmdQueueAdd(cmdQueue, &cmdCopy));
     triggerCommandHandling();
 
     // Wait for termination.
-    if (intrID != GX_INTR_UNKNOWN) {
+    if (intrID != KYGX_INTR_UNKNOWN) {
         kygxs_wait_intr(&g_GlobalState, intrID);
         kygxs_enable_intr_cb(&g_GlobalState, intrID);
     } else {

@@ -70,7 +70,7 @@ static bool lazyInit(void) {
 }
 
 static void* insertNode(u32 base, size_t size) {
-    MemoryBlock* b = (MemoryBlock*)kygxAlloc(GX_MEM_HEAP, sizeof(MemoryBlock));
+    MemoryBlock* b = (MemoryBlock*)kygxAlloc(KYGX_MEM_HEAP, sizeof(MemoryBlock));
     if (b) {
         b->base = base;
         b->size = size;

@@ -64,7 +64,7 @@ KYGX_INLINE u32 kygxGetDisplayTransferFlags(const GXDisplayTransferFlags* flags)
     return ret;
 }
 
-KYGX_INLINE void kygxMakeDisplayTransfer(GXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
+KYGX_INLINE void kygxMakeDisplayTransfer(KYGXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
     KYGX_ASSERT(cmd);
 
     // Set crop bit.
@@ -80,7 +80,7 @@ KYGX_INLINE void kygxMakeDisplayTransfer(GXCmd* cmd, const void* src, void* dst,
     cmd->params[4] = flags & ~0x8u; // clear TextureCopy bit.
 }
 
-KYGX_INLINE void kygxMakeDisplayTransferChecked(GXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
+KYGX_INLINE void kygxMakeDisplayTransferChecked(KYGXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
     KYGX_ASSERT(cmd);
     KYGX_ASSERT(flags);
 
@@ -165,31 +165,31 @@ KYGX_INLINE void kygxMakeDisplayTransferChecked(GXCmd* cmd, const void* src, voi
     kygxMakeDisplayTransfer(cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, kygxGetDisplayTransferFlags(flags));
 }
 
-KYGX_INLINE bool kygxAddDisplayTransfer(GXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
+KYGX_INLINE bool kygxAddDisplayTransfer(KYGXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
     KYGX_ASSERT(b);
     
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeDisplayTransfer(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
     return kygxCmdBufferAdd(b, &cmd);
 }
 
-KYGX_INLINE bool kygxAddDisplayTransferChecked(GXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
+KYGX_INLINE bool kygxAddDisplayTransferChecked(KYGXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
     KYGX_ASSERT(b);
     KYGX_ASSERT(flags);
     
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeDisplayTransferChecked(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
     return kygxCmdBufferAdd(b, &cmd);
 }
 
 KYGX_INLINE void kygxSyncDisplayTransfer(const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, u32 flags) {
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeDisplayTransfer(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
     kygxExecSync(&cmd);
 }
 
 KYGX_INLINE void kygxSyncDisplayTransferChecked(const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
-    GXCmd cmd;
+    KYGXCmd cmd;
     kygxMakeDisplayTransferChecked(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
     kygxExecSync(&cmd);
 }

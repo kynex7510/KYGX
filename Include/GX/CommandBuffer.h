@@ -6,28 +6,28 @@
 
 #include <string.h> // memcpy
 
-typedef void (*GXCallback)(void* data);
+typedef void (*KYGXCallback)(void* data);
 
 typedef struct {
-    GXCmd* cmdList;
-    GXCallback* callbackList;
+    KYGXCmd* cmdList;
+    KYGXCallback* callbackList;
     void** userDataList;
     u8 count;
     u8 index;
     u8 capacity;
-} GXCmdBuffer;
+} KYGXCmdBuffer;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE bool kygxCmdBufferAlloc(GXCmdBuffer* b, u8 capacity) {
+KYGX_INLINE bool kygxCmdBufferAlloc(KYGXCmdBuffer* b, u8 capacity) {
     KYGX_ASSERT(b);
 
-    void* buffer = kygxAlloc(GX_MEM_HEAP, (sizeof(GXCmd) + sizeof(GXCallback) + sizeof(void*)) * capacity);
+    void* buffer = kygxAlloc(KYGX_MEM_HEAP, (sizeof(KYGXCmd) + sizeof(KYGXCallback) + sizeof(void*)) * capacity);
     if (buffer) {
-        b->cmdList = (GXCmd*)buffer;
-        b->callbackList = (GXCallback*)(&b->cmdList[capacity]);
+        b->cmdList = (KYGXCmd*)buffer;
+        b->callbackList = (KYGXCallback*)(&b->cmdList[capacity]);
         b->userDataList = (void**)(&b->callbackList[capacity]);
         b->capacity = capacity;
         return true;
@@ -36,7 +36,7 @@ KYGX_INLINE bool kygxCmdBufferAlloc(GXCmdBuffer* b, u8 capacity) {
     return false;
 }
 
-KYGX_INLINE void kygxCmdBufferFree(GXCmdBuffer* b) {
+KYGX_INLINE void kygxCmdBufferFree(KYGXCmdBuffer* b) {
     KYGX_ASSERT(b);
 
     kygxFree(b->cmdList);
@@ -45,31 +45,31 @@ KYGX_INLINE void kygxCmdBufferFree(GXCmdBuffer* b) {
     b->userDataList = NULL;
 }
 
-KYGX_INLINE void kygxCmdBufferClear(GXCmdBuffer* b) {
+KYGX_INLINE void kygxCmdBufferClear(KYGXCmdBuffer* b) {
     KYGX_ASSERT(b);
 
     b->count = 0;
     b->index = 0;
 }
 
-KYGX_INLINE bool kygxCmdBufferAdd(GXCmdBuffer* b, const GXCmd* cmd) {
+KYGX_INLINE bool kygxCmdBufferAdd(KYGXCmdBuffer* b, const KYGXCmd* cmd) {
     KYGX_ASSERT(b);
     KYGX_ASSERT(cmd);
 
     if (b->count >= b->capacity)
         return false;
 
-    memcpy(&b->cmdList[(b->count + b->index) % b->capacity], cmd, sizeof(GXCmd));
+    memcpy(&b->cmdList[(b->count + b->index) % b->capacity], cmd, sizeof(KYGXCmd));
     ++b->count;
     return true;
 }
 
-KYGX_INLINE void kygxCmdBufferFinalize(GXCmdBuffer* b, GXCallback cb, void* cbData) {
+KYGX_INLINE void kygxCmdBufferFinalize(KYGXCmdBuffer* b, KYGXCallback cb, void* cbData) {
     KYGX_ASSERT(b);
 
     if (b->count) {
         const u8 idx = (b->count + b->index - 1) % b->capacity;
-        GXCmd* lastCmd = &b->cmdList[idx];
+        KYGXCmd* lastCmd = &b->cmdList[idx];
         lastCmd->header |= KYGX_CMDHEADER_FLAG_LAST;
 
         b->callbackList[idx] = cb;
@@ -77,11 +77,11 @@ KYGX_INLINE void kygxCmdBufferFinalize(GXCmdBuffer* b, GXCallback cb, void* cbDa
     }
 }
 
-KYGX_INLINE bool kygxCmdBufferIsFinalized(GXCmdBuffer* b) {
+KYGX_INLINE bool kygxCmdBufferIsFinalized(KYGXCmdBuffer* b) {
     KYGX_ASSERT(b);
 
     for (size_t i = b->count; i > 0; --i) {
-        const GXCmd* cmd = &b->cmdList[((i - 1) + b->index) % b->capacity];
+        const KYGXCmd* cmd = &b->cmdList[((i - 1) + b->index) % b->capacity];
         if (cmd->header & KYGX_CMDHEADER_FLAG_LAST)
             return true;
     }
@@ -89,7 +89,7 @@ KYGX_INLINE bool kygxCmdBufferIsFinalized(GXCmdBuffer* b) {
     return false;
 }
 
-KYGX_INLINE bool kygxCmdBufferPeek(GXCmdBuffer* b, u8 index, GXCmd** cmd, GXCallback* cb, void** cbData) {
+KYGX_INLINE bool kygxCmdBufferPeek(KYGXCmdBuffer* b, u8 index, KYGXCmd** cmd, KYGXCallback* cb, void** cbData) {
     KYGX_ASSERT(b);
 
     if (index >= b->count)
@@ -109,7 +109,7 @@ KYGX_INLINE bool kygxCmdBufferPeek(GXCmdBuffer* b, u8 index, GXCmd** cmd, GXCall
     return true;
 }
 
-KYGX_INLINE void kygxCmdBufferAdvance(GXCmdBuffer* b, u8 size) {
+KYGX_INLINE void kygxCmdBufferAdvance(KYGXCmdBuffer* b, u8 size) {
     KYGX_ASSERT(b);
 
     if (size > b->count)

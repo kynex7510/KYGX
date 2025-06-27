@@ -4,38 +4,38 @@
 #include <GX/Defs.h>
 
 typedef enum {
-    GX_MEM_HEAP,
-    GX_MEM_LINEAR,
-    GX_MEM_VRAM,
-    GX_MEM_QTMRAM,
-    GX_MEM_UNKNOWN,
-} GXMemType;
+    KYGX_MEM_HEAP,
+    KYGX_MEM_LINEAR,
+    KYGX_MEM_VRAM,
+    KYGX_MEM_QTMRAM,
+    KYGX_MEM_UNKNOWN,
+} KYGXMemType;
 
 typedef enum {
-    GX_ALLOC_VRAM_BANK_A,
-    GX_ALLOC_VRAM_BANK_B,
-    GX_ALLOC_VRAM_BANK_ANY,
-} GXVRAMBank;
+    KYGX_ALLOC_VRAM_BANK_A,
+    KYGX_ALLOC_VRAM_BANK_B,
+    KYGX_ALLOC_VRAM_BANK_ANY,
+} KYGXVRAMBank;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-void* kygxAllocAligned(GXMemType memType, size_t size, size_t alignment);
-void* kygxAllocAlignedVRAM(GXVRAMBank bank, size_t size, size_t aligment);
+void* kygxAllocAligned(KYGXMemType memType, size_t size, size_t alignment);
+void* kygxAllocAlignedVRAM(KYGXVRAMBank bank, size_t size, size_t aligment);
 
-KYGX_INLINE void* kygxAlloc(GXMemType memType, size_t size) { return kygxAllocAligned(memType, size, 0); }
-KYGX_INLINE void* kygxAllocVRAM(GXVRAMBank bank, size_t size) { return kygxAllocAlignedVRAM(bank, size, 0); }
+KYGX_INLINE void* kygxAlloc(KYGXMemType memType, size_t size) { return kygxAllocAligned(memType, size, 0); }
+KYGX_INLINE void* kygxAllocVRAM(KYGXVRAMBank bank, size_t size) { return kygxAllocAlignedVRAM(bank, size, 0); }
 
 void kygxFree(void* p);
 
-GXMemType kygxGetMemType(const void* p);
+KYGXMemType kygxGetMemType(const void* p);
 size_t kygxGetAllocSize(const void* p);
 
-KYGX_INLINE bool kygxIsHeap(const void* p) { return kygxGetMemType(p) == GX_MEM_HEAP; }
-KYGX_INLINE bool kygxIsLinear(const void* p) { return kygxGetMemType(p) == GX_MEM_LINEAR; }
-KYGX_INLINE bool kygxIsVRAM(const void* p) { return kygxGetMemType(p) == GX_MEM_VRAM; }
-KYGX_INLINE bool kygxIsQTMRAM(const void* p) { return kygxGetMemType(p) == GX_MEM_QTMRAM; }
+KYGX_INLINE bool kygxIsHeap(const void* p) { return kygxGetMemType(p) == KYGX_MEM_HEAP; }
+KYGX_INLINE bool kygxIsLinear(const void* p) { return kygxGetMemType(p) == KYGX_MEM_LINEAR; }
+KYGX_INLINE bool kygxIsVRAM(const void* p) { return kygxGetMemType(p) == KYGX_MEM_VRAM; }
+KYGX_INLINE bool kygxIsQTMRAM(const void* p) { return kygxGetMemType(p) == KYGX_MEM_QTMRAM; }
 
 #ifdef __cplusplus
 }

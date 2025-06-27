@@ -10,15 +10,15 @@
 #define KYGX_NUM_INTERRUPTS 7
 
 typedef enum {
-    GX_INTR_PSC0 = 0,
-    GX_INTR_PSC1 = 1,
-    GX_INTR_PDC0 = 2,
-    GX_INTR_PDC1 = 3,
-    GX_INTR_PPF = 4,
-    GX_INTR_P3D = 5,
-    GX_INTR_DMA = 6,
-    GX_INTR_UNKNOWN = -1,
-} GXIntr;
+    KYGX_INTR_PSC0 = 0,
+    KYGX_INTR_PSC1 = 1,
+    KYGX_INTR_PDC0 = 2,
+    KYGX_INTR_PDC1 = 3,
+    KYGX_INTR_PPF = 4,
+    KYGX_INTR_P3D = 5,
+    KYGX_INTR_DMA = 6,
+    KYGX_INTR_UNKNOWN = -1,
+} KYGXIntr;
 
 typedef struct KYGX_PACKED {
     u8 index;
@@ -28,16 +28,16 @@ typedef struct KYGX_PACKED {
     u32 missedPDC0;
     u32 missedPDC1;
     u8 list[KYGX_INTRQUEUE_MAX_INTERRUPTS];
-} GXIntrQueue;
+} KYGXIntrQueue;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE GXIntr kygxPopIntr(GXIntrQueue* q) {
+KYGX_INLINE KYGXIntr kygxPopIntr(KYGXIntrQueue* q) {
     KYGX_ASSERT(q);
 
-    GXIntr intr = GX_INTR_UNKNOWN;
+    KYGXIntr intr = KYGX_INTR_UNKNOWN;
     u32 header;
 
     do {
@@ -58,7 +58,7 @@ KYGX_INLINE GXIntr kygxPopIntr(GXIntrQueue* q) {
     return intr;
 }
 
-KYGX_INLINE void kygxIntrQueueSkipPDC(GXIntrQueue* q, bool skip) {
+KYGX_INLINE void kygxIntrQueueSkipPDC(KYGXIntrQueue* q, bool skip) {
     KYGX_ASSERT(q);
 
     u8 f;
