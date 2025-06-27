@@ -1,6 +1,6 @@
-#include <GX/Allocator.h>
-#include <GX/Wrappers/MemoryFill.h>
-#include <GX/Wrappers/DisplayTransfer.h>
+#include <KYGX/Allocator.h>
+#include <KYGX/Wrappers/MemoryFill.h>
+#include <KYGX/Wrappers/DisplayTransfer.h>
 
 #include <stdio.h>
 
@@ -18,14 +18,14 @@ static void clearScreen(void) {
     u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
     // Prepare fill structure.
-    GXMemoryFillBuffer fill;
+    KYGXMemoryFillBuffer fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
     fill.value = KYGX_MEMORYFILL_VALUE_RGB8(g_Red, g_Green, g_Blue);
     fill.width = KYGX_MEMORYFILL_WIDTH_24;
 
     // Prepare transfer flags.
-    GXDisplayTransferFlags transferFlags;
+    KYGXDisplayTransferFlags transferFlags;
     transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
     transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
     transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;

@@ -1,7 +1,7 @@
 #ifndef _KYGX_INTERRUPT_H
 #define _KYGX_INTERRUPT_H
 
-#include <GX/Defs.h>
+#include <KYGX/Defs.h>
 
 #define KYGX_INTRQUEUE_MAX_INTERRUPTS 52
 #define KYGX_INTRQUEUE_MAX_PDC_INTERRUPTS 32

@@ -2,7 +2,7 @@
 #include <mem_map.h>
 #include <arm11/allocator/vram.h>
 
-#include <GX/Allocator.h>
+#include <KYGX/Allocator.h>
 #include "../QTMRAM.h"
 
 #include <stdlib.h> // malloc, free

@@ -1,7 +1,7 @@
 #ifndef _KYGX_UTILITY_H
 #define _KYGX_UTILITY_H
 
-#include <GX/Defs.h>
+#include <KYGX/Defs.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,4 +1,4 @@
-#include <GX/Defs.h>
+#include <KYGX/Defs.h>
 
 void kygx_platform_yield(void) { svcSleepThread(0); }
 

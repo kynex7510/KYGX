@@ -1,7 +1,7 @@
-#include <GX/Allocator.h>
-#include <GX/Wrappers/MemoryFill.h>
-#include <GX/Wrappers/DisplayTransfer.h>
-#include <GX/Wrappers/TextureCopy.h>
+#include <KYGX/Allocator.h>
+#include <KYGX/Wrappers/MemoryFill.h>
+#include <KYGX/Wrappers/DisplayTransfer.h>
+#include <KYGX/Wrappers/TextureCopy.h>
 
 #include <stdio.h>
 
@@ -47,14 +47,14 @@ static void clearScreen(void) {
     u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &screenWidth, &screenHeight);
 
     // Prepare fill structure.
-    GXMemoryFillBuffer fill;
+    KYGXMemoryFillBuffer fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
     fill.value = KYGX_MEMORYFILL_VALUE_RGB8(0xFF, 0xFF, 0xFF);
     fill.width = KYGX_MEMORYFILL_WIDTH_24;
 
     // Prepare transfer flags.
-    GXDisplayTransferFlags transferFlags;
+    KYGXDisplayTransferFlags transferFlags;
     transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
     transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
     transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
@@ -78,28 +78,28 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
     u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
     // Prepare fill structure.
-    GXMemoryFillBuffer fill;
+    KYGXMemoryFillBuffer fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
     fill.value = KYGX_MEMORYFILL_VALUE_RGB8(0xFF, 0x00, 0x00);
     fill.width = KYGX_MEMORYFILL_WIDTH_24;
 
     // Prepare rect params.
-    GXTextureCopySurface srcSurface;
+    KYGXTextureCopySurface srcSurface;
     srcSurface.addr = g_VRAMBuffer;
     srcSurface.width = SCREEN_WIDTH;
     srcSurface.height = SCREEN_HEIGHT;
     srcSurface.pixelSize = SCREEN_PIXEL_SIZE;
     srcSurface.rotated = SCREEN_ROTATED;
 
-    GXTextureCopySurface dstSurface;
+    KYGXTextureCopySurface dstSurface;
     dstSurface.addr = fb;
     dstSurface.width = SCREEN_WIDTH;
     dstSurface.height = SCREEN_HEIGHT;
     dstSurface.pixelSize = SCREEN_PIXEL_SIZE;
     dstSurface.rotated = SCREEN_ROTATED;
 
-    GXTextureCopyRect rect;
+    KYGXTextureCopyRect rect;
     rect.x = RECT_X;
     rect.y = RECT_Y;
     rect.width = RECT_WIDTH;

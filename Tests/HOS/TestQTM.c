@@ -1,7 +1,7 @@
-#include <GX/Allocator.h>
-#include <GX/Wrappers/MemoryFill.h>
-#include <GX/Wrappers/DisplayTransfer.h>
-#include <GX/Wrappers/FlushCacheRegions.h>
+#include <KYGX/Allocator.h>
+#include <KYGX/Wrappers/MemoryFill.h>
+#include <KYGX/Wrappers/DisplayTransfer.h>
+#include <KYGX/Wrappers/FlushCacheRegions.h>
 
 #include <stdio.h>
 
@@ -19,12 +19,12 @@ static void clearScreen(void) {
     u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
     // Prepare flush buffer.
-    GXFlushCacheRegionsBuffer flush;
+    KYGXFlushCacheRegionsBuffer flush;
     flush.addr = g_QTMRAMBuffer;
     flush.size = FB_SIZE;
 
     // Prepare transfer flags.
-    GXDisplayTransferFlags transferFlags;
+    KYGXDisplayTransferFlags transferFlags;
     transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
     transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
     transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;

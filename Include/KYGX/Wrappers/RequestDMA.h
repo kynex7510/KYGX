@@ -4,7 +4,7 @@
 // Baremetal doesn't support this command.
 #ifndef KYGX_BAREMETAL
 
-#include <GX/GX.h>
+#include <KYGX/GX.h>
 
 #ifdef __cplusplus
 extern "C" {

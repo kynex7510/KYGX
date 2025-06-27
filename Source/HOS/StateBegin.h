@@ -1,7 +1,7 @@
 #ifndef _KYGX_HOS_STATEBEGIN_H
 #define _KYGX_HOS_STATEBEGIN_H
 
-#include <GX/GX.h>
+#include <KYGX/GX.h>
 
 typedef struct {
     LightLock lock;

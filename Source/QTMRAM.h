@@ -8,8 +8,8 @@
 #include <3ds/util/rbtree.h>
 #endif // KYGX_BAREMETAL
 
-#include <GX/Allocator.h>
-#include <GX/Utility.h>
+#include <KYGX/Allocator.h>
+#include <KYGX/Utility.h>
 
 typedef struct {
     rbtree_node_t node;

@@ -1,7 +1,7 @@
 #ifndef _KYGX_ALLOCATOR_H
 #define _KYGX_ALLOCATOR_H
 
-#include <GX/Defs.h>
+#include <KYGX/Defs.h>
 
 typedef enum {
     KYGX_MEM_HEAP,

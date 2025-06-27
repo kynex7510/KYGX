@@ -1,18 +1,18 @@
 #ifndef _KYGX_WRAPPERS_FLUSHCACHEREGIONS_H
 #define _KYGX_WRAPPERS_FLUSHCACHEREGIONS_H
 
-#include <GX/GX.h>
+#include <KYGX/GX.h>
 
 typedef struct {
     const void* addr;
     size_t size;
-} GXFlushCacheRegionsBuffer;
+} KYGXFlushCacheRegionsBuffer;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxMakeFlushCacheRegions(KYGXCmd* cmd, const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
+KYGX_INLINE void kygxMakeFlushCacheRegions(KYGXCmd* cmd, const KYGXFlushCacheRegionsBuffer* buffer0, const KYGXFlushCacheRegionsBuffer* buffer1, const KYGXFlushCacheRegionsBuffer* buffer2) {
     KYGX_ASSERT(cmd);
 
     cmd->header = KYGX_CMDID_FLUSHCACHEREGIONS;
@@ -42,7 +42,7 @@ KYGX_INLINE void kygxMakeFlushCacheRegions(KYGXCmd* cmd, const GXFlushCacheRegio
 }
 
 // This command only exists in synchronous mode because it doesn't trigger any interrupt, and there is no nice way to know when it has completed.
-KYGX_INLINE void kygxSyncFlushCacheRegions(const GXFlushCacheRegionsBuffer* buffer0, const GXFlushCacheRegionsBuffer* buffer1, const GXFlushCacheRegionsBuffer* buffer2) {
+KYGX_INLINE void kygxSyncFlushCacheRegions(const KYGXFlushCacheRegionsBuffer* buffer0, const KYGXFlushCacheRegionsBuffer* buffer1, const KYGXFlushCacheRegionsBuffer* buffer2) {
     KYGXCmd cmd;
     kygxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
     kygxExecSync(&cmd);

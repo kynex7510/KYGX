@@ -1,7 +1,7 @@
 #ifndef _KYGX_WRAPPERS_TEXTURECOPY_H
 #define _KYGX_WRAPPERS_TEXTURECOPY_H
 
-#include <GX/GX.h>
+#include <KYGX/GX.h>
 
 #define KYGX_TEXTURECOPY_PIXEL_SIZE_RGBA8 4
 #define KYGX_TEXTURECOPY_PIXEL_SIZE_RGB8 3
@@ -15,7 +15,7 @@ typedef struct {
     u16 height;
     u8 pixelSize;
     bool rotated; // The surface is rotated 90 degrees CCW.
-} GXTextureCopySurface;
+} KYGXTextureCopySurface;
 
 typedef struct {
     // Normal: (0, 0) is top left.
@@ -24,13 +24,13 @@ typedef struct {
     u16 y;
     u16 width;
     u16 height;
-} GXTextureCopyRect;
+} KYGXTextureCopyRect;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxGetTextureCopyRectParams(const GXTextureCopySurface* surface, const GXTextureCopyRect* rect, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
+KYGX_INLINE void kygxGetTextureCopyRectParams(const KYGXTextureCopySurface* surface, const KYGXTextureCopyRect* rect, size_t* offset, size_t* size, u16* lineWidth, u16* gap) {
     KYGX_ASSERT(surface);
     KYGX_ASSERT(rect);
     KYGX_ASSERT(surface->width >= rect->width);
@@ -97,7 +97,7 @@ KYGX_INLINE void kygxMakeTextureCopy(KYGXCmd* cmd, const void* src, void* dst, s
     cmd->params[6] = 0;
 }
 
-KYGX_INLINE void kygxMakeRectCopy(KYGXCmd* cmd, const GXTextureCopySurface* srcSurface, const GXTextureCopyRect* srcRect, const GXTextureCopySurface* dstSurface, const GXTextureCopyRect* dstRect) {
+KYGX_INLINE void kygxMakeRectCopy(KYGXCmd* cmd, const KYGXTextureCopySurface* srcSurface, const KYGXTextureCopyRect* srcRect, const KYGXTextureCopySurface* dstSurface, const KYGXTextureCopyRect* dstRect) {
     KYGX_ASSERT(cmd);
     KYGX_ASSERT(srcSurface);
     KYGX_ASSERT(srcRect);
@@ -129,7 +129,7 @@ KYGX_INLINE bool kygxAddTextureCopy(KYGXCmdBuffer* b, const void* src, void* dst
     return kygxCmdBufferAdd(b, &cmd);    
 }
 
-KYGX_INLINE bool kygxAddRectCopy(KYGXCmdBuffer* b, const GXTextureCopySurface* srcSurface, const GXTextureCopyRect* srcRect, const GXTextureCopySurface* dstSurface, const GXTextureCopyRect* dstRect) {
+KYGX_INLINE bool kygxAddRectCopy(KYGXCmdBuffer* b, const KYGXTextureCopySurface* srcSurface, const KYGXTextureCopyRect* srcRect, const KYGXTextureCopySurface* dstSurface, const KYGXTextureCopyRect* dstRect) {
     KYGX_ASSERT(b);
     KYGX_ASSERT(srcSurface);
     KYGX_ASSERT(srcRect);
@@ -147,7 +147,7 @@ KYGX_INLINE void kygxSyncTextureCopy(const void* src, void* dst, size_t size, u1
     kygxExecSync(&cmd);
 }
 
-KYGX_INLINE void kygxSyncRectCopy(const GXTextureCopySurface* srcSurface, const GXTextureCopyRect* srcRect, const GXTextureCopySurface* dstSurface, const GXTextureCopyRect* dstRect) {
+KYGX_INLINE void kygxSyncRectCopy(const KYGXTextureCopySurface* srcSurface, const KYGXTextureCopyRect* srcRect, const KYGXTextureCopySurface* dstSurface, const KYGXTextureCopyRect* dstRect) {
     KYGX_ASSERT(srcSurface);
     KYGX_ASSERT(srcRect);
     KYGX_ASSERT(dstSurface);

@@ -1,7 +1,7 @@
 #ifndef _KYGX_WRAPPERS_MEMORYFILL_H
 #define _KYGX_WRAPPERS_MEMORYFILL_H
 
-#include <GX/GX.h>
+#include <KYGX/GX.h>
 
 #define KYGX_MEMORYFILL_VALUE_RGBA8(r, g, b, a) (((r) << 24) | ((g) << 16) | ((b) << 8) | (a))
 #define KYGX_MEMORYFILL_VALUE_RGB8(r, g, b) (((r) << 16) | ((g) << 8) | (b))
@@ -18,13 +18,13 @@ typedef struct {
     size_t size;
     u32 value;
     u8 width;
-} GXMemoryFillBuffer;
+} KYGXMemoryFillBuffer;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxMakeMemoryFill(KYGXCmd* cmd, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
+KYGX_INLINE void kygxMakeMemoryFill(KYGXCmd* cmd, const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
     KYGX_ASSERT(cmd);
 
     cmd->header = KYGX_CMDID_MEMORYFILL;
@@ -48,7 +48,7 @@ KYGX_INLINE void kygxMakeMemoryFill(KYGXCmd* cmd, const GXMemoryFillBuffer* buff
     }
 }
 
-KYGX_INLINE bool kygxAddMemoryFill(KYGXCmdBuffer* b, const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
+KYGX_INLINE bool kygxAddMemoryFill(KYGXCmdBuffer* b, const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
     KYGX_ASSERT(b);
     
     KYGXCmd cmd;
@@ -56,7 +56,7 @@ KYGX_INLINE bool kygxAddMemoryFill(KYGXCmdBuffer* b, const GXMemoryFillBuffer* b
     return kygxCmdBufferAdd(b, &cmd);    
 }
 
-KYGX_INLINE void kygxSyncMemoryFill(const GXMemoryFillBuffer* buffer0, const GXMemoryFillBuffer* buffer1) {
+KYGX_INLINE void kygxSyncMemoryFill(const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
     KYGXCmd cmd;
     kygxMakeMemoryFill(&cmd, buffer0, buffer1);
     kygxExecSync(&cmd);

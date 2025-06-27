@@ -1,7 +1,7 @@
 #ifndef _KYGX_COMMAND_H
 #define _KYGX_COMMAND_H
 
-#include <GX/Defs.h>
+#include <KYGX/Defs.h>
 
 #include <string.h> // memcpy
 

@@ -1,9 +1,9 @@
 #ifndef _KYGX_GX_H
 #define _KYGX_GX_H
 
-#include <GX/Command.h>
-#include <GX/Interrupt.h>
-#include <GX/CommandBuffer.h>
+#include <KYGX/Command.h>
+#include <KYGX/Interrupt.h>
+#include <KYGX/CommandBuffer.h>
 
 #define kygxWaitVBlank()           \
     kygxClearIntr(KYGX_INTR_PDC0); \

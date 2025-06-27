@@ -1,8 +1,8 @@
 #ifndef _KYGX_COMMAND_BUFFER_H
 #define _KYGX_COMMAND_BUFFER_H
 
-#include <GX/Command.h>
-#include <GX/Allocator.h>
+#include <KYGX/Command.h>
+#include <KYGX/Allocator.h>
 
 #include <string.h> // memcpy
 

@@ -1,8 +1,8 @@
 #ifndef _KYGX_WRAPPERS_DISPLAYTRANSFER_H
 #define _KYGX_WRAPPERS_DISPLAYTRANSFER_H
 
-#include <GX/GX.h>
-#include <GX/Utility.h>
+#include <KYGX/GX.h>
+#include <KYGX/Utility.h>
 
 #define KYGX_DISPLAYTRANSFER_MODE_T2L 0
 #define KYGX_DISPLAYTRANSFER_MODE_L2T (1 << 1)
@@ -32,13 +32,13 @@ typedef struct {
     u8 downscale;
     bool verticalFlip;
     bool blockMode32;
-} GXDisplayTransferFlags;
+} KYGXDisplayTransferFlags;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE u32 kygxGetDisplayTransferFlags(const GXDisplayTransferFlags* flags) {
+KYGX_INLINE u32 kygxGetDisplayTransferFlags(const KYGXDisplayTransferFlags* flags) {
     KYGX_ASSERT(flags);
 
     KYGX_ASSERT(flags->mode == KYGX_DISPLAYTRANSFER_MODE_T2L ||
@@ -80,7 +80,7 @@ KYGX_INLINE void kygxMakeDisplayTransfer(KYGXCmd* cmd, const void* src, void* ds
     cmd->params[4] = flags & ~0x8u; // clear TextureCopy bit.
 }
 
-KYGX_INLINE void kygxMakeDisplayTransferChecked(KYGXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
+KYGX_INLINE void kygxMakeDisplayTransferChecked(KYGXCmd* cmd, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const KYGXDisplayTransferFlags* flags) {
     KYGX_ASSERT(cmd);
     KYGX_ASSERT(flags);
 
@@ -173,7 +173,7 @@ KYGX_INLINE bool kygxAddDisplayTransfer(KYGXCmdBuffer* b, const void* src, void*
     return kygxCmdBufferAdd(b, &cmd);
 }
 
-KYGX_INLINE bool kygxAddDisplayTransferChecked(KYGXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
+KYGX_INLINE bool kygxAddDisplayTransferChecked(KYGXCmdBuffer* b, const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const KYGXDisplayTransferFlags* flags) {
     KYGX_ASSERT(b);
     KYGX_ASSERT(flags);
     
@@ -188,7 +188,7 @@ KYGX_INLINE void kygxSyncDisplayTransfer(const void* src, void* dst, u16 srcWidt
     kygxExecSync(&cmd);
 }
 
-KYGX_INLINE void kygxSyncDisplayTransferChecked(const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const GXDisplayTransferFlags* flags) {
+KYGX_INLINE void kygxSyncDisplayTransferChecked(const void* src, void* dst, u16 srcWidth, u16 srcHeight, u16 dstWidth, u16 dstHeight, const KYGXDisplayTransferFlags* flags) {
     KYGXCmd cmd;
     kygxMakeDisplayTransferChecked(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
     kygxExecSync(&cmd);

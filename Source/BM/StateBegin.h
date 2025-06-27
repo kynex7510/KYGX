@@ -1,7 +1,7 @@
 #ifndef _KYGX_BM_STATEBEGIN_H
 #define _KYGX_BM_STATEBEGIN_H
 
-#include <GX/GX.h>
+#include <KYGX/GX.h>
 
 #include <kmutex.h>
 #include <ksemaphore.h>

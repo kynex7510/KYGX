@@ -1,7 +1,7 @@
 #ifndef _KYGX_WRAPPERS_PROCESSCOMMANDLIST_H
 #define _KYGX_WRAPPERS_PROCESSCOMMANDLIST_H
 
-#include <GX/GX.h>
+#include <KYGX/GX.h>
 
 #ifdef __cplusplus
 extern "C" {
