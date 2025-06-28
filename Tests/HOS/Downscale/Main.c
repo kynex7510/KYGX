@@ -1,3 +1,4 @@
+#include <KYGX/Wrappers/FlushCacheRegions.h>
 #include <KYGX/Wrappers/DisplayTransfer.h>
 
 #include <stdio.h>
@@ -12,15 +13,17 @@ int main(int argc, char* argv[]) {
     const size_t width = 480;
     const size_t height = 800;
     const size_t bpp = 24;
-    void* img = kygxAlloc(KYGX_MEM_LINEAR, width * height * bpp >> 3);
+    const size_t imgSize = width * height * bpp >> 3;
+
+    void* img = kygxAlloc(KYGX_MEM_LINEAR, imgSize);
     if (!img)
         svcBreak(USERBREAK_PANIC);
 
     FILE* f = fopen("romfs:/EpicSkeleton.data", "rb");
-    fread(img, width * bpp >> 3, height, f);
+    fread(img, imgSize, 1, f);
     fclose(f);
 
-    GSPGPU_FlushDataCache(img, width * height * bpp >> 3);
+    kygxSyncFlushSingleBuffer(img, imgSize);
 
     // Prepare transfer flags.
     KYGXDisplayTransferFlags transferFlags;

@@ -48,6 +48,13 @@ KYGX_INLINE void kygxSyncFlushCacheRegions(const KYGXFlushCacheRegionsBuffer* bu
     kygxExecSync(&cmd);
 }
 
+KYGX_INLINE void kygxSyncFlushSingleBuffer(const void* addr, size_t size) {
+    KYGXFlushCacheRegionsBuffer flush;
+    flush.addr = addr;
+    flush.size = size;
+    kygxSyncFlushCacheRegions(&flush, NULL, NULL);
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
