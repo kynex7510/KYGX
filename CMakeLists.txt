@@ -5,18 +5,20 @@ set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 project(kygx C CXX ASM)
 
-option(KYGX_BAREMETAL "Enable baremetal compilation" OFF)
 option(KYGX_ENABLE_TESTS "Enable tests compilation" OFF)
 
 # Include libn3ds for baremetal compilation.
-if (KYGX_BAREMETAL)
+if (CTR_BAREMETAL)
     include(ARM11)
+    message(STATUS "KYGX: Compiling for baremetal")
+else()
+    message(STATUS "KYGX: Compiling for userland")
 endif()
 
 # Setup library.
 set(GX_SOURCES Source/GX.c)
 
-if (KYGX_BAREMETAL)
+if (CTR_BAREMETAL)
     set(GX_SOURCES ${GX_SOURCES}
         Source/BM/Platform.c
         Source/BM/Allocator.c
@@ -30,9 +32,9 @@ endif()
 
 add_library(kygx STATIC ${GX_SOURCES})
 
-if (KYGX_BAREMETAL)
+if (CTR_BAREMETAL)
     target_include_directories(kygx PUBLIC ${LIBN3DS_INCLUDE_PATHS})
-    add_compile_definitions(KYGX_BAREMETAL)
+    target_compile_definitions(kygx PUBLIC KYGX_BAREMETAL)
 endif()
 
 target_include_directories(kygx PUBLIC Include)

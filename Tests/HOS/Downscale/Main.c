@@ -50,5 +50,6 @@ int main(int argc, char* argv[]) {
 
     kygxExit();
     gfxExit();
+    romfsExit();
     return 0;
 }

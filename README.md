@@ -17,7 +17,7 @@ cmake --install BuildHOS --prefix BuildHOS/Release
 ### Baremetal build
 
 ```sh
-cmake -B BuildBM -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$(pwd)/CMake/Toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_BAREMETAL=ON -DKYGX_ENABLE_TESTS=ON
+cmake -B BuildBM -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$(pwd)/CMake/BM/Toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_ENABLE_TESTS=ON
 cmake --build BuildBM --config Release
 cmake --install BuildBM --prefix BuildBM/Release
 ```

@@ -10,12 +10,15 @@ if (NOT DEVKITPRO)
 endif()
 
 # Set module path.
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/BM")
 
 # Set system variables.
 set(CMAKE_SYSTEM_NAME Generic-ELF)
 set(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR armv6k)
+
+# Set baremetal flag.
+set(CTR_BAREMETAL ON)
 
 # Setup devkitARM.
 include(${DEVKITPRO}/cmake/devkitARM.cmake)
@@ -26,5 +29,5 @@ set(ARM11_FLAGS "-march=armv6k+vfpv2 -mtune=mpcore -mfloat-abi=hard -mtp=soft -m
 
 # Set default linker flags.
 # TODO: map
-set(ARM9_LINKER_FLAGS "${ARM9_FLAGS} -Wl,-T,${CMAKE_SOURCE_DIR}/CMake/ARM9.ld -Wl,-d -Wl,--use-blx -Wl,--gc-sections -nostartfiles")
-set(ARM11_LINKER_FLAGS "${ARM11_FLAGS} -Wl,-T,${CMAKE_SOURCE_DIR}/CMake/ARM11.ld -Wl,-d -Wl,--use-blx -Wl,--gc-sections -nostartfiles")
+set(ARM9_LINKER_FLAGS "${ARM9_FLAGS} -Wl,-T,${CMAKE_SOURCE_DIR}/CMake/BM/ARM9.ld -Wl,-d -Wl,--use-blx -Wl,--gc-sections -nostartfiles")
+set(ARM11_LINKER_FLAGS "${ARM11_FLAGS} -Wl,-T,${CMAKE_SOURCE_DIR}/CMake/BM/ARM11.ld -Wl,-d -Wl,--use-blx -Wl,--gc-sections -nostartfiles")
