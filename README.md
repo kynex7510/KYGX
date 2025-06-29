@@ -17,13 +17,10 @@ cmake --install BuildHOS --prefix BuildHOS/Release
 ### Baremetal build
 
 ```sh
-cmake -B BuildBM -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$(pwd)/CMake/BM/Toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_ENABLE_TESTS=ON
+cmake -B BuildBM -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$CTR_BM_TOOLCHAIN_ROOT/Toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_ENABLE_TESTS=ON
 cmake --build BuildBM --config Release
 cmake --install BuildBM --prefix BuildBM/Release
 ```
-
-- [firmtool](https://github.com/TuxSH/firmtool) is required.
-- `LIBN3DS_ROOT` must be set accordingly, either as an environment variable, or as a CMake variable.
 
 Tested kernel configuration:
 

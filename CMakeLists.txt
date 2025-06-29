@@ -9,7 +9,7 @@ option(KYGX_ENABLE_TESTS "Enable tests compilation" OFF)
 
 # Include libn3ds for baremetal compilation.
 if (CTR_BAREMETAL)
-    include(ARM11)
+    include(BM/N3DS11)
     message(STATUS "KYGX: Compiling for baremetal")
 else()
     message(STATUS "KYGX: Compiling for userland")
@@ -35,6 +35,7 @@ add_library(kygx STATIC ${GX_SOURCES})
 if (CTR_BAREMETAL)
     target_include_directories(kygx PUBLIC ${LIBN3DS_INCLUDE_PATHS})
     target_compile_definitions(kygx PUBLIC KYGX_BAREMETAL)
+    target_link_libraries(kygx PUBLIC n3ds11)
 endif()
 
 target_include_directories(kygx PUBLIC Include)
