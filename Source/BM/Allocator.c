@@ -81,16 +81,16 @@ KYGXMemType kygxGetMemType(const void* p) {
     const u32 addr = (u32)p;
 
     // TODO: check this.
-    if (addr >= AXI_RAM_BASE && addr <= A11_HEAP_END)
+    if (addr >= AXI_RAM_BASE && addr < A11_HEAP_END)
         return KYGX_MEM_HEAP;
 
-    if (addr >= FCRAM_BASE && addr <= (FCRAM_BASE + FCRAM_SIZE + FCRAM_EXT_SIZE))
+    if (addr >= FCRAM_BASE && addr < (FCRAM_BASE + FCRAM_SIZE + FCRAM_EXT_SIZE))
         return KYGX_MEM_LINEAR;
 
-    if (addr >= VRAM_BASE && addr <= (VRAM_BASE + VRAM_SIZE))
+    if (addr >= VRAM_BASE && addr < (VRAM_BASE + VRAM_SIZE))
         return KYGX_MEM_VRAM;
 
-    if (addr >= QTM_RAM_BASE && addr <= (QTM_RAM_BASE + QTM_RAM_SIZE))
+    if (addr >= QTM_RAM_BASE && addr < (QTM_RAM_BASE + QTM_RAM_SIZE))
         return KYGX_MEM_QTMRAM;
 
     return KYGX_MEM_UNKNOWN;

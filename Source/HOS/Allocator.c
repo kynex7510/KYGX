@@ -72,16 +72,16 @@ void kygxFree(void* p) {
 KYGXMemType kygxGetMemType(const void* p) {
     const u32 addr = (u32)p;
 
-    if (addr >= OS_HEAP_AREA_BEGIN && addr <= OS_HEAP_AREA_END)
+    if (addr >= OS_HEAP_AREA_BEGIN && addr < OS_HEAP_AREA_END)
         return KYGX_MEM_HEAP;
 
-    if (addr >= OS_FCRAM_VADDR && addr <= (OS_FCRAM_VADDR + OS_FCRAM_SIZE))
+    if (addr >= OS_FCRAM_VADDR && addr < (OS_FCRAM_VADDR + OS_FCRAM_SIZE))
         return KYGX_MEM_LINEAR;
 
-    if (addr >= OS_VRAM_VADDR && addr <= (OS_VRAM_VADDR + OS_VRAM_SIZE))
+    if (addr >= OS_VRAM_VADDR && addr < (OS_VRAM_VADDR + OS_VRAM_SIZE))
         return KYGX_MEM_VRAM;
 
-    if (addr >= OS_QTMRAM_VADDR && addr <= (OS_QTMRAM_VADDR + OS_QTMRAM_SIZE))
+    if (addr >= OS_QTMRAM_VADDR && addr < (OS_QTMRAM_VADDR + OS_QTMRAM_SIZE))
         return KYGX_MEM_QTMRAM;
 
     return KYGX_MEM_UNKNOWN;
