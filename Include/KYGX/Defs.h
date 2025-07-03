@@ -26,21 +26,6 @@
 
 #ifndef NDEBUG
 #define KYGX_BREAK(reason) kygx_platform_break((reason))
-#else
-#define KYGX_BREAK(reason) kygx_platform_break(NULL)
-#endif // !NDEBUG
-
-#define KYGX_BREAK_UNLESS(cond)            \
-    if (!KYGX_LIKELY(cond)) {              \
-        KYGX_BREAK(KYGX_STRINGIFY(cond)); \
-    }
-
-#define KYGX_UNREACHABLE(s)                                  \
-    do {                                                     \
-        KYGX_BREAK("Unreachable point reached: " s           \
-                    "\nIn file: " KYGX_STRINGIFY(__FILE__)   \
-                    "\nOn line: " KYGX_STRINGIFY(__LINE__)); \
-    } while (false)
 
 #define KYGX_ASSERT(cond)                                        \
     do {                                                         \
@@ -49,6 +34,22 @@
                         "\nIn file: " KYGX_STRINGIFY(__FILE__)   \
                         "\nOn line: " KYGX_STRINGIFY(__LINE__)); \
         }                                                        \
+    } while (false)
+#else
+#define KYGX_BREAK(reason) kygx_platform_break(NULL)
+#define KYGX_ASSERT(cond) (void)((cond))
+#endif // !NDEBUG
+
+#define KYGX_BREAK_UNLESS(cond)           \
+    if (!KYGX_LIKELY(cond)) {             \
+        KYGX_BREAK(KYGX_STRINGIFY(cond)); \
+    }
+
+#define KYGX_UNREACHABLE(s)                                  \
+    do {                                                     \
+        KYGX_BREAK("Unreachable point reached: " s           \
+                    "\nIn file: " KYGX_STRINGIFY(__FILE__)   \
+                    "\nOn line: " KYGX_STRINGIFY(__LINE__)); \
     } while (false)
 
 #ifdef __cplusplus

@@ -29,17 +29,15 @@ Additionally, GSP allows to execute commands in batch, to halt command execution
 
 ### Flaws
 
-Unfortunately, the GX subsystem is flawed for multiple reasons, which make writing an abstraction a non-trivial task.
+Unfortunately the GX subsystem is flawed, which make writing an abstraction a non-trivial task. 
 
-For one, command completion is signaled by the relevant interrupt. However, if a command fails no interrupt is signaled. This is a design flaw, and a terrible one:
+Command completion is signaled by the relevant interrupt. However, if a command fails no interrupt is signaled. This is a design flaw, and a terrible one:
 
 - The kernel event is not triggered, meaning the client has no chance to know the command has been executed. If the client always expects a command to complete, there's a chance an invalid command will cause a client-side hang (this issue can be probably worked around by implementing a, nonethelessly complex, timeout-based system).
 - The error codes are ultimately useless, because the client can't know when to check for them.
 - No interrupt is signaled for `FlushCacheRegions` anyway, which needs special handling.
 
-Moreover, if a command fails, an error flag is set in shared memory. It just so happens that the halt flag is part of the same byte in shared memory, and GSP fails to check for it by checking for equality. This implies that, if the error bit is set, GSP will never be able to detect if command handling has halted, and will always try to execute the next command. This can be worked around, as there's a different halt flag on a different location with similar behaviour. When implementing command batching an abstraction has to take care of that.
-
-Lastly, applications would benefit from having multiple command queues, especially on the 3DS which has 2 screens. However, the shared memory region contains only 1 queue-like structure for sending GX commands. An abstraction that wants to leverage multiple command queues is therefore enforced to implement a state machine, which has questionable results in code quality.
+Additionally, applications would benefit from having multiple command queues, especially on the 3DS which has 2 screens. However, the shared memory region contains only 1 queue-like structure for sending GX commands. An abstraction that wants to leverage multiple command queues is therefore enforced to implement a state machine, which has questionable results in code quality.
 
 ## Initialization and cleanup
 

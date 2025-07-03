@@ -85,6 +85,9 @@ static void onInterrupt(KYGXIntr intrID) {
     const u32 criticalOp = STATEOP_FIELD_ACCESS | STATEOP_EXEC_COMMANDS | STATEOP_COMMAND_COMPLETION | STATEOP_HALT;
     kygxs_enter_critical_section(&g_GlobalState, criticalOp);
 
+    // We should not be getting spurious interrupts.
+    KYGX_ASSERT(g_GlobalState.pendingCommands);
+
     // Update state.
     ++g_GlobalState.completedCommands;
     --g_GlobalState.pendingCommands;
