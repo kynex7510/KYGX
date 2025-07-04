@@ -38,5 +38,5 @@ Read the [docs](DOCS.md) to understand the GX subsystem, and to have a quick vie
 
 This library is doubly licensed:
 
-- MIT, for HOS (userland) usage (see [HOS_LICENSE.txt](HOS_LICENSE.txt)).
+- MPL 2.0, for HOS (userland) usage (see [HOS_LICENSE.txt](HOS_LICENSE.txt)).
 - GPLv3, for baremetal usage (see [BM_LICENSE.txt](BM_LICENSE.txt)).

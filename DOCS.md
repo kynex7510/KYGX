@@ -81,7 +81,7 @@ Each command batch is executed atomically, that is, all commands in a batch must
 
 ## Synchronous execution
 
-Sometimes an application has to wait for a command to be completed to continue, for example when using `TextureCopy`, an application might want to invalidate the destination buffer's cache. A command may be executed with `kygxExecSync`: this function halts execution of the current command buffer, executes the given command, wait for completion, and then resume the execution of the command buffer.
+Sometimes an application has to wait for a command to be completed to continue, eg. when using `TextureCopy` an application might want to free the source buffer. A command may be executed with `kygxExecSync`: this function halts execution of the current command buffer, executes the given command, wait for completion, and then resume the execution of the command buffer.
 
 ## Wrappers
 
