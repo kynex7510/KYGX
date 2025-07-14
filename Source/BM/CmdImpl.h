@@ -11,6 +11,12 @@
 
 #include "../State.h"
 
+#define PSC_FLAG_PSC0_BUSY 0x01u
+#define PSC_FLAG_PSC1_BUSY 0x02u
+#define PSC_FLAG_MULTIPLE_PSC 0x80u
+
+static u8 g_PSCFlags = 0;
+
 KYGX_INLINE void doProcessCommandList(u32 addr, u32 size, bool updateGasAccMax, bool flush) {
     // TODO: gas
 
@@ -34,6 +40,12 @@ KYGX_INLINE void doMemoryFill(u32 buf0s, u32 buf0v, u32 buf0e, u32 buf1s, u32 bu
     while (!(regs->psc_irq_stat & IRQ_STAT_PSC0) || !(regs->psc_irq_stat & IRQ_STAT_PSC1))
         wait_cycles(16);
 
+    // Set multiple flag.
+    if (buf0s && buf1s) {
+        do {
+            __ldrexb(&g_PSCFlags);
+        } while (__strexb(&g_PSCFlags, PSC_FLAG_PSC0_BUSY | PSC_FLAG_PSC1_BUSY | PSC_FLAG_MULTIPLE_PSC));
+    }
 
     if (buf0s) {
         regs->psc_fill0.s_addr = buf0s >> 3;

@@ -50,9 +50,76 @@ static void intrThread(void* intrID) {
     }
 }
 
+static void intrThreadPSC0(void* unused) {
+    const size_t index = (size_t)KYGX_INTR_PSC0;
+
+    while (true) {
+        GFX_waitForEvent(GFX_EVENT_PSC0);
+
+        // Update PSC flags.
+        if (g_PSCFlags & PSC_FLAG_MULTIPLE_PSC) {
+            u8 flags;
+
+            do {
+                flags = __ldrexb(&g_PSCFlags) & ~PSC_FLAG_PSC0_BUSY;
+            } while (__strexb(&g_PSCFlags, flags));
+
+            // Check if we have PSC1 pending.
+            if (flags & ~PSC_FLAG_MULTIPLE_PSC)
+                continue;
+
+            do {
+                __ldrexb(&g_PSCFlags);
+            } while (__strexb(&g_PSCFlags, 0));
+        }
+
+        if (g_IntrMask & INTR_MASK(index))
+            onInterrupt(KYGX_INTR_PSC0);
+
+        // TODO: reschedule?
+        signalEvent(g_IntrEvents[index], false);
+    }
+}
+
+static void intrThreadPSC1(void* unused) {
+    while (true) {
+        KYGXIntr toFire = KYGX_INTR_PSC1;
+
+        GFX_waitForEvent(GFX_EVENT_PSC1);
+
+        // Update PSC flags.
+        if (g_PSCFlags & PSC_FLAG_MULTIPLE_PSC) {
+            u8 flags;
+
+            do {
+                flags = __ldrexb(&g_PSCFlags) & ~PSC_FLAG_PSC1_BUSY;
+            } while (__strexb(&g_PSCFlags, flags));
+
+            // Check if we have PSC0 pending.
+            if (flags & ~PSC_FLAG_MULTIPLE_PSC)
+                continue;
+
+            do {
+                __ldrexb(&g_PSCFlags);
+            } while (__strexb(&g_PSCFlags, 0));
+
+            // We shall fire PSC0.
+            toFire = KYGX_INTR_PSC0;
+        }
+
+        const size_t index = (size_t)toFire;
+
+        if (g_IntrMask & INTR_MASK(index))
+            onInterrupt(toFire);
+
+        // TODO: reschedule?
+        signalEvent(g_IntrEvents[index], false);
+    }
+}
+
 static void initIntrThreads(void) {
-    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PSC0));
-    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PSC1));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThreadPSC0, NULL));
+    KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThreadPSC1, NULL));
     KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PDC0));
     KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PDC1));
     KYGX_BREAK_UNLESS(createTask(0x200, 3, intrThread, (void*)KYGX_INTR_PPF));
