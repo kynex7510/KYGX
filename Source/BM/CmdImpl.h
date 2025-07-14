@@ -31,6 +31,10 @@ KYGX_INLINE void doProcessCommandList(u32 addr, u32 size, bool updateGasAccMax, 
 KYGX_INLINE void doMemoryFill(u32 buf0s, u32 buf0v, u32 buf0e, u32 buf1s, u32 buf1v, u32 buf1e, u32 ctl) {
     GxRegs* regs = getGxRegs();
 
+    while (!(regs->psc_irq_stat & IRQ_STAT_PSC0) || !(regs->psc_irq_stat & IRQ_STAT_PSC1))
+        wait_cycles(16);
+
+
     if (buf0s) {
         regs->psc_fill0.s_addr = buf0s >> 3;
         regs->psc_fill0.e_addr = buf0e >> 3;
@@ -49,6 +53,9 @@ KYGX_INLINE void doMemoryFill(u32 buf0s, u32 buf0v, u32 buf0e, u32 buf1s, u32 bu
 KYGX_INLINE void doDisplayTransfer(u32 src, u32 dst, u32 srcDim, u32 dstDim, u32 flags) {
     GxRegs* regs = getGxRegs();
 
+    while (!(regs->psc_irq_stat & IRQ_STAT_PPF))
+        wait_cycles(16);
+
     regs->ppf.in_addr = src >> 3;
     regs->ppf.out_addr = dst >> 3;
     regs->ppf.dt_outdim = dstDim;
@@ -60,6 +67,9 @@ KYGX_INLINE void doDisplayTransfer(u32 src, u32 dst, u32 srcDim, u32 dstDim, u32
 
 KYGX_INLINE void doTextureCopy(u32 src, u32 dst, u32 size, u32 srcParam, u32 dstParam, u32 flags) {
     GxRegs* regs = getGxRegs();
+
+    while (!(regs->psc_irq_stat & IRQ_STAT_PPF))
+        wait_cycles(16);
 
     regs->ppf.in_addr = src >> 3;
     regs->ppf.out_addr = dst >> 3;
