@@ -12,7 +12,14 @@ if (CTR_BAREMETAL)
     include(BM/N3DS11)
     message(STATUS "KYGX: Compiling for baremetal")
 else()
-    message(STATUS "KYGX: Compiling for userland")
+    # Hack that allows us to use a fork of libctru.
+    include(CMake/CPM.cmake)
+    set(CMAKE_C_STANDARD_LIBRARIES "-lm" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_STANDARD_LIBRARIES "-lm" CACHE STRING "" FORCE)
+    set(CMAKE_ASM_STANDARD_LIBRARIES "-lm" CACHE STRING "" FORCE)
+    CPMAddPackage("gh:kynex7510/libctru#c336131")
+    link_libraries(ctru)
+    message(STATUS "KYGX: Compiling for userland (with libctru fork)")
 endif()
 
 # Setup library.
