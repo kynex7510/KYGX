@@ -7,6 +7,7 @@
 #include <types.h>
 #include <mem_map.h>
 #include <arm11/allocator/vram.h>
+#include <arm11/allocator/fcram.h>
 
 #include <KYGX/Allocator.h>
 #include "../QTMRAM.h"
@@ -20,9 +21,7 @@ void* kygxAllocAligned(KYGXMemType memType, size_t size, size_t alignment) {
             case KYGX_MEM_HEAP:
                 return malloc(size);
             case KYGX_MEM_LINEAR:
-                // TODO
-                KYGX_UNREACHABLE("Unimplemented!");
-                return NULL;
+                return fcramAlloc(size);
             case KYGX_MEM_VRAM:
                 return vramAlloc(size);
             case KYGX_MEM_QTMRAM:
@@ -36,9 +35,7 @@ void* kygxAllocAligned(KYGXMemType memType, size_t size, size_t alignment) {
         case KYGX_MEM_HEAP:
             return memalign(alignment, size);
         case KYGX_MEM_LINEAR:
-            // TODO
-            KYGX_UNREACHABLE("Unimplemented!");
-            return NULL;
+            return fcramMemAlign(size, alignment);
         case KYGX_MEM_VRAM:
             return vramMemAlign(size, alignment);
         case KYGX_MEM_QTMRAM:
@@ -71,7 +68,7 @@ void kygxFree(void* p) {
             free(p);
             break;
         case KYGX_MEM_LINEAR:
-            // TODO
+            fcramFree(p);
             break;
         case KYGX_MEM_VRAM:
             vramFree(p);
@@ -107,8 +104,7 @@ size_t kygxGetAllocSize(const void* p) {
         case KYGX_MEM_HEAP:
             return malloc_usable_size((void*)p);
         case KYGX_MEM_LINEAR:
-            // TODO
-            return 0;
+            return fcramGetSize((void*)p);
         case KYGX_MEM_VRAM:
             return vramGetSize((void*)p);
         case KYGX_MEM_QTMRAM:
