@@ -157,15 +157,38 @@ KYGX_INLINE void kygxMakeDisplayTransferChecked(KYGXCmd* cmd, const void* src, v
     // Handle tiled -> tiled mode.
     // TODO: test block mode 32.
     if (flags->mode == KYGX_DISPLAYTRANSFER_MODE_T2T) {
-        // RGBA8, RGB8 can only convert to themselves.
-        if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGBA8 || flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
-            KYGX_ASSERT(flags->srcFmt == flags->dstFmt);
-        } else {
-            // Other formats can convert to all other formats except RGB8.
-            KYGX_ASSERT(flags->dstFmt != KYGX_DISPLAYTRANSFER_FMT_RGB8);
+        // Same as T2L.
+        if (flags->srcFmt != KYGX_DISPLAYTRANSFER_FMT_RGBA8) {
+            if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
+                KYGX_ASSERT(flags->srcFmt == flags->dstFmt);
+            } else {
+                const bool isDst16 = flags->dstFmt == KYGX_DISPLAYTRANSFER_FMT_RGB565 ||
+                    flags->dstFmt == KYGX_DISPLAYTRANSFER_FMT_RGB5A1 ||
+                    flags->dstFmt == KYGX_DISPLAYTRANSFER_FMT_RGBA4;
+
+                KYGX_ASSERT(isDst16);
+            }
         }
 
-        // TODO: dimension checks, downscale checks.
+        // Output dimensions should not be bigger than input ones.
+        KYGX_ASSERT(srcWidth >= dstWidth && srcHeight >= dstHeight);
+
+        // Width dimensions must be >= 64.
+        KYGX_ASSERT(srcWidth >= 64 && dstWidth >= 64);
+
+        // Height dimensions must be >= 32.
+        KYGX_ASSERT(srcHeight >= 32 && dstHeight >= 32);
+
+        // Width dimensions are required to be aligned to 64 bytes when doing RGBA8/RGB8 transfers.
+        if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGBA8 || flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
+            KYGX_ASSERT(kygxIsAligned(srcWidth, 64) && kygxIsAligned(dstWidth, 64));
+        } else {
+             // Otherwise they are required to be aligned to 128 bytes.
+            KYGX_ASSERT(kygxIsAligned(srcWidth, 128) && kygxIsAligned(dstWidth, 128));
+        }
+
+        // 2x2 downscale must be set.
+        KYGX_ASSERT(flags->downscale == KYGX_DISPLAYTRANSFER_DOWNSCALE_2X2);
     }
 
     kygxMakeDisplayTransfer(cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, kygxGetDisplayTransferFlags(flags));
