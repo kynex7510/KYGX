@@ -4,9 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "../State.h"
+// #include "../State.h"
 
-#define SAFE_OPS STATEOP_INTR
+#include <KYGX/CommandBuffer.h>
+#include <KYGX/Interrupt.h>
 
 #define INTR_QUEUE_PTR(sharedMem, index) (KYGXIntrQueue*)((u8*)(sharedMem) + (0x40 * (index)))
 #define CMD_QUEUE_PTR(sharedMem, index) (KYGXCmdQueue*)((u8*)(sharedMem) + 0x800 + (0x200 * (index)))
@@ -40,11 +41,11 @@ bool kygxs_init(State* state) {
     for (size_t i = 0; i < KYGX_NUM_INTERRUPTS; ++i)
         LightEvent_Init(&g_IntrEvents[i], RESET_STICKY);
 
-    LightLock_Init(&state->platform.lock);
-    CondVar_Init(&state->platform.completionCV);
-    CondVar_Init(&state->platform.haltCV);
-    state->platform.haltRequested = false;
-    state->platform.halted = true;
+    kygxLockInit(&state->lock);
+    kygxCVInit(&state->completionCV);
+    kygxCVInit(&state->haltCV);
+    state->haltRequested = false;
+    state->halted = true;
 
     void* sharedMem = gspGetSharedMem();
     const u8 index = gspGetClientId();
@@ -76,20 +77,6 @@ void kygxs_cleanup(State* state) {
     state->intrQueue = NULL;
     state->cmdQueue = NULL;
     gspExit();
-}
-
-void kygxs_enter_critical_section(State* state, u32 op) {
-    KYGX_ASSERT(state);
-
-    if (op & ~SAFE_OPS)
-        LightLock_Lock(&state->platform.lock);
-}
-
-void kygxs_exit_critical_section(State* state, u32 op) {
-    KYGX_ASSERT(state);
-
-    if (op & ~SAFE_OPS)
-        LightLock_Unlock(&state->platform.lock);
 }
 
 void kygxs_enable_intr_cb(State* state, KYGXIntr intrID) {
@@ -136,53 +123,9 @@ void kygxs_clear_intr(State* state, KYGXIntr intrID) {
 
 void kygxs_exec_commands(State* state) {
     KYGX_ASSERT(state);
-    state->platform.halted = false;
+    state->halted = false;
 
-    LightLock_Unlock(&state->platform.lock);
+    kygxLockRelease(&state->lock);
     KYGX_BREAK_UNLESS(R_SUCCEEDED(GSPGPU_TriggerCmdReqQueue()));
-    LightLock_Lock(&state->platform.lock);
-}
-
-void kygxs_wait_command_completion(State* state) {
-    KYGX_ASSERT(state);
-    
-    const KYGXCmdBuffer* cmdBuffer = state->cmdBuffer;
-    while (cmdBuffer && cmdBuffer->count) {
-        CondVar_Wait(&state->platform.completionCV, &state->platform.lock);
-        cmdBuffer = state->cmdBuffer;
-    }
-}
-
-void kygxs_signal_command_completion(State* state) {
-    KYGX_ASSERT(state);
-    KYGX_ASSERT(!state->cmdBuffer || !state->cmdBuffer->count);
-
-    CondVar_Broadcast(&state->platform.completionCV);
-}
-
-void kygxs_request_halt(State* state, bool wait) {
-    KYGX_ASSERT(state);
-
-    if (!state->platform.halted) {
-        state->platform.haltRequested = true;
-
-        if (wait) {
-            while (!state->platform.halted)
-                CondVar_Wait(&state->platform.haltCV, &state->platform.lock);
-        }
-    }
-}
-
-bool kygxs_signal_halt(State* state) {
-    KYGX_ASSERT(state);
-
-    state->platform.halted = true;
-
-    if (state->platform.haltRequested) {
-        state->platform.haltRequested = false;    
-        CondVar_Broadcast(&state->platform.haltCV);
-        return false;
-    }
-
-    return true;
+    kygxLockAcquire(&state->lock);
 }

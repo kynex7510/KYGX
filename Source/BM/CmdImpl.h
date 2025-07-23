@@ -9,7 +9,7 @@
 #include <arm11/drivers/gx.h>
 #include <arm11/drivers/gpu_regs.h>
 
-#include "../State.h"
+#include <KYGX/Command.h>
 
 #define PSC_FLAG_PSC0_BUSY 0x01u
 #define PSC_FLAG_PSC1_BUSY 0x02u

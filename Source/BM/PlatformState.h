@@ -7,9 +7,13 @@
 #include <kevent.h>
 #include <drivers/gfx.h>
 
+// #include "../State.h"
+
+#include <KYGX/CommandBuffer.h>
+#include <KYGX/Interrupt.h>
+
 #include "CmdImpl.h"
 
-#define SAFE_OPS STATEOP_INTR
 #define INTR_MASK(index) (1 << ((u32)index))
 
 // DMA interrupt is not supported.
@@ -140,14 +144,11 @@ bool kygxs_init(State* state) {
     for (size_t i = 0; i < KYGX_NUM_INTERRUPTS; ++i)
         g_IntrEvents[i] = createEvent(false);
 
-    state->platform.lock = createMutex();
-    KYGX_ASSERT(state->platform.lock);
-
-    CV_Init(&state->platform.completionCV);
-    CV_Init(&state->platform.haltCV);
-    state->platform.haltRequested = false;
-    state->platform.halted = true;
-
+    kygxLockInit(&state->lock);
+    kygxCVInit(&state->completionCV);
+    kygxCVInit(&state->haltCV);
+    state->haltRequested = false;
+    state->halted = true;
     state->intrQueue = NULL;
     state->cmdQueue = &g_CmdQueue;
 
@@ -166,28 +167,12 @@ void kygxs_cleanup(State* state) {
     state->intrQueue = NULL;
     state->cmdQueue = NULL;
 
-    CV_Destroy(&state->platform.haltCV);
-    CV_Destroy(&state->platform.completionCV);
-    deleteMutex(state->platform.lock);
+    kygxCVDestroy(&state->haltCV);
+    kygxCVDestroy(&state->completionCV);
+    kygxLockDestroy(&state->lock);
 
     for (size_t i = 0; i< KYGX_NUM_INTERRUPTS; ++i)
         deleteEvent(g_IntrEvents[i]);
-}
-
-void kygxs_enter_critical_section(State* state, u32 op) {
-    KYGX_ASSERT(state);
-
-    if (op & ~SAFE_OPS) {
-        KYGX_BREAK_UNLESS(lockMutex(state->platform.lock) == KRES_OK);
-    }
-}
-
-void kygxs_exit_critical_section(State* state, u32 op) {
-    KYGX_ASSERT(state);
-
-    if (op & ~SAFE_OPS) {
-        KYGX_BREAK_UNLESS(unlockMutex(state->platform.lock) == KRES_OK);
-    }
 }
 
 void kygxs_enable_intr_cb(State* state, KYGXIntr intrID) {
@@ -238,7 +223,7 @@ void kygxs_exec_commands(State* state) {
     KYGXCmdQueue* cmdQueue = state->cmdQueue;
     KYGX_ASSERT(cmdQueue);
 
-    state->platform.halted = false;
+    state->halted = false;
 
     KYGXCmd cmd;
     while (kygxCmdQueuePop(cmdQueue, &cmd)) {
@@ -249,48 +234,4 @@ void kygxs_exec_commands(State* state) {
     }
 
     kygxCmdQueueSetHalt(cmdQueue);
-}
-
-void kygxs_wait_command_completion(State* state) {
-    KYGX_ASSERT(state);
-    
-    const KYGXCmdBuffer* cmdBuffer = state->cmdBuffer;
-    while (cmdBuffer && cmdBuffer->count) {
-        CV_Wait(&state->platform.completionCV, state->platform.lock);
-        cmdBuffer = state->cmdBuffer;
-    }
-}
-
-void kygxs_signal_command_completion(State* state) {
-    KYGX_ASSERT(state);
-    KYGX_ASSERT(!state->cmdBuffer || !state->cmdBuffer->count);
-    
-    CV_Broadcast(&state->platform.completionCV);
-}
-
-void kygxs_request_halt(State* state, bool wait) {
-    KYGX_ASSERT(state);
-
-    if (!state->platform.halted) {
-        state->platform.haltRequested = true;
-
-        if (wait) {
-            while (!state->platform.halted)
-                CV_Wait(&state->platform.haltCV, state->platform.lock);
-        }
-    }
-}
-
-bool kygxs_signal_halt(State* state) {
-    KYGX_ASSERT(state);
-
-    state->platform.halted = true;
-
-    if (state->platform.haltRequested) {
-        state->platform.haltRequested = false;
-        CV_Broadcast(&state->platform.haltCV);
-        return false;
-    }
-
-    return true;
 }
