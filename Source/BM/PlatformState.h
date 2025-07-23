@@ -164,6 +164,10 @@ void kygxs_cleanup(State* state) {
 
     // TODO: intr callback
 
+    do {
+        __ldrexb(&g_IntrMask);
+    } while (__strexb(&g_IntrMask, 0));
+
     state->intrQueue = NULL;
     state->cmdQueue = NULL;
 
