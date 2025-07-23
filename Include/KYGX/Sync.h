@@ -70,9 +70,9 @@ KYGX_INLINE void kygxCVWait(KYGXCV* cv, KYGXLock* lock) {
         w = __ldrex(&cv->waiters);
     } while (__strex(&cv->waiters, w + 1));
 
-    KYGX_BREAK_UNLESS(unlockMutex(*lock) == KRES_OK);
-    KYGX_BREAK_UNLESS(waitForSemaphore(cv->sema) == KRES_OK);
-    KYGX_BREAK_UNLESS(lockMutex(*lock) == KRES_OK);
+    KYGX_ASSERT(unlockMutex(*lock) == KRES_OK);
+    KYGX_ASSERT(waitForSemaphore(cv->sema) == KRES_OK);
+    KYGX_ASSERT(lockMutex(*lock) == KRES_OK);
 }
 
 KYGX_INLINE void kygxCVBroadcast(KYGXCV* cv) {
