@@ -11,3 +11,9 @@ add_executable(KYGXTestAsync TestAsync.c)
 target_link_libraries(KYGXTestAsync PRIVATE kygx)
 bm_target_linker_file(KYGXTestAsync ${CTR_BM_TOOLCHAIN_ROOT}/Linker/Default11.ld)
 add_firm_binary(KYGXTestAsync_bin KYGXTestAsync)
+
+# TestQTM
+add_executable(KYGXTestQTM TestQTM.c)
+target_link_libraries(KYGXTestQTM PRIVATE kygx)
+bm_target_linker_file(KYGXTestQTM ${CTR_BM_TOOLCHAIN_ROOT}/Linker/Default11.ld)
+add_firm_binary(KYGXTestQTM_bin KYGXTestQTM)

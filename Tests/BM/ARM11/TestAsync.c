@@ -6,7 +6,6 @@
 #include <arm11/fmt.h>
 #include <arm11/power.h>
 #include <arm11/console.h>
-#include <arm11/allocator/vram.h>
 #include <arm11/drivers/hid.h>
 
 #define CMDBUFFER_CAPACITY 32
