@@ -8,9 +8,12 @@
 #define _KYGX_STATE_H
 
 #include <KYGX/Sync.h>
+#include <KYGX/Interrupt.h>
+#include <KYGX/Command.h>
+#include <KYGX/CommandBuffer.h>
 
 typedef struct {
-    KYGXLock lock;
+    KYGXMtx mtx;
     KYGXCV completionCV;
     KYGXCV haltCV;
     bool haltRequested;
@@ -40,14 +43,14 @@ KYGX_INLINE void kygxs_enter_critical_section(State* state, u32 op) {
 
     // Interrupt operations are safe.
     if (op != STATEOP_INTR)
-        kygxLockAcquire(&state->lock);
+        kygxMtxAcquire(&state->mtx);
 }
 
 KYGX_INLINE void kygxs_exit_critical_section(State* state, u32 op) {
     KYGX_ASSERT(state);
 
     if (op != STATEOP_INTR)
-        kygxLockRelease(&state->lock);
+        kygxMtxRelease(&state->mtx);
 }
 
 KYGX_INLINE void kygxs_enable_intr_cb(State* state, KYGXIntr intrID);
@@ -63,7 +66,7 @@ KYGX_INLINE void kygxs_wait_command_completion(State* state) {
     
     const KYGXCmdBuffer* cmdBuffer = state->cmdBuffer;
     while (cmdBuffer && cmdBuffer->count) {
-        kygxCVWait(&state->completionCV, &state->lock);
+        kygxCVWait(&state->completionCV, &state->mtx);
         cmdBuffer = state->cmdBuffer;
     }
 }
@@ -84,7 +87,7 @@ KYGX_INLINE void kygxs_request_halt(State* state, bool wait) {
 
         if (wait) {
             while (!state->halted)
-                kygxCVWait(&state->haltCV, &state->lock);
+                kygxCVWait(&state->haltCV, &state->mtx);
         }
     }
 }

@@ -41,7 +41,7 @@ bool kygxs_init(State* state) {
     for (size_t i = 0; i < KYGX_NUM_INTERRUPTS; ++i)
         LightEvent_Init(&g_IntrEvents[i], RESET_STICKY);
 
-    kygxLockInit(&state->lock);
+    kygxMtxInit(&state->mtx);
     kygxCVInit(&state->completionCV);
     kygxCVInit(&state->haltCV);
     state->haltRequested = false;
@@ -125,7 +125,7 @@ void kygxs_exec_commands(State* state) {
     KYGX_ASSERT(state);
     state->halted = false;
 
-    kygxLockRelease(&state->lock);
+    kygxMtxRelease(&state->mtx);
     KYGX_BREAK_UNLESS(R_SUCCEEDED(GSPGPU_TriggerCmdReqQueue()));
-    kygxLockAcquire(&state->lock);
+    kygxMtxAcquire(&state->mtx);
 }

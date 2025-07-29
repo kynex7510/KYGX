@@ -144,7 +144,7 @@ bool kygxs_init(State* state) {
     for (size_t i = 0; i < KYGX_NUM_INTERRUPTS; ++i)
         g_IntrEvents[i] = createEvent(false);
 
-    kygxLockInit(&state->lock);
+    kygxMtxInit(&state->mtx);
     kygxCVInit(&state->completionCV);
     kygxCVInit(&state->haltCV);
     state->haltRequested = false;
@@ -173,7 +173,7 @@ void kygxs_cleanup(State* state) {
 
     kygxCVDestroy(&state->haltCV);
     kygxCVDestroy(&state->completionCV);
-    kygxLockDestroy(&state->lock);
+    kygxMtxDestroy(&state->mtx);
 
     for (size_t i = 0; i< KYGX_NUM_INTERRUPTS; ++i)
         deleteEvent(g_IntrEvents[i]);

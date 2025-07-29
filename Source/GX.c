@@ -5,6 +5,7 @@
  */
 
 #include <KYGX/GX.h>
+
 #include "State.h"
 
 static State g_GlobalState = {};

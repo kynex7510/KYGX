@@ -14,6 +14,8 @@
 #include <kmutex.h>
 #include <ksemaphore.h>
 
+#include <stdint.h> // UINT32_MAX
+
 typedef KHandle KYGXMtx;
 
 typedef struct {
@@ -75,7 +77,7 @@ KYGX_INLINE void kygxCVWait(KYGXCV* cv, KYGXMtx* mtx) {
     KYGX_ASSERT(lockMutex(*mtx) == KRES_OK);
 }
 
-KYGX_INLINE void kygxCVBroadcast(KYGXCV* cv) {
+KYGX_INLINE void kygxCVSignal(KYGXCV* cv, u32 count) {
     KYGX_ASSERT(cv);
 
     u32 w;
@@ -83,7 +85,7 @@ KYGX_INLINE void kygxCVBroadcast(KYGXCV* cv) {
     __dmb();
     do {
         w = __ldrex(&cv->waiters);
-    } while (__strex(&cv->waiters, 0));
+    } while (__strex(&cv->waiters, w > count ? w - count : 0));
 
     if (w) {
         // TODO: reschedule?
@@ -91,6 +93,11 @@ KYGX_INLINE void kygxCVBroadcast(KYGXCV* cv) {
     } else {
         __dmb();
     }
+}
+
+KYGX_INLINE void kygxCVBroadcast(KYGXCV* cv) {
+    KYGX_ASSERT(cv);
+    kygxCVSignal(cv, UINT32_MAX);
 }
 
 #else
@@ -128,10 +135,15 @@ KYGX_INLINE void kygxCVDestroy(KYGXCV* cv) {
     (void)cv;
 }
 
-KYGX_INLINE void kygxCVWait(KYGXCV* cv, KYGXLock* lock) {
+KYGX_INLINE void kygxCVWait(KYGXCV* cv, KYGXMtx* mtx) {
     KYGX_ASSERT(cv);
-    KYGX_ASSERT(lock);
-    CondVar_Wait(cv, lock);
+    KYGX_ASSERT(mtx);
+    CondVar_Wait(cv, mtx);
+}
+
+KYGX_INLINE void kygxCVSignal(KYGXCV* cv, u32 count) {
+    KYGX_ASSERT(cv);
+    CondVar_WakeUp(cv, count);
 }
 
 KYGX_INLINE void kygxCVBroadcast(KYGXCV* cv) {
