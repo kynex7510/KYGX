@@ -14,38 +14,38 @@
 #include <kmutex.h>
 #include <ksemaphore.h>
 
-typedef KHandle KYGXLock;
+typedef KHandle KYGXMtx;
 
 typedef struct {
     KHandle sema;
     u32 waiters;
 } KYGXCV;
 
-KYGX_INLINE void kygxLockInit(KYGXLock* lock) {
-    KYGX_ASSERT(lock);
+KYGX_INLINE void kygxMtxInit(KYGXMtx* mtx) {
+    KYGX_ASSERT(mtx);
 
-    *lock = createMutex();
-    KYGX_ASSERT(*lock);
+    *mtx = createMutex();
+    KYGX_ASSERT(*mtx);
 }
 
-KYGX_INLINE void kygxLockDestroy(KYGXLock* lock) {
-    KYGX_ASSERT(lock);
+KYGX_INLINE void kygxMtxDestroy(KYGXMtx* mtx) {
+    KYGX_ASSERT(mtx);
 
-    deleteMutex(*lock);
-    *lock = 0;
+    deleteMutex(*mtx);
+    *mtx = 0;
 }
 
-KYGX_INLINE void kygxLockAcquire(KYGXLock* lock) {
-    KYGX_ASSERT(lock);
+KYGX_INLINE void kygxMtxAcquire(KYGXMtx* mtx) {
+    KYGX_ASSERT(mtx);
 
-    const KRes ret = lockMutex(*lock);
+    const KRes ret = lockMutex(*mtx);
     KYGX_ASSERT(ret == KRES_OK);
 }
 
-KYGX_INLINE void kygxLockRelease(KYGXLock* lock) {
-    KYGX_ASSERT(lock);
+KYGX_INLINE void kygxMtxRelease(KYGXMtx* mtx) {
+    KYGX_ASSERT(mtx);
 
-    const KRes ret = unlockMutex(*lock);
+    const KRes ret = unlockMutex(*mtx);
     KYGX_ASSERT(ret == KRES_OK);
 }
 
@@ -61,18 +61,18 @@ KYGX_INLINE void kygxCVDestroy(KYGXCV* cv) {
     deleteSemaphore(cv->sema);
 }
 
-KYGX_INLINE void kygxCVWait(KYGXCV* cv, KYGXLock* lock) {
+KYGX_INLINE void kygxCVWait(KYGXCV* cv, KYGXMtx* mtx) {
     KYGX_ASSERT(cv);
-    KYGX_ASSERT(lock);
+    KYGX_ASSERT(mtx);
 
     u32 w;
     do {
         w = __ldrex(&cv->waiters);
     } while (__strex(&cv->waiters, w + 1));
 
-    KYGX_ASSERT(unlockMutex(*lock) == KRES_OK);
+    KYGX_ASSERT(unlockMutex(*mtx) == KRES_OK);
     KYGX_ASSERT(waitForSemaphore(cv->sema) == KRES_OK);
-    KYGX_ASSERT(lockMutex(*lock) == KRES_OK);
+    KYGX_ASSERT(lockMutex(*mtx) == KRES_OK);
 }
 
 KYGX_INLINE void kygxCVBroadcast(KYGXCV* cv) {
@@ -95,27 +95,27 @@ KYGX_INLINE void kygxCVBroadcast(KYGXCV* cv) {
 
 #else
 
-typedef LightLock KYGXLock;
+typedef LightLock KYGXMtx;
 typedef CondVar KYGXCV;
 
-KYGX_INLINE void kygxLockInit(KYGXLock* lock) {
-    KYGX_ASSERT(lock);
-    LightLock_Init(lock);
+KYGX_INLINE void kygxMtxInit(KYGXMtx* mtx) {
+    KYGX_ASSERT(mtx);
+    LightLock_Init(mtx);
 }
 
-KYGX_INLINE void kygxLockDestroy(KYGXLock* lock) {
-    KYGX_ASSERT(lock);
-    (void)lock;
+KYGX_INLINE void kygxMtxDestroy(KYGXMtx* mtx) {
+    KYGX_ASSERT(mtx);
+    (void)mtx;
 }
 
-KYGX_INLINE void kygxLockAcquire(KYGXLock* lock) {
-    KYGX_ASSERT(lock);
-    LightLock_Lock(lock);
+KYGX_INLINE void kygxMtxAcquire(KYGXMtx* mtx) {
+    KYGX_ASSERT(mtx);
+    LightLock_Lock(mtx);
 }
 
-KYGX_INLINE void kygxLockRelease(KYGXLock* lock) {
-    KYGX_ASSERT(lock);
-    LightLock_Unlock(lock);
+KYGX_INLINE void kygxMtxRelease(KYGXMtx* mtx) {
+    KYGX_ASSERT(mtx);
+    LightLock_Unlock(mtx);
 }
 
 KYGX_INLINE void kygxCVInit(KYGXCV* cv) {
