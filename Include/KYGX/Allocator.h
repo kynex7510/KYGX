@@ -35,6 +35,9 @@ KYGX_INLINE void* kygxAllocVRAM(KYGXVRAMBank bank, size_t size) { return kygxAll
 
 void kygxFree(void* p);
 
+// newSize == 0 frees the buffer. VRAM reallocation doesn't retain content.
+void* kygxRealloc(void* p, size_t newSize);
+
 KYGXMemType kygxGetMemType(const void* p);
 size_t kygxGetAllocSize(const void* p);
 

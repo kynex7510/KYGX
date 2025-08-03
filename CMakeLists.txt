@@ -23,7 +23,10 @@ else()
 endif()
 
 # Setup library.
-set(GX_SOURCES Source/GX.c)
+set(GX_SOURCES
+    Source/AllocatorCommon.c
+    Source/GX.c
+)
 
 if (CTR_BAREMETAL)
     set(GX_SOURCES ${GX_SOURCES}
