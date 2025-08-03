@@ -1,3 +1,7 @@
+#ifdef KYGX_BAREMETAL
+#include <mem_map.h>
+#endif // KYGX_BAREMETAL
+
 #include <KYGX/Allocator.h>
 
 #include <stdlib.h> // realloc
@@ -19,7 +23,7 @@ static void* genericRealloc(KYGXMemType type, void* p, size_t size) {
 static inline void* vramReallocCustom(void* p, size_t newSize) {
     // Detect bank.
 #ifdef KYGX_BAREMETAL
-    const size_t baseB = 0;
+    const size_t baseB = VRAM_BANK1;
 #else
     const size_t baseB = OS_VRAM_VADDR + OS_VRAM_SIZE / 2;
 #endif
