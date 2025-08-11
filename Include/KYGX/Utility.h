@@ -27,7 +27,7 @@ KYGX_INLINE u32 kygxAlignDown(u32 v, u32 alignment) {
 
 KYGX_INLINE u32 kygxAlignUp(u32 v, u32 alignment) {
     KYGX_ASSERT(kygxIsPo2(alignment));
-    return (v + alignment) & ~(alignment - 1);
+    return (v + (alignment - 1)) & ~(alignment - 1);
 }
 
 void kygxInvalidateDataCache(const void* addr, size_t size);
