@@ -85,4 +85,4 @@ Sometimes an application has to wait for a command to be completed to continue, 
 
 ## Wrappers
 
-Wrappers for all GX commands are exposed by the headers under the [Wrappers](Include/GX/Wrappers) folder. `kygxAdd*` is used with a command buffer, while `kygxSync*` is used for synchronous execution.
+Wrappers for all GX commands are exposed by the headers under the [Wrappers](Include/KYGX/Wrappers) folder. `kygxAdd*` is used with a command buffer, while `kygxSync*` is used for synchronous execution.
