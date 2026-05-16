@@ -112,7 +112,7 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
     kygxPushBatch(&tmp, 1, NULL, NULL);
 
     kygxMakeRectCopy(&tmp, &srcSurface, &rect, &dstSurface, &rect);
-    kygxPushBatch(&tmp, 1, NULL, NULL);
+    kygxPushBatch(&tmp, 1, onCommandsCompleted, NULL);
 }
 
 int main(int argc, char* argv[]) {
@@ -138,10 +138,9 @@ int main(int argc, char* argv[]) {
 
         clearScreen();
         drawRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
-        
-        gspWaitForVBlank();
-        //kygxClearIntr(KYGX_INTR_PDC0);
-        //kygxWaitIntr(KYGX_INTR_PDC0);
+
+        kygxClearIntr(KYGX_INTR_PDC0);
+        kygxWaitIntr(KYGX_INTR_PDC0);
     }
 
     ctrFree(g_VRAMBuffer);
