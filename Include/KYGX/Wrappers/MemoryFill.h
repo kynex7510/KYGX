@@ -4,8 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef _KYGX_WRAPPERS_MEMORYFILL_H
-#define _KYGX_WRAPPERS_MEMORYFILL_H
+#ifndef GUARD_KYGX_WRAPPERS_MEMORYFILL_H
+#define GUARD_KYGX_WRAPPERS_MEMORYFILL_H
+
+#include <CTR/Assert.h>
 
 #include <KYGX/GX.h>
 
@@ -22,54 +24,46 @@
 typedef struct {
     void* addr;
     size_t size;
-    u32 value;
-    u8 width;
+    uint32_t value;
+    uint8_t width;
 } KYGXMemoryFillBuffer;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxMakeMemoryFill(KYGXCmd* cmd, const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
-    KYGX_ASSERT(cmd);
+CTR_INLINE void kygxMakeMemoryFill(KYGXCmd* cmd, const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
+    CTR_ASSERT(cmd);
 
-    cmd->header = KYGX_CMDID_MEMORYFILL;
+    cmd->header = KYGX_CMD_MEMORYFILL;
 
     if (buffer0 && buffer0->addr) {
-        cmd->params[0] = (u32)buffer0->addr;
+        cmd->params[0] = (uint32_t)buffer0->addr;
         cmd->params[1] = buffer0->value;
-        cmd->params[2] = (u32)((u8*)buffer0->addr + buffer0->size);
+        cmd->params[2] = (uint32_t)((uint8_t*)buffer0->addr + buffer0->size);
         cmd->params[6] = (buffer0->width << 8) | 1;
     } else {
         cmd->params[0] = cmd->params[1] = cmd->params[2] = cmd->params[6] = 0;
     }
 
     if (buffer1 && buffer1->addr) {
-        cmd->params[3] = (u32)buffer1->addr;
+        cmd->params[3] = (uint32_t)buffer1->addr;
         cmd->params[4] = buffer1->value;
-        cmd->params[5] = (u32)((u8*)buffer1->addr + buffer1->size);
+        cmd->params[5] = (uint32_t)((uint8_t*)buffer1->addr + buffer1->size);
         cmd->params[6] |= ((buffer1->width << 8) | 1) << 16;
     } else {
         cmd->params[3] = cmd->params[4] = cmd->params[5] = 0;
     }
 }
 
-KYGX_INLINE bool kygxAddMemoryFill(KYGXCmdBuffer* b, const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
-    KYGX_ASSERT(b);
-    
+CTR_INLINE KYGXError kygxSyncMemoryFill(const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
     KYGXCmd cmd;
     kygxMakeMemoryFill(&cmd, buffer0, buffer1);
-    return kygxCmdBufferAdd(b, &cmd);    
-}
-
-KYGX_INLINE void kygxSyncMemoryFill(const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
-    KYGXCmd cmd;
-    kygxMakeMemoryFill(&cmd, buffer0, buffer1);
-    kygxExecSync(&cmd);
+    return kygxExecSync(&cmd);
 }
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
 
-#endif /* _KYGX_WRAPPERS_MEMORYFILL_H */
+#endif /* GUARD_KYGX_WRAPPERS_MEMORYFILL_H */

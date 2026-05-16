@@ -4,11 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef _KYGX_WRAPPERS_REQUESTDMA_H
-#define _KYGX_WRAPPERS_REQUESTDMA_H
+#ifndef GUARD_KYGX_WRAPPERS_REQUESTDMA_H
+#define GUARD_KYGX_WRAPPERS_REQUESTDMA_H
 
-// Baremetal doesn't support this command.
-#ifndef KYGX_BAREMETAL
+#include <CTR/Assert.h>
 
 #include <KYGX/GX.h>
 
@@ -16,35 +15,25 @@
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxMakeRequestDMA(KYGXCmd* cmd, const void* src, void* dst, size_t size, bool flush) {
-    KYGX_ASSERT(cmd);
+CTR_INLINE void kygxMakeRequestDMA(KYGXCmd* cmd, const void* src, void* dst, size_t size, bool flush) {
+    CTR_ASSERT(cmd);
 
-    cmd->header = KYGX_CMDID_REQUESTDMA;
-    cmd->params[0] = (u32)src;
-    cmd->params[1] = (u32)dst;
+    cmd->header = KYGX_CMD_REQUESTDMA;
+    cmd->params[0] = (uint32_t)src;
+    cmd->params[1] = (uint32_t)dst;
     cmd->params[2] = size;
     cmd->params[3] = cmd->params[4] = cmd->params[5] = 0;
     cmd->params[6] = flush ? 1 : 0;
 }
 
-KYGX_INLINE bool kygxAddRequestDMA(KYGXCmdBuffer* b, const void* src, void* dst, size_t size, bool flush) {
-    KYGX_ASSERT(b);
-
+CTR_INLINE KYGXError kygxSyncRequestDMA(const void* src, void* dst, size_t size, bool flush) {
     KYGXCmd cmd;
     kygxMakeRequestDMA(&cmd, src, dst, size, flush);
-    return kygxCmdBufferAdd(b, &cmd);
+    return kygxExecSync(&cmd);
 }
-
-KYGX_INLINE void kygxSyncRequestDMA(const void* src, void* dst, size_t size, bool flush) {
-    KYGXCmd cmd;
-    kygxMakeRequestDMA(&cmd, src, dst, size, flush);
-    kygxExecSync(&cmd);
-}
-
-#endif // !KYGX_BAREMETAL
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
 
-#endif /* _KYGX_WRAPPERS_REQUESTDMA_H */
+#endif /* GUARD_KYGX_WRAPPERS_REQUESTDMA_H */

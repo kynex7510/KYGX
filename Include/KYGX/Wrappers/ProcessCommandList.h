@@ -4,8 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef _KYGX_WRAPPERS_PROCESSCOMMANDLIST_H
-#define _KYGX_WRAPPERS_PROCESSCOMMANDLIST_H
+#ifndef GUARD_KYGX_WRAPPERS_PROCESSCOMMANDLIST_H
+#define GUARD_KYGX_WRAPPERS_PROCESSCOMMANDLIST_H
+
+#include <CTR/Assert.h>
 
 #include <KYGX/GX.h>
 
@@ -13,33 +15,25 @@
 extern "C" {
 #endif // __cplusplus
 
-KYGX_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
-    KYGX_ASSERT(cmd);
+CTR_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
+    CTR_ASSERT(cmd);
 
-    cmd->header = KYGX_CMDID_PROCESSCOMMANDLIST;
-    cmd->params[0] = (u32)addr;
+    cmd->header = KYGX_CMD_PROCESSCOMMANDLIST;
+    cmd->params[0] = (uint32_t)addr;
     cmd->params[1] = size;
     cmd->params[2] = updateGasAccMax ? 1 : 0;
     cmd->params[3] = cmd->params[4] = cmd->params[5] = 0;
     cmd->params[6] = flush ? 1 : 0;
 }
 
-KYGX_INLINE bool kygxAddProcessCommandList(KYGXCmdBuffer* b, void* addr, size_t size, bool updateGasAccMax, bool flush) {
-    KYGX_ASSERT(b);
-
+CTR_INLINE KYGXError kygxSyncProcessCommandList(void* addr, size_t size, bool updateGasAccMax, bool flush) {
     KYGXCmd cmd;
     kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
-    return kygxCmdBufferAdd(b, &cmd);
-}
-
-KYGX_INLINE void kygxSyncProcessCommandList(void* addr, size_t size, bool updateGasAccMax, bool flush) {
-    KYGXCmd cmd;
-    kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
-    kygxExecSync(&cmd);
+    return kygxExecSync(&cmd);
 }
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
 
-#endif /* _KYGX_WRAPPERS_PROCESSCOMMANDLIST_H */
+#endif /* GUARD_KYGX_WRAPPERS_PROCESSCOMMANDLIST_H */
