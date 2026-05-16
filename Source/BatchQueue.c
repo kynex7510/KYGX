@@ -38,7 +38,7 @@ KYGXError BatchQueueInit(BatchQueue* q, size_t capacity) {
     q->cmdList = (KYGXCmd*)buffer;
     q->sizeList = (size_t*)&q->cmdList[capacity];
     q->cbList = (KYGXBatchCallback*)&q->sizeList[capacity];
-    q->cbDataList = (void**)q->cbList[capacity];
+    q->cbDataList = (void**)&q->cbList[capacity];
     q->capacity = capacity;
 
     memset(q->sizeList, 0, sizeof(size_t) * capacity);
@@ -54,7 +54,7 @@ void BatchQueueDestroy(BatchQueue* q) {
 
 bool BatchQueueIsEmpty(BatchQueue* q) {
     CTR_ASSERT(q);
-    return q->count != 0;
+    return q->count == 0;
 }
 
 KYGXError BatchQueuePush(BatchQueue* q, const KYGXCmd* commands, size_t numCommands, KYGXBatchCallback cb, void* cbData) {
