@@ -11,10 +11,24 @@
 
 #include <string.h>
 
+static inline void clearQueue(BatchQueue* q) {
+    q->cmdList = NULL;
+    q->sizeList = NULL;
+    q->cbList = NULL;
+    q->cbDataList = NULL;
+    q->capacity = 0;
+    q->index = 0;
+    q->count = 0;
+}
+
 KYGXError BatchQueueInit(BatchQueue* q, size_t capacity) {
     CTR_ASSERT(q);
 
-    BatchQueueDestroy(q);
+    clearQueue(q);
+
+    // It is allowed to have a dummy queue, eg. when only sync commands are needed.
+    if (!capacity)
+        return KYGX_ERROR_SUCCESS;
 
     const size_t entryOverhead = sizeof(KYGXCmd) + sizeof(size_t) + sizeof(KYGXBatchCallback) + sizeof(void*);
     void* buffer = ctrAlloc(CTR_MEM_HEAP, entryOverhead * capacity);
@@ -26,8 +40,6 @@ KYGXError BatchQueueInit(BatchQueue* q, size_t capacity) {
     q->cbList = (KYGXBatchCallback*)&q->sizeList[capacity];
     q->cbDataList = (void**)q->cbList[capacity];
     q->capacity = capacity;
-    q->index = 0;
-    q->count = 0;
 
     memset(q->sizeList, 0, sizeof(size_t) * capacity);
     return KYGX_ERROR_SUCCESS;
@@ -37,13 +49,7 @@ void BatchQueueDestroy(BatchQueue* q) {
     CTR_ASSERT(q);
 
     ctrFree(q->cmdList);
-    q->cmdList = NULL;
-    q->sizeList = NULL;
-    q->cbList = NULL;
-    q->cbDataList = NULL;
-    q->capacity = 0;
-    q->index = 0;
-    q->count = 0;
+    clearQueue(q);
 }
 
 bool BatchQueueIsEmpty(BatchQueue* q) {
