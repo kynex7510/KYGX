@@ -4,41 +4,84 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef _KYGX_GX_H
-#define _KYGX_GX_H
+#ifndef GUARD_KYGX_H
+#define GUARD_KYGX_H
 
-#include <KYGX/Command.h>
-#include <KYGX/Interrupt.h>
-#include <KYGX/CommandBuffer.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-#define kygxWaitVBlank()           \
-    kygxClearIntr(KYGX_INTR_PDC0); \
-    kygxWaitIntr(KYGX_INTR_PDC0)
+#define KYGX_CMD_REQUESTDMA 0x00
+#define KYGX_CMD_PROCESSCOMMANDLIST 0x01
+#define KYGX_CMD_MEMORYFILL 0x02
+#define KYGX_CMD_DISPLAYTRANSFER 0x03
+#define KYGX_CMD_TEXTURECOPY 0x04
+#define KYGX_CMD_FLUSHCACHEREGIONS 0x05
+
+typedef void (*KYGXBatchCallback)(void* data);
+
+typedef enum {
+    KYGX_ERROR_SUCCESS = 0, // Success
+    KYGX_ERROR_SYSTEM = 1,  // System error
+    KYGX_ERROR_NO_MEM = 2, // No memory
+    KYGX_ERROR_BUSY = 3, // Busy
+    KYGX_ERROR_EMPTY = 4, // Empty
+} KYGXError;
+
+typedef enum {
+    KYGX_INTR_PSC0,
+    KYGX_INTR_PSC1,
+    KYGX_INTR_PDC0,
+    KYGX_INTR_PDC1,
+    KYGX_INTR_PPF,
+    KYGX_INTR_P3D,
+    KYGX_INTR_DMA,
+} KYGXIntr;
+
+typedef struct {
+    uint32_t header;
+    uint32_t params[7];
+} KYGXCmd;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-bool kygxInit(void);
+// Initialize KYGX.
+KYGXError kygxInit(size_t maxCommands);
+
+// Finalize KYGX.
 void kygxExit(void);
-KYGXCmdBuffer* kygxExchangeCmdBuffer(KYGXCmdBuffer* b, bool flush);
 
-void kygxLock(void);
-bool kygxUnlock(bool exec);
-KYGXIntrQueue* kygxGetIntrQueue(void);
-KYGXCmdQueue* kygxGetCmdQueue(void);
-KYGXCmdBuffer* kygxGetCmdBuffer(void);
+// Check if initialized.
+bool kygxIsInitialized(void);
 
-void kygxWaitIntr(KYGXIntr intrID);
+// Get error as string.
+const char* kygxErrorString(KYGXError error);
+
+// Get interrupt as string.
+const char* kygxIntrString(KYGXIntr intrID);
+
+// Clear interrupt state.
 void kygxClearIntr(KYGXIntr intrID);
 
-bool kygxFlushBufferedCommands(void);
+// Wait until the specified interrupt has been triggered.
+void kygxWaitIntr(KYGXIntr intrID);
+
+// Push batch of commands.
+KYGXError kygxPushBatch(const KYGXCmd* commands, size_t numCommands, KYGXBatchCallback cb, void* cbData);
+
+// Wait until all batches are processed.
 void kygxWaitCompletion(void);
-void kygxHalt(bool wait);
-void kygxExecSync(const KYGXCmd* cmd);
+
+// Stop processing further batches.
+void kygxSetHalt(bool halt, bool wait);
+
+// Execute command synchronously.
+KYGXError kygxExecSync(const KYGXCmd* command);
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
 
-#endif /* _KYGX_GX_H */
+#endif /* GUARD_KYGX_H */

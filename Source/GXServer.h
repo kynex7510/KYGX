@@ -1,0 +1,22 @@
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+#ifndef GUARD_KYGX_GXSERVER_H
+#define GUARD_KYGX_GXSERVER_H
+
+#include <KYGX/GX.h>
+
+#include "BatchQueue.h"
+
+typedef void (*GXOnInterrupt)(KYGXIntr intrID);
+typedef void (*GXOnBatchCompleted)(void);
+
+KYGXError GXServerInit(void);
+void GXServerExit(void);
+void GXServerSetCallbacks(GXOnInterrupt onInterrupt, GXOnBatchCompleted onBatchCompleted);
+KYGXError GXServerExec(CmdIterator* it);
+
+#endif /* GUARD_KYGX_GXSERVER_H */
