@@ -33,8 +33,8 @@ static BatchQueue g_BatchQueue;
 
 static CTRCV* g_CompletionCV;
 static CTRCV* g_HaltCV;
-static bool g_HaltRequested = false;
-static bool g_Running = false;
+static bool g_Halt = false;
+static bool g_Executing = false;
 
 static size_t indexForIntr(KYGXIntr intrID) {
     switch (intrID) {
@@ -91,6 +91,9 @@ static KYGXError tryExecNextBatch(void) {
         CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS && ret != KYGX_ERROR_BUSY);
     }
 
+    if (ret == KYGX_ERROR_SUCCESS)
+        g_Executing = true;
+
     return ret;
 }
 
@@ -104,6 +107,8 @@ static void onInterrupt(KYGXIntr intrID) {
 static void onBatchCompleted(void) {
     ctrMtxAcquire(g_BatchMtx);
     
+    g_Executing = false;
+
     // Advance to the next batch.
     KYGXBatchCallback cb;
     void* cbData;
@@ -112,9 +117,7 @@ static void onBatchCompleted(void) {
     CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS);
 
     // If we were asked to halt, do so.
-    if (g_HaltRequested) {
-        g_HaltRequested = false;
-        g_Running = false;
+    if (g_Halt) {
         ctrCVBroadcast(g_HaltCV);
     } else {
         // Otherwise, execute the next batch.
@@ -171,8 +174,8 @@ KYGXError kygxInit(size_t maxCommands) {
     for (size_t i = 0; i < NUM_INTRS; ++i)
         g_IntrFlags[i] = false;
 
-    g_Running = true;
-    g_HaltRequested = false;
+    g_Halt = false;
+    g_Executing = false;
 
     GXServerSetCallbacks(onInterrupt, onBatchCompleted);
     return KYGX_ERROR_SUCCESS;
@@ -218,13 +221,13 @@ void kygxWaitIntr(KYGXIntr intrID) {
 KYGXError kygxPushBatch(const KYGXCmd* commands, size_t numCommands, KYGXBatchCallback cb, void* cbData) {
     ctrMtxAcquire(g_BatchMtx);
 
-    const bool shouldExec = g_Running && BatchQueueIsEmpty(&g_BatchQueue);
+    const bool shouldExec = !g_Halt && BatchQueueIsEmpty(&g_BatchQueue);
     const KYGXError ret = BatchQueuePush(&g_BatchQueue, commands, numCommands, cb, cbData);
 
     // Kickstart execution if needed.
     if (ret == KYGX_ERROR_SUCCESS && shouldExec) {
         // Server should not be busy at this point.
-        CTR_BREAK_IF(tryExecNextBatch() == KYGX_ERROR_SUCCESS);
+        CTR_BREAK_IF(tryExecNextBatch() != KYGX_ERROR_SUCCESS);
     }
 
     ctrMtxRelease(g_BatchMtx);
@@ -242,32 +245,24 @@ void kygxWaitCompletion(void) {
 
 // Note: thread-unsafe.
 static void doHalt(bool wait) {
-    if (g_Running) {
-        g_HaltRequested = true;
-        
-        if (wait) {
-            while (g_Running)
-                ctrCVWait(g_HaltCV, g_BatchMtx);
-        }
+    g_Halt = true;
+
+    if (wait) {
+        while (g_Executing)
+            ctrCVWait(g_HaltCV, g_BatchMtx);
     }
 }
 
 // Note: thread-unsafe.
 static void undoHalt(void) {
-    if (!g_Running) {
-        g_Running = true;
+    g_Halt = false;
+    KYGXError ret = tryExecNextBatch();
 
-        KYGXError ret = tryExecNextBatch();
-        if (ret == KYGX_ERROR_EMPTY)
-            return;
+    if (ret == KYGX_ERROR_EMPTY)
+        return;
 
-        while (ret == KYGX_ERROR_BUSY) {
-            ctrYield();
-            ret = tryExecNextBatch();
-        }
-
-        CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS);
-    }
+    // Server should not be busy at this point.
+    CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS);
 }
 
 void kygxSetHalt(bool halt, bool wait) {
