@@ -1,4 +1,7 @@
-#include <KYGX/Allocator.h>
+#include <3ds.h>
+
+#include <CTR/Allocator.h>
+
 #include <KYGX/Wrappers/MemoryFill.h>
 #include <KYGX/Wrappers/DisplayTransfer.h>
 
@@ -41,9 +44,9 @@ static void clearScreen(void) {
 int main(int argc, char* argv[]) {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
-    kygxInit();
+    kygxInit(0);
 
-    g_VRAMBuffer = kygxAlloc(KYGX_MEM_VRAM, FB_SIZE);
+    g_VRAMBuffer = ctrAlloc(CTR_MEM_VRAM, FB_SIZE);
 
     bool updateConsole = true;
     while (aptMainLoop()) {
@@ -78,10 +81,12 @@ int main(int argc, char* argv[]) {
 
         clearScreen();
         gfxSwapBuffers();
-        kygxWaitVBlank();
+
+        kygxClearIntr(KYGX_INTR_PDC0);
+        kygxWaitIntr(KYGX_INTR_PDC0);
     }
 
-    kygxFree(g_VRAMBuffer);
+    ctrFree(g_VRAMBuffer);
 
     kygxExit();
     gfxExit();

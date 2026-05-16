@@ -1,3 +1,7 @@
+#include <3ds.h>
+
+#include <CTR/Allocator.h>
+
 #include <KYGX/Wrappers/FlushCacheRegions.h>
 #include <KYGX/Wrappers/DisplayTransfer.h>
 
@@ -7,7 +11,7 @@ int main(int argc, char* argv[]) {
     romfsInit();
     gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
     consoleInit(GFX_BOTTOM, NULL);
-    kygxInit();
+    kygxInit(0);
 
     // Load image.
     const size_t width = 480;
@@ -15,9 +19,8 @@ int main(int argc, char* argv[]) {
     const size_t bpp = 24;
     const size_t imgSize = width * height * bpp >> 3;
 
-    void* img = kygxAlloc(KYGX_MEM_LINEAR, imgSize);
-    if (!img)
-        svcBreak(USERBREAK_PANIC);
+    void* img = ctrAlloc(CTR_MEM_LINEAR, imgSize);
+    CTR_BREAK_IF(!img);
 
     FILE* f = fopen("romfs:/EpicSkeleton.data", "rb");
     fread(img, imgSize, 1, f);
@@ -43,10 +46,12 @@ int main(int argc, char* argv[]) {
         u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
         kygxSyncDisplayTransferChecked(img, fb, width, height, width, height, &transferFlags);
         gfxSwapBuffers();
-        kygxWaitVBlank();
+        
+        kygxClearIntr(KYGX_INTR_PDC0);
+        kygxWaitIntr(KYGX_INTR_PDC0);
     }
 
-    kygxFree(img);
+    ctrFree(img);
 
     kygxExit();
     gfxExit();

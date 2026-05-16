@@ -1,4 +1,7 @@
-#include <KYGX/Allocator.h>
+#include <3ds.h>
+
+#include <CTR/Allocator.h>
+
 #include <KYGX/Wrappers/MemoryFill.h>
 #include <KYGX/Wrappers/DisplayTransfer.h>
 #include <KYGX/Wrappers/FlushCacheRegions.h>
@@ -47,9 +50,9 @@ static void clearScreen(void) {
 int main(void) {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
-    kygxInit();
+    kygxInit(0);
 
-    g_QTMRAMBuffer = kygxAlloc(KYGX_MEM_QTMRAM, FB_SIZE);
+    g_QTMRAMBuffer = ctrAlloc(CTR_MEM_QTMRAM, FB_SIZE);
     if (!g_QTMRAMBuffer) {
         printf("QTMRAM buffer allocation failed\n");
         printf("NOTE: this test is for N3DS only\n");
@@ -101,11 +104,13 @@ int main(void) {
         }
 
         clearScreen();
-        gfxSwapBuffers();;
-        kygxWaitVBlank();
+        gfxSwapBuffers();
+
+        kygxClearIntr(KYGX_INTR_PDC0);
+        kygxWaitIntr(KYGX_INTR_PDC0);
     }
 
-    kygxFree(g_QTMRAMBuffer);
+    ctrFree(g_QTMRAMBuffer);
 
     kygxExit();
     gfxExit();

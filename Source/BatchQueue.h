@@ -16,7 +16,7 @@ typedef struct {
 } CmdBatchInfo;
 
 typedef struct {
-    KYGXCmd* cmdList;
+    const KYGXCmd* cmdList;
     size_t queueCapacity;
     size_t index;
     size_t count;

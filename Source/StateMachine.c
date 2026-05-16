@@ -305,7 +305,7 @@ static size_t intrIdxForSyncCmd(const KYGXCmd* cmd) {
 }
 
 KYGXError kygxExecSync(const KYGXCmd* command) {
-    const size_t intrIdx = intrForSyncCmd(command);
+    const size_t intrIdx = intrIdxForSyncCmd(command);
 
     ctrMtxAcquire(g_BatchMtx);
 
@@ -332,15 +332,17 @@ KYGXError kygxExecSync(const KYGXCmd* command) {
         ret = GXServerExec(&it);
     }
 
-    CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS);
-
-    // Wait for termination.
-    if (intrIdx != -1)
-        kygxWaitIntr(intrForIndex(intrIdx));
+    if (ret == KYGX_ERROR_SUCCESS) {
+        // Wait for termination.
+        if (intrIdx != -1)
+            kygxWaitIntr(intrForIndex(intrIdx));
+    }
 
     // Resume processing.
     GXServerSetCallbacks(onInterrupt, onBatchCompleted);
     undoHalt();
 
     ctrMtxRelease(g_BatchMtx);
+
+    return ret;
 }

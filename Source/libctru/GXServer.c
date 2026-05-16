@@ -202,7 +202,6 @@ void GXServerExit(void) {
     g_CmdQueue = NULL;
 
     gspExit();
-    return KYGX_ERROR_SUCCESS;
 }
 
 void GXServerSetCallbacks(GXOnInterrupt onInterrupt, GXOnBatchCompleted onBatchCompleted) {
@@ -217,7 +216,7 @@ static void addCommandToQueue(const KYGXCmd* cmd) {
     u32 header;
 
     do {
-        header = __ldrex((u32*)g_CmdQueue);
+        header = __ldrex((s32*)g_CmdQueue);
         const u8 count = (header >> 8) & 0xFF;
         const u8 index = (count + (header & 0xFF)) % 15;
 
@@ -225,7 +224,7 @@ static void addCommandToQueue(const KYGXCmd* cmd) {
          __dsb();
 
         header = (header & 0xFFFF00FF) | ((count + 1) << 8);
-    } while (__strex((u32*)g_CmdQueue, header));
+    } while (__strex((s32*)g_CmdQueue, header));
 }
 
 static inline KYGXError triggerCommandHandling(void) {
