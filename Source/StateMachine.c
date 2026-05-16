@@ -99,8 +99,14 @@ static KYGXError tryExecNextBatch(void) {
 
 static void onInterrupt(KYGXIntr intrID) {
     const size_t index = indexForIntr(intrID);
+
     ctrMtxAcquire(g_IntrMtx);
-    g_IntrFlags[index] = true;
+
+    if (!g_IntrFlags[index]) {
+        g_IntrFlags[index] = true;
+        ctrCVBroadcast(g_IntrCVs[index]);
+    }
+
     ctrMtxRelease(g_IntrMtx);
 }
 

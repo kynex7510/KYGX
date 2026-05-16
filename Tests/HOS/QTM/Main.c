@@ -50,7 +50,7 @@ static void clearScreen(void) {
 int main(void) {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
-    kygxInit(0);
+    CTR_BREAK_IF(kygxInit(0) != KYGX_ERROR_SUCCESS);
 
     g_QTMRAMBuffer = ctrAlloc(CTR_MEM_QTMRAM, FB_SIZE);
     if (!g_QTMRAMBuffer) {
@@ -64,7 +64,9 @@ int main(void) {
                 break;
 
             gfxSwapBuffers();
-            kygxWaitVBlank();
+
+            kygxClearIntr(KYGX_INTR_PDC0);
+            kygxWaitIntr(KYGX_INTR_PDC0);
         }
 
         kygxExit();
