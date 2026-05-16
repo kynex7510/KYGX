@@ -89,13 +89,12 @@ static void* detectSharedMem(u8* outIndex) {
 static KYGXIntr getIntrID(void* param) {
     const size_t intr = (size_t)param;
     switch ((KYGXIntr)intr) {
-        case KYGX_INTR_PSC0:
-        case KYGX_INTR_PSC1:
-        case KYGX_INTR_PDC0:
-        case KYGX_INTR_PDC1:
-        case KYGX_INTR_PPF:
-        case KYGX_INTR_P3D:
-        case KYGX_INTR_DMA:
+        case KYGXIntr_PDC0:
+        case KYGXIntr_PDC1:
+        case KYGXIntr_PSC:
+        case KYGXIntr_PPF:
+        case KYGXIntr_P3D:
+        case KYGXIntr_DMA:
             return (KYGXIntr)intr;
         default:
             CTR_UNREACHABLE("Unknown interrupt %u", intr);
@@ -109,7 +108,7 @@ static void onInterrupt(void* param) {
         g_UserOnInterrupt(intrID);
 
     // Nothing more to do for PDC0, PDC1.
-    if (intrID == KYGX_INTR_PDC0 || intrID == KYGX_INTR_PDC1)
+    if (intrID == KYGXIntr_PDC0 || intrID == KYGXIntr_PDC1)
         return;
 
     // We should not be getting spurious interrupts.
@@ -140,12 +139,12 @@ KYGXError GXServerInit(void) {
 
     // Initialize GSP.
     if (R_FAILED(gspInit()))
-        return KYGX_ERROR_SYSTEM;
+        return KYGXError_System;
 
     g_SharedMem = detectSharedMem(&g_ClientIndex);
     if (!g_SharedMem) {
         gspExit();
-        return KYGX_ERROR_SYSTEM;
+        return KYGXError_System;
     }
 
     g_CmdQueue = CMD_QUEUE_PTR(g_SharedMem, g_ClientIndex);
@@ -161,15 +160,18 @@ KYGXError GXServerInit(void) {
     g_NumPendingCommands = 0;
 
     // Setup callbacks.
-    gspSetEventCallback(GSPGPU_EVENT_PSC0, onInterrupt, (void*)KYGX_INTR_PSC0, false);
-    gspSetEventCallback(GSPGPU_EVENT_PSC1, onInterrupt, (void*)KYGX_INTR_PSC1, false);
-    gspSetEventCallback(GSPGPU_EVENT_VBlank0, onInterrupt, (void*)KYGX_INTR_PDC0, false);
-    gspSetEventCallback(GSPGPU_EVENT_VBlank1, onInterrupt, (void*)KYGX_INTR_PDC1, false);
-    gspSetEventCallback(GSPGPU_EVENT_PPF, onInterrupt, (void*)KYGX_INTR_PPF, false);
-    gspSetEventCallback(GSPGPU_EVENT_P3D, onInterrupt, (void*)KYGX_INTR_P3D, false);
-    gspSetEventCallback(GSPGPU_EVENT_DMA, onInterrupt, (void*)KYGX_INTR_DMA, false);
+    gspSetEventCallback(GSPGPU_EVENT_VBlank0, onInterrupt, (void*)KYGXIntr_PDC0, false);
+    gspSetEventCallback(GSPGPU_EVENT_VBlank1, onInterrupt, (void*)KYGXIntr_PDC1, false);
 
-    return KYGX_ERROR_SUCCESS;
+    // GSP triggers only 1 interrupt per command, even if both units are used.
+    gspSetEventCallback(GSPGPU_EVENT_PSC0, onInterrupt, (void*)KYGXIntr_PSC, false);
+    gspSetEventCallback(GSPGPU_EVENT_PSC1, onInterrupt, (void*)KYGXIntr_PSC, false);
+    
+    gspSetEventCallback(GSPGPU_EVENT_PPF, onInterrupt, (void*)KYGXIntr_PPF, false);
+    gspSetEventCallback(GSPGPU_EVENT_P3D, onInterrupt, (void*)KYGXIntr_P3D, false);
+    gspSetEventCallback(GSPGPU_EVENT_DMA, onInterrupt, (void*)KYGXIntr_DMA, false);
+
+    return KYGXError_Success;
 }
 
 void GXServerExit(void) {
@@ -184,10 +186,10 @@ void GXServerExit(void) {
         }
     }
 
-    gspSetEventCallback(GSPGPU_EVENT_PSC0, NULL, NULL, false);
-    gspSetEventCallback(GSPGPU_EVENT_PSC1, NULL, NULL, false);
     gspSetEventCallback(GSPGPU_EVENT_VBlank0, NULL, NULL, false);
     gspSetEventCallback(GSPGPU_EVENT_VBlank1, NULL, NULL, false);
+    gspSetEventCallback(GSPGPU_EVENT_PSC0, NULL, NULL, false);
+    gspSetEventCallback(GSPGPU_EVENT_PSC1, NULL, NULL, false);
     gspSetEventCallback(GSPGPU_EVENT_PPF, NULL, NULL, false);
     gspSetEventCallback(GSPGPU_EVENT_P3D, NULL, NULL, false);
     gspSetEventCallback(GSPGPU_EVENT_DMA, NULL, NULL, false);
@@ -236,7 +238,7 @@ static inline KYGXError triggerCommandHandling(void) {
     } while (__strexb(&g_CmdQueue->status, 0));
 
     // Execute commands.
-    return R_SUCCEEDED(GSPGPU_TriggerCmdReqQueue()) ? KYGX_ERROR_SUCCESS : KYGX_ERROR_SYSTEM;
+    return R_SUCCEEDED(GSPGPU_TriggerCmdReqQueue()) ? KYGXError_Success : KYGXError_System;
 }
 
 KYGXError GXServerExec(CmdIterator* it) {
@@ -247,13 +249,13 @@ KYGXError GXServerExec(CmdIterator* it) {
     size_t numCommands = CmdIteratorCount(it);
 
     if (!numCommands)
-        return KYGX_ERROR_EMPTY;
+        return KYGXError_Empty;
 
     if (numCommands > MAX_CMDS_IN_QUEUE)
-        return KYGX_ERROR_NO_MEM;
+        return KYGXError_NoMem;
 
     if (g_CmdQueue->status != CMDQUEUE_STATUS_HALTED)
-        return KYGX_ERROR_BUSY;
+        return KYGXError_Busy;
 
     // Add commands.
     for (size_t i = 0; i < numCommands; ++i) {

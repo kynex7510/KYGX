@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <CTR/Assert.h>
 #include <CTR/Unreachable.h>
 #include <CTR/Sync.h>
 
@@ -12,15 +13,14 @@
 #include "GXServer.h"
 #include "BatchQueue.h"
 
-#define NUM_INTRS 7
+#define NUM_INTRS 6
 
-#define INTR_PSC0 0
-#define INTR_PSC1 1
-#define INTR_PDC0 2
-#define INTR_PDC1 3
-#define INTR_PPF 4
-#define INTR_P3D 5
-#define INTR_DMA 6
+#define INTR_PDC0 0
+#define INTR_PDC1 1
+#define INTR_PSC 2
+#define INTR_PPF 3
+#define INTR_P3D 4
+#define INTR_DMA 5
 
 static uint32_t g_Refc;
 
@@ -38,19 +38,17 @@ static bool g_Executing = false;
 
 static size_t indexForIntr(KYGXIntr intrID) {
     switch (intrID) {
-        case KYGX_INTR_PSC0:
-            return INTR_PSC0;
-        case KYGX_INTR_PSC1:
-            return INTR_PSC1;
-        case KYGX_INTR_PDC0:
+        case KYGXIntr_PDC0:
             return INTR_PDC0;
-        case KYGX_INTR_PDC1:
+        case KYGXIntr_PDC1:
             return INTR_PDC1;
-        case KYGX_INTR_PPF:
+        case KYGXIntr_PSC:
+            return INTR_PSC;
+        case KYGXIntr_PPF:
             return INTR_PPF;
-        case KYGX_INTR_P3D:
+        case KYGXIntr_P3D:
             return INTR_P3D;
-        case KYGX_INTR_DMA:
+        case KYGXIntr_DMA:
             return INTR_DMA;
         default:
             CTR_UNREACHABLE("Unknown interrupt %u", (size_t)intrID);
@@ -59,20 +57,18 @@ static size_t indexForIntr(KYGXIntr intrID) {
 
 static KYGXIntr intrForIndex(size_t idx) {
     switch (idx) {
-        case INTR_PSC0:
-            return KYGX_INTR_PSC0;
-        case INTR_PSC1:
-            return KYGX_INTR_PSC1;
-        case INTR_PDC0:
-            return KYGX_INTR_PDC0;
+         case INTR_PDC0:
+            return KYGXIntr_PDC0;
         case INTR_PDC1:
-            return KYGX_INTR_PDC1;
+            return KYGXIntr_PDC1;
+        case INTR_PSC:
+            return KYGXIntr_PSC;
         case INTR_PPF:
-            return KYGX_INTR_PPF;
+            return KYGXIntr_PPF;
         case INTR_P3D:
-            return KYGX_INTR_P3D;
+            return KYGXIntr_P3D;
         case INTR_DMA:
-            return KYGX_INTR_DMA;
+            return KYGXIntr_DMA;
         default:
             CTR_UNREACHABLE("Unknown interrupt %u", idx);
     }
@@ -83,15 +79,15 @@ static KYGXError tryExecNextBatch(void) {
     CmdIterator it;
 
     KYGXError ret = CmdIteratorInit(&it, &g_BatchQueue);
-    CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS && ret != KYGX_ERROR_EMPTY);
+    CTR_BREAK_IF(ret != KYGXError_Success && ret != KYGXError_Empty);
 
     // Of course, only execute if we have something.
-    if (ret == KYGX_ERROR_SUCCESS) {
+    if (ret == KYGXError_Success) {
         ret = GXServerExec(&it);
-        CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS && ret != KYGX_ERROR_BUSY);
+        CTR_BREAK_IF(ret != KYGXError_Success && ret != KYGXError_Busy);
     }
 
-    if (ret == KYGX_ERROR_SUCCESS)
+    if (ret == KYGXError_Success)
         g_Executing = true;
 
     return ret;
@@ -120,7 +116,7 @@ static void onBatchCompleted(void) {
     void* cbData;
 
     KYGXError ret = BatchQueuePop(&g_BatchQueue, &cb, &cbData);
-    CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS);
+    CTR_BREAK_IF(ret != KYGXError_Success);
 
     // If we were asked to halt, do so.
     if (g_Halt) {
@@ -129,17 +125,17 @@ static void onBatchCompleted(void) {
         // Otherwise, execute the next batch.
         KYGXError ret = tryExecNextBatch();
         
-        if (ret == KYGX_ERROR_EMPTY) {
+        if (ret == KYGXError_Empty) {
             // We have executed all batches.
             ctrCVBroadcast(g_CompletionCV);
         } else {
-            while (ret == KYGX_ERROR_BUSY) {
+            while (ret == KYGXError_Busy) {
                 // We know batch processing has ended, let's give the server time to update its state.
                 ctrYield();
                 ret = tryExecNextBatch();
             }
 
-            CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS);
+            CTR_BREAK_IF(ret != KYGXError_Success);
         }
     }
 
@@ -152,16 +148,16 @@ static void onBatchCompleted(void) {
 
 KYGXError kygxInit(size_t maxCommands) {
     if (CTR_ATOMIC_POST_INC(g_Refc))
-        return KYGX_ERROR_SUCCESS;
+        return KYGXError_Success;
 
     // Init batch queue.
     KYGXError ret = BatchQueueInit(&g_BatchQueue, maxCommands);
-    if (ret != KYGX_ERROR_SUCCESS)
+    if (ret != KYGXError_Success)
         return ret;
 
     // Init GX server.
     ret = GXServerInit();
-    if (ret != KYGX_ERROR_SUCCESS) {
+    if (ret != KYGXError_Success) {
         BatchQueueDestroy(&g_BatchQueue);
         return ret;
     }
@@ -184,7 +180,7 @@ KYGXError kygxInit(size_t maxCommands) {
     g_Executing = false;
 
     GXServerSetCallbacks(onInterrupt, onBatchCompleted);
-    return KYGX_ERROR_SUCCESS;
+    return KYGXError_Success;
 }
 
 void kygxExit(void) {
@@ -231,9 +227,9 @@ KYGXError kygxPushBatch(const KYGXCmd* commands, size_t numCommands, KYGXBatchCa
     const KYGXError ret = BatchQueuePush(&g_BatchQueue, commands, numCommands, cb, cbData);
 
     // Kickstart execution if needed.
-    if (ret == KYGX_ERROR_SUCCESS && shouldExec) {
+    if (ret == KYGXError_Success && shouldExec) {
         // Server should not be busy at this point.
-        CTR_BREAK_IF(tryExecNextBatch() != KYGX_ERROR_SUCCESS);
+        CTR_BREAK_IF(tryExecNextBatch() != KYGXError_Success);
     }
 
     ctrMtxRelease(g_BatchMtx);
@@ -264,11 +260,11 @@ static void undoHalt(void) {
     g_Halt = false;
     KYGXError ret = tryExecNextBatch();
 
-    if (ret == KYGX_ERROR_EMPTY)
+    if (ret == KYGXError_Empty)
         return;
 
     // Server should not be busy at this point.
-    CTR_BREAK_IF(ret != KYGX_ERROR_SUCCESS);
+    CTR_BREAK_IF(ret != KYGXError_Success);
 }
 
 void kygxSetHalt(bool halt, bool wait) {
@@ -283,30 +279,31 @@ void kygxSetHalt(bool halt, bool wait) {
     ctrMtxRelease(g_BatchMtx);
 }
 
-static size_t intrIdxForSyncCmd(const KYGXCmd* cmd) {
-    switch (cmd->header & 0xFF) {
+static size_t intrIdxForSyncCmd(uint32_t header) {
+    switch (header & 0xFF) {
         case KYGX_CMD_REQUESTDMA:
             return INTR_DMA;
         case KYGX_CMD_PROCESSCOMMANDLIST:
             return INTR_P3D;
+        case KYGX_CMD_MEMORYFILL:
+            return INTR_PSC;
         case KYGX_CMD_DISPLAYTRANSFER:
         case KYGX_CMD_TEXTURECOPY:
             return INTR_PPF;
-    }
-
-    // When using two buffers MemoryFill only triggers PSC0.
-    // TODO: this is an HOS specific quirk which should be handled in HOS/GXServer.c.
-    if ((cmd->header & 0xFF) == KYGX_CMD_MEMORYFILL) {
-        const bool buf0 = cmd->params[0];
-        const bool buf1 = cmd->params[3];
-        return buf1 && !buf0 ? INTR_PSC1 : INTR_PSC0;
+        case KYGX_CMD_FLUSHCACHEREGIONS:
+            // FlushCacheRegions doesn't trigger any interrupt.
+            return -1;
+        default:
+            CTR_UNREACHABLE("Unknown command %u", header & 0xFF);
     }
 
     return -1;
 }
 
 KYGXError kygxExecSync(const KYGXCmd* command) {
-    const size_t intrIdx = intrIdxForSyncCmd(command);
+    CTR_ASSERT(command);
+
+    const size_t intrIdx = intrIdxForSyncCmd(command->header);
 
     ctrMtxAcquire(g_BatchMtx);
 
@@ -328,12 +325,12 @@ KYGXError kygxExecSync(const KYGXCmd* command) {
     // Execute command.
     KYGXError ret = GXServerExec(&it);
     
-    while (ret == KYGX_ERROR_BUSY) {
+    while (ret == KYGXError_Busy) {
         ctrYield();
         ret = GXServerExec(&it);
     }
 
-    if (ret == KYGX_ERROR_SUCCESS) {
+    if (ret == KYGXError_Success) {
         // Wait for termination.
         if (intrIdx != -1)
             kygxWaitIntr(intrForIndex(intrIdx));

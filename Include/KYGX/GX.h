@@ -7,9 +7,7 @@
 #ifndef GUARD_KYGX_H
 #define GUARD_KYGX_H
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include <CTR/Defs.h>
 
 #define KYGX_CMD_REQUESTDMA 0x00
 #define KYGX_CMD_PROCESSCOMMANDLIST 0x01
@@ -21,21 +19,28 @@
 typedef void (*KYGXBatchCallback)(void* data);
 
 typedef enum {
-    KYGX_ERROR_SUCCESS = 0, // Success
-    KYGX_ERROR_SYSTEM = 1,  // System error
-    KYGX_ERROR_NO_MEM = 2, // No memory
-    KYGX_ERROR_BUSY = 3, // Busy
-    KYGX_ERROR_EMPTY = 4, // Empty
+    KYGXError_Success = 0, // Success
+    KYGXError_System = 1,  // System error
+    KYGXError_NoMem = 2, // No memory
+    KYGXError_Busy = 3, // Busy
+    KYGXError_Empty = 4, // Empty
 } KYGXError;
 
 typedef enum {
-    KYGX_INTR_PSC0,
-    KYGX_INTR_PSC1,
-    KYGX_INTR_PDC0,
-    KYGX_INTR_PDC1,
-    KYGX_INTR_PPF,
-    KYGX_INTR_P3D,
-    KYGX_INTR_DMA,
+    KYGXIntr_PDC0,
+    KYGXIntr_PDC1,
+    KYGXIntr_PSC,
+    KYGXIntr_PPF,
+    KYGXIntr_P3D,
+    KYGXIntr_DMA,
+
+    KYGXIntr_VBlankTop = KYGXIntr_PDC0,
+    KYGXIntr_VBlankBottom = KYGXIntr_PDC1,
+    KYGXIntr_MemoryFill = KYGXIntr_PSC,
+    KYGXIntr_DisplayTransfer = KYGXIntr_PPF,
+    KYGXIntr_TextureCopy = KYGXIntr_PPF,
+    KYGXIntr_ProcessCommandList = KYGXIntr_P3D,
+    KYGXIntr_RequestDMA = KYGXIntr_DMA,
 } KYGXIntr;
 
 typedef struct {
@@ -79,6 +84,16 @@ void kygxSetHalt(bool halt, bool wait);
 
 // Execute command synchronously.
 KYGXError kygxExecSync(const KYGXCmd* command);
+
+CTR_INLINE void kygxWaitVBlankTop(void) {
+    kygxClearIntr(KYGXIntr_VBlankTop);
+    kygxWaitIntr(KYGXIntr_VBlankTop);
+}
+
+CTR_INLINE void kygxWaitVBlankBottom(void) {
+    kygxClearIntr(KYGXIntr_VBlankBottom);
+    kygxWaitIntr(KYGXIntr_VBlankBottom);
+}
 
 #ifdef __cplusplus
 }

@@ -6,32 +6,38 @@
 
 #include <KYGX/GX.h>
 
-#define CASE(x)   \
-    case x:       \
-        return #x 
-
-#define DEFAULT_CASE() default: return "(unknown)"
-
 const char* kygxErrorString(KYGXError error) {
     switch (error) {
-        CASE(KYGX_ERROR_SUCCESS);
-        CASE(KYGX_ERROR_SYSTEM);
-        CASE(KYGX_ERROR_NO_MEM);
-        CASE(KYGX_ERROR_BUSY);
-        CASE(KYGX_ERROR_EMPTY);
-        DEFAULT_CASE();
+        case KYGXError_Success:
+            return "Success";
+        case KYGXError_System:
+            return "System";
+        case KYGXError_NoMem:
+            return "No memory";
+        case KYGXError_Busy:
+            return "Busy";
+        case KYGXError_Empty:
+            return "Empty";
+        default:
+            return "(unknown)";
     }
 }
 
 const char* kygxIntrString(KYGXIntr intrID) {
     switch (intrID) {
-        CASE(KYGX_INTR_PSC0);
-        CASE(KYGX_INTR_PSC1);
-        CASE(KYGX_INTR_PDC0);
-        CASE(KYGX_INTR_PDC1);
-        CASE(KYGX_INTR_PPF);
-        CASE(KYGX_INTR_P3D);
-        CASE(KYGX_INTR_DMA);
-        DEFAULT_CASE();
+        case KYGXIntr_PDC0:
+            return "PICA Display Controller 0";
+        case KYGXIntr_PDC1:
+            return "PICA Display Controller 1";
+        case KYGXIntr_PSC:
+            return "PICA Screen Clear";
+        case KYGXIntr_PPF:
+            return "PICA Pixel Format";
+        case KYGXIntr_P3D:
+            return "PICA 3D";
+        case KYGXIntr_DMA:
+            return "Corelink DMA";
+        default:
+            return "(unknown)";
     }
 }

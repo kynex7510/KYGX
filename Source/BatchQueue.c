@@ -28,12 +28,12 @@ KYGXError BatchQueueInit(BatchQueue* q, size_t capacity) {
 
     // It is allowed to have a dummy queue, eg. when only sync commands are needed.
     if (!capacity)
-        return KYGX_ERROR_SUCCESS;
+        return KYGXError_Success;
 
     const size_t entryOverhead = sizeof(KYGXCmd) + sizeof(size_t) + sizeof(KYGXBatchCallback) + sizeof(void*);
     void* buffer = ctrAlloc(CTR_MEM_HEAP, entryOverhead * capacity);
     if (!buffer)
-        return KYGX_ERROR_NO_MEM;
+        return KYGXError_NoMem;
 
     q->cmdList = (KYGXCmd*)buffer;
     q->sizeList = (size_t*)&q->cmdList[capacity];
@@ -42,7 +42,7 @@ KYGXError BatchQueueInit(BatchQueue* q, size_t capacity) {
     q->capacity = capacity;
 
     memset(q->sizeList, 0, sizeof(size_t) * capacity);
-    return KYGX_ERROR_SUCCESS;
+    return KYGXError_Success;
 }
 
 void BatchQueueDestroy(BatchQueue* q) {
@@ -62,10 +62,10 @@ KYGXError BatchQueuePush(BatchQueue* q, const KYGXCmd* commands, size_t numComma
     CTR_ASSERT(commands);
 
     if (numCommands == 0)
-        return KYGX_ERROR_EMPTY;
+        return KYGXError_Empty;
 
     if ((q->count + numCommands) > q->capacity)
-        return KYGX_ERROR_NO_MEM;
+        return KYGXError_NoMem;
 
     const size_t firstIdx = (q->index + q->count) % q->capacity;
 
@@ -77,7 +77,7 @@ KYGXError BatchQueuePush(BatchQueue* q, const KYGXCmd* commands, size_t numComma
     q->cbDataList[firstIdx] = cbData;
     q->count += numCommands;
 
-    return KYGX_ERROR_SUCCESS;
+    return KYGXError_Success;
 }
 
 KYGXError BatchQueuePop(BatchQueue* q, KYGXBatchCallback* cb, void** cbData) {
@@ -86,7 +86,7 @@ KYGXError BatchQueuePop(BatchQueue* q, KYGXBatchCallback* cb, void** cbData) {
     CTR_ASSERT(cbData);
 
     if (q->count == 0)
-        return KYGX_ERROR_EMPTY;
+        return KYGXError_Empty;
 
     const size_t idx = q->index % q->capacity;
     const size_t batchSize = q->sizeList[idx];
@@ -101,7 +101,7 @@ KYGXError BatchQueuePop(BatchQueue* q, KYGXBatchCallback* cb, void** cbData) {
     q->index += batchSize;
     q->count -= batchSize;
 
-    return KYGX_ERROR_SUCCESS;
+    return KYGXError_Success;
 }
 
 KYGXError CmdIteratorInit(CmdIterator* it, const BatchQueue* q) {
@@ -109,7 +109,7 @@ KYGXError CmdIteratorInit(CmdIterator* it, const BatchQueue* q) {
     CTR_ASSERT(q);
 
     if (q->count == 0)
-        return KYGX_ERROR_EMPTY;
+        return KYGXError_Empty;
 
     const size_t batchSize = q->sizeList[q->index % q->capacity];
 
@@ -120,7 +120,7 @@ KYGXError CmdIteratorInit(CmdIterator* it, const BatchQueue* q) {
     it->queueCapacity = q->capacity;
     it->index = q->index;
     it->count = batchSize;
-    return KYGX_ERROR_SUCCESS;
+    return KYGXError_Success;
 }
 
 size_t CmdIteratorCount(CmdIterator* it) {

@@ -44,7 +44,7 @@ static void clearScreen(void) {
 int main(int argc, char* argv[]) {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
-    CTR_BREAK_IF(kygxInit(0) != KYGX_ERROR_SUCCESS);
+    CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
     g_VRAMBuffer = ctrAlloc(CTR_MEM_VRAM, FB_SIZE);
 
@@ -81,9 +81,7 @@ int main(int argc, char* argv[]) {
 
         clearScreen();
         gfxSwapBuffers();
-
-        kygxClearIntr(KYGX_INTR_PDC0);
-        kygxWaitIntr(KYGX_INTR_PDC0);
+        kygxWaitVBlankTop();
     }
 
     ctrFree(g_VRAMBuffer);

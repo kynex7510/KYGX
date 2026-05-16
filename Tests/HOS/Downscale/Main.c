@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
     romfsInit();
     gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
     consoleInit(GFX_BOTTOM, NULL);
-    kygxInit(0);
+    CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
     // Load image.
     const size_t width = 480;
@@ -46,9 +46,7 @@ int main(int argc, char* argv[]) {
         u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
         kygxSyncDisplayTransferChecked(img, fb, width, height, width, height, &transferFlags);
         gfxSwapBuffers();
-        
-        kygxClearIntr(KYGX_INTR_PDC0);
-        kygxWaitIntr(KYGX_INTR_PDC0);
+        kygxWaitVBlankTop();
     }
 
     ctrFree(img);

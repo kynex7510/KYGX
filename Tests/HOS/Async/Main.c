@@ -118,7 +118,7 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
 int main(int argc, char* argv[]) {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
-    CTR_BREAK_IF(kygxInit(8) != KYGX_ERROR_SUCCESS);
+    CTR_BREAK_IF(kygxInit(8) != KYGXError_Success);
 
     g_VRAMBuffer = ctrAlloc(CTR_MEM_VRAM, FB_SIZE);
 
@@ -139,8 +139,7 @@ int main(int argc, char* argv[]) {
         clearScreen();
         drawRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
 
-        kygxClearIntr(KYGX_INTR_PDC0);
-        kygxWaitIntr(KYGX_INTR_PDC0);
+        kygxWaitVBlankTop();
     }
 
     ctrFree(g_VRAMBuffer);
