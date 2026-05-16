@@ -8,6 +8,7 @@
 #define GUARD_KYGX_WRAPPERS_DISPLAYTRANSFER_H
 
 #include <CTR/Assert.h>
+#include <CTR/Align.h>
 
 #include <KYGX/GX.h>
 
@@ -124,11 +125,11 @@ CTR_INLINE bool kygxCheckDisplayTransferParams(uint16_t srcWidth, uint16_t srcHe
 
         // Width dimensions are required to be aligned to 16 bytes when doing RGB8 transfers.
         if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
-            if (!kygxIsAligned(srcWidth, 16) || !kygxIsAligned(dstWidth, 16))
+            if (!ctrIsAligned(srcWidth, 16) || !ctrIsAligned(dstWidth, 16))
                 return false;
         } else {
             // Otherwise they are required to be aligned to 8 bytes.
-            if (!kygxIsAligned(srcWidth, 8) || !kygxIsAligned(dstWidth, 8))
+            if (!ctrIsAligned(srcWidth, 8) || !ctrIsAligned(dstWidth, 8))
                 return false;
         }
 
@@ -141,10 +142,10 @@ CTR_INLINE bool kygxCheckDisplayTransferParams(uint16_t srcWidth, uint16_t srcHe
             // Width/2 must also follow alignment constraints.
             const uint16_t wHalf = srcWidth / 2;
             if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
-                if (!kygxIsAligned(wHalf, 16))
+                if (!ctrIsAligned(wHalf, 16))
                     return false;
             } else {
-                if (!kygxIsAligned(wHalf, 8))
+                if (!ctrIsAligned(wHalf, 8))
                     return false;
             }
         }
@@ -198,11 +199,11 @@ CTR_INLINE bool kygxCheckDisplayTransferParams(uint16_t srcWidth, uint16_t srcHe
 
         // Width dimensions are required to be aligned to 64 bytes when doing RGBA8/RGB8 transfers.
         if (flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGBA8 || flags->srcFmt == KYGX_DISPLAYTRANSFER_FMT_RGB8) {
-            if (!kygxIsAligned(srcWidth, 64) || !kygxIsAligned(dstWidth, 64))
+            if (!ctrIsAligned(srcWidth, 64) || !ctrIsAligned(dstWidth, 64))
                 return false;
         } else {
             // Otherwise they are required to be aligned to 128 bytes.
-            if (!kygxIsAligned(srcWidth, 128) || !kygxIsAligned(dstWidth, 128))
+            if (!ctrIsAligned(srcWidth, 128) || !ctrIsAligned(dstWidth, 128))
                 return false;
         }
 
