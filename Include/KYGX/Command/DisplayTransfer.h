@@ -7,8 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef GUARD_KYGX_WRAPPERS_DISPLAYTRANSFER_H
-#define GUARD_KYGX_WRAPPERS_DISPLAYTRANSFER_H
+#ifndef GUARD_KYGX_COMMAND_DISPLAYTRANSFER_H
+#define GUARD_KYGX_COMMAND_DISPLAYTRANSFER_H
 
 #include <CTR/Assert.h>
 #include <CTR/Align.h>
@@ -241,4 +241,4 @@ CTR_INLINE void kygxSyncDisplayTransferChecked(const void* src, void* dst, uint1
 }
 #endif // __cplusplus
 
-#endif /* GUARD_KYGX_WRAPPERS_DISPLAYTRANSFER_H */
+#endif /* GUARD_KYGX_COMMAND_DISPLAYTRANSFER_H */

@@ -7,8 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef GUARD_KYGX_WRAPPERS_TEXTURECOPY_H
-#define GUARD_KYGX_WRAPPERS_TEXTURECOPY_H
+#ifndef GUARD_KYGX_COMMAND_TEXTURECOPY_H
+#define GUARD_KYGX_COMMAND_TEXTURECOPY_H
 
 #include <CTR/Assert.h>
 
@@ -153,4 +153,4 @@ CTR_INLINE void kygxSyncRectCopy(const KYGXTextureCopySurface* srcSurface, const
 }
 #endif // __cplusplus
 
-#endif /* GUARD_KYGX_WRAPPERS_TEXTURECOPY_H */
+#endif /* GUARD_KYGX_COMMAND_TEXTURECOPY_H */

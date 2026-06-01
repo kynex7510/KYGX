@@ -7,8 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef GUARD_KYGX_WRAPPERS_REQUESTDMA_H
-#define GUARD_KYGX_WRAPPERS_REQUESTDMA_H
+#ifndef GUARD_KYGX_COMMAND_REQUESTDMA_H
+#define GUARD_KYGX_COMMAND_REQUESTDMA_H
 
 #include <CTR/Assert.h>
 
@@ -39,4 +39,4 @@ CTR_INLINE void kygxSyncRequestDMA(const void* src, void* dst, size_t size, bool
 }
 #endif // __cplusplus
 
-#endif /* GUARD_KYGX_WRAPPERS_REQUESTDMA_H */
+#endif /* GUARD_KYGX_COMMAND_REQUESTDMA_H */

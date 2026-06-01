@@ -7,8 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef GUARD_KYGX_WRAPPERS_FLUSHCACHEREGIONS_H
-#define GUARD_KYGX_WRAPPERS_FLUSHCACHEREGIONS_H
+#ifndef GUARD_KYGX_COMMAND_FLUSHCACHEREGIONS_H
+#define GUARD_KYGX_COMMAND_FLUSHCACHEREGIONS_H
 
 #include <CTR/Assert.h>
 
@@ -52,21 +52,21 @@ CTR_INLINE void kygxMakeFlushCacheRegions(KYGXCmd* cmd, const KYGXFlushCacheRegi
     cmd->params[6] = 0;
 }
 
-CTR_INLINE KYGXError kygxSyncFlushCacheRegions(const KYGXFlushCacheRegionsBuffer* buffer0, const KYGXFlushCacheRegionsBuffer* buffer1, const KYGXFlushCacheRegionsBuffer* buffer2) {
+CTR_INLINE void kygxSyncFlushCacheRegions(const KYGXFlushCacheRegionsBuffer* buffer0, const KYGXFlushCacheRegionsBuffer* buffer1, const KYGXFlushCacheRegionsBuffer* buffer2) {
     KYGXCmd cmd;
     kygxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
-    return kygxExecSync(&cmd);
+    kygxExecSync(&cmd);
 }
 
-CTR_INLINE KYGXError kygxSyncFlushSingleBuffer(const void* addr, size_t size) {
+CTR_INLINE void kygxSyncFlushSingleBuffer(const void* addr, size_t size) {
     KYGXFlushCacheRegionsBuffer flush;
     flush.addr = addr;
     flush.size = size;
-    return kygxSyncFlushCacheRegions(&flush, NULL, NULL);
+    kygxSyncFlushCacheRegions(&flush, NULL, NULL);
 }
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
 
-#endif /* GUARD_KYGX_WRAPPERS_FLUSHCACHEREGIONS_H */
+#endif /* GUARD_KYGX_COMMAND_FLUSHCACHEREGIONS_H */

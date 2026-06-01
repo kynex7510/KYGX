@@ -7,8 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef GUARD_KYGX_WRAPPERS_MEMORYFILL_H
-#define GUARD_KYGX_WRAPPERS_MEMORYFILL_H
+#ifndef GUARD_KYGX_COMMAND_MEMORYFILL_H
+#define GUARD_KYGX_COMMAND_MEMORYFILL_H
 
 #include <CTR/Assert.h>
 
@@ -69,4 +69,4 @@ CTR_INLINE void kygxSyncMemoryFill(const KYGXMemoryFillBuffer* buffer0, const KY
 }
 #endif // __cplusplus
 
-#endif /* GUARD_KYGX_WRAPPERS_MEMORYFILL_H */
+#endif /* GUARD_KYGX_COMMAND_MEMORYFILL_H */
