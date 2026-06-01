@@ -228,7 +228,7 @@ KYGXError kygxPushBatch(const KYGXCmd* commands, size_t numCommands, KYGXBatchCa
     const BatchQueueError qErr = BatchQueuePush(&g_BatchQueue, commands, numCommands, cb, cbData);
 
     // Kickstart execution if needed.
-    if (qErr == KYGXError_Success && shouldExec) {
+    if (qErr == BatchQueueError_Success && shouldExec) {
         // Server should not be busy at this point.
         CTR_BREAK_IF(tryExecNextBatch() != GXExecState_Success);
     }

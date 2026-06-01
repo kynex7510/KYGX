@@ -2,9 +2,9 @@
 
 #include <CTR/Allocator.h>
 
-#include <KYGX/Wrappers/MemoryFill.h>
-#include <KYGX/Wrappers/DisplayTransfer.h>
-#include <KYGX/Wrappers/TextureCopy.h>
+#include <KYGX/Command/MemoryFill.h>
+#include <KYGX/Command/DisplayTransfer.h>
+#include <KYGX/Command/TextureCopy.h>
 
 #include <stdio.h>
 

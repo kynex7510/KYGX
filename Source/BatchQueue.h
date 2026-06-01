@@ -48,10 +48,10 @@ bool BatchQueueIsEmpty(BatchQueue* q);
 BatchQueueError BatchQueuePush(BatchQueue* q, const KYGXCmd* commands, size_t numCommands, KYGXBatchCallback cb, void* cbData);
 
 // Return NO_CMDS if queue empty.
-KYGXError BatchQueuePop(BatchQueue* q, KYGXBatchCallback* cb, void** cbData);
+BatchQueueError BatchQueuePop(BatchQueue* q, KYGXBatchCallback* cb, void** cbData);
 
 // Return NO_CMDS if queue empty.
-KYGXError CmdIteratorInit(CmdIterator* it, const BatchQueue* q);
+BatchQueueError CmdIteratorInit(CmdIterator* it, const BatchQueue* q);
 
 // Return number of commands.
 size_t CmdIteratorCount(CmdIterator* it);
