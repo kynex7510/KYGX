@@ -283,7 +283,7 @@ GXExecState GXServerExec(CmdIterator* it) {
 
         addCommandToQueue(&tmp);
 
-        if (tmp.header & 0xFF == KYGX_CMD_FLUSHCACHEREGIONS)
+        if ((tmp.header & 0xFF) == KYGX_CMD_FLUSHCACHEREGIONS)
             ++numFlushCommands;
     }
 

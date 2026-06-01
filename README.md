@@ -30,10 +30,6 @@ Tested kernel configuration:
 - `MAX_SEMAPHORES`: 8
 - `MAX_TIMERS`: 0
 
-## Usage
-
-Read the [docs](DOCS.md) to understand the GX subsystem, and to have a quick view on how to use the library. Additionally, the [tests](Tests) folder includes some examples.
-
 ## License
 
 This library is doubly licensed:
