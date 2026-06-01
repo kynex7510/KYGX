@@ -33,6 +33,7 @@ static BatchQueue g_BatchQueue;
 
 static CTRCV* g_CompletionCV;
 static CTRCV* g_HaltCV;
+static CTRCV* g_SyncCV;
 static bool g_Halt = false;
 static bool g_Executing = false;
 
@@ -52,25 +53,6 @@ static size_t indexForIntr(KYGXIntr intrID) {
             return INTR_DMA;
         default:
             CTR_UNREACHABLE("Unknown interrupt %u", (size_t)intrID);
-    }
-}
-
-static KYGXIntr intrForIndex(size_t idx) {
-    switch (idx) {
-         case INTR_PDC0:
-            return KYGXIntr_PDC0;
-        case INTR_PDC1:
-            return KYGXIntr_PDC1;
-        case INTR_PSC:
-            return KYGXIntr_PSC;
-        case INTR_PPF:
-            return KYGXIntr_PPF;
-        case INTR_P3D:
-            return KYGXIntr_P3D;
-        case INTR_DMA:
-            return KYGXIntr_DMA;
-        default:
-            CTR_UNREACHABLE("Unknown interrupt %u", idx);
     }
 }
 
@@ -172,6 +154,7 @@ KYGXError kygxInit(size_t maxCommands) {
     g_BatchMtx = ctrMtxCreate();
     g_CompletionCV = ctrCVCreate();
     g_HaltCV = ctrCVCreate();
+    g_SyncCV = ctrCVCreate();
 
     // Set initial state.
     for (size_t i = 0; i < NUM_INTRS; ++i)
@@ -192,6 +175,7 @@ void kygxExit(void) {
 
     GXServerSetCallbacks(NULL, NULL);
 
+    ctrCVDestroy(g_SyncCV);
     ctrCVDestroy(g_HaltCV);
     ctrCVDestroy(g_CompletionCV);
     ctrMtxDestroy(g_BatchMtx);
@@ -200,8 +184,6 @@ void kygxExit(void) {
     GXServerExit();
     BatchQueueDestroy(&g_BatchQueue);
 }
-
-bool kygxIsInitialized(void) { return g_Refc > 0; }
 
 void kygxClearIntr(KYGXIntr intrID) {
     const size_t index = indexForIntr(intrID);
@@ -290,41 +272,21 @@ void kygxSetHalt(bool halt, bool wait) {
     ctrMtxRelease(g_BatchMtx);
 }
 
-static size_t intrIdxForSyncCmd(uint32_t header) {
-    switch (header & 0xFF) {
-        case KYGX_CMD_REQUESTDMA:
-            return INTR_DMA;
-        case KYGX_CMD_PROCESSCOMMANDLIST:
-            return INTR_P3D;
-        case KYGX_CMD_MEMORYFILL:
-            return INTR_PSC;
-        case KYGX_CMD_DISPLAYTRANSFER:
-        case KYGX_CMD_TEXTURECOPY:
-            return INTR_PPF;
-        case KYGX_CMD_FLUSHCACHEREGIONS:
-            // FlushCacheRegions doesn't trigger any interrupt.
-            return -1;
-        default:
-            CTR_UNREACHABLE("Unknown command %u", header & 0xFF);
-    }
-
-    return -1;
+static void execSyncCallback(void) {
+    ctrMtxAcquire(g_BatchMtx);
+    g_Executing = false;
+    ctrCVBroadcast(g_SyncCV);
+    ctrMtxRelease(g_BatchMtx);
 }
 
 void kygxExecSync(const KYGXCmd* command) {
     CTR_ASSERT(command);
 
-    const size_t intrIdx = intrIdxForSyncCmd(command->header);
-
     ctrMtxAcquire(g_BatchMtx);
 
     // Halt execution of batches.
     doHalt(true);
-    GXServerSetCallbacks(onInterrupt, NULL);
-
-    // Clear interrupt state if we need to wait for it.
-    if (intrIdx != -1)
-        kygxClearIntr(intrForIndex(intrIdx));
+    GXServerSetCallbacks(onInterrupt, execSyncCallback);
 
     // Construct iterator.
     CmdIterator it;
@@ -344,8 +306,10 @@ void kygxExecSync(const KYGXCmd* command) {
     CTR_BREAK_IF(state != GXExecState_Success);
 
     // Wait for termination.
-    if (intrIdx != -1)
-        kygxWaitIntr(intrForIndex(intrIdx));
+    g_Executing = true;
+
+    while (g_Executing)
+        ctrCVWait(g_SyncCV, g_BatchMtx);
 
     // Resume processing.
     GXServerSetCallbacks(onInterrupt, onBatchCompleted);
