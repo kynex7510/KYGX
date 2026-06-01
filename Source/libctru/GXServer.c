@@ -39,6 +39,7 @@ static GXOnInterrupt g_UserOnInterrupt = NULL;
 static GXOnBatchCompleted g_UserOnBatchCompleted = NULL;
 
 static u8 g_NumPendingCommands = 0;
+static bool g_FlushWorkaround = false;
 
 static u8 detectClientIndex(void* sharedMem) {
     u32 tmp[2];
@@ -104,12 +105,17 @@ static KYGXIntr getIntrID(void* param) {
 static void onInterrupt(void* param) {
     const KYGXIntr intrID = getIntrID(param);
     
-    if (g_UserOnInterrupt)
+    if (CTR_LIKELY(g_UserOnInterrupt))
         g_UserOnInterrupt(intrID);
 
-    // Nothing more to do for PDC0, PDC1.
-    if (intrID == KYGXIntr_PDC0 || intrID == KYGXIntr_PDC1)
-        return;
+    // We use PDC to handle batches with only flush commands.
+    if (CTR_LIKELY(intrID == KYGXIntr_PDC0 || intrID == KYGXIntr_PDC1)) {
+        if (CTR_LIKELY(!g_FlushWorkaround))
+            return;
+
+        g_NumPendingCommands = 1;
+        g_FlushWorkaround = false;
+    }
 
     // We should not be getting spurious interrupts.
     CTR_ASSERT(g_NumPendingCommands > 0);
@@ -120,6 +126,8 @@ static void onInterrupt(void* param) {
     // Handle batch termination.
     if (--g_NumPendingCommands) {
         // It's possible that, at this point, GSP still hasn't halted.
+        // This can happen if the last command is a flush command, for example.
+        // This also handles a batch made of flush commands only.
         CTR_ASSERT(g_CmdQueue);
         CTR_ASSERT(!g_CmdQueue->count);
 
@@ -129,7 +137,7 @@ static void onInterrupt(void* param) {
         }
 
         // Invoke callback.
-        if (g_UserOnBatchCompleted)
+        if (CTR_LIKELY(g_UserOnBatchCompleted))
             g_UserOnBatchCompleted();
     }
 }
@@ -261,6 +269,8 @@ GXExecState GXServerExec(CmdIterator* it) {
         return GXExecState_Busy;
 
     // Add commands.
+    size_t numFlushCommands = 0;
+
     for (size_t i = 0; i < numCommands; ++i) {
         KYGXCmd tmp;
         const KYGXCmd* src = CmdIteratorNext(it);
@@ -272,9 +282,16 @@ GXExecState GXServerExec(CmdIterator* it) {
             tmp.header |= CMDHEADER_FLAG_LAST;
 
         addCommandToQueue(&tmp);
+
+        if (tmp.header & 0xFF == KYGX_CMD_FLUSHCACHEREGIONS)
+            ++numFlushCommands;
     }
 
-    g_NumPendingCommands = numCommands;
+    g_NumPendingCommands = numCommands - numFlushCommands;
+
+    // If we have no interrupts, (ab)use PDC.
+    if (!g_NumPendingCommands)
+        g_FlushWorkaround = true;
 
     // Execute commands.
     triggerCommandHandling();
