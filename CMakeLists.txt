@@ -15,7 +15,6 @@ CPMAddPackage("gh:kynex7510/ctrcompat#5b5c68c")
 set(GX_SOURCES
     Source/BatchQueue.c
     Source/StateMachine.c
-    Source/String.c
 )
 
 if (CTR_BAREMETAL)

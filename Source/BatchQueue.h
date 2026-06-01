@@ -9,6 +9,12 @@
 
 #include <KYGX/GX.h>
 
+typedef enum {
+    BatchQueueError_Success,
+    BatchQueueError_NoMemory,
+    BatchQueueError_NoCommands,
+} BatchQueueError;
+
 typedef struct {
     KYGXCmd* cmdList;
     KYGXBatchCallback cb;
@@ -33,18 +39,18 @@ typedef struct {
 } BatchQueue;
 
 // Return NO_MEM if no mem.
-KYGXError BatchQueueInit(BatchQueue* q, size_t capacity);
+BatchQueueError BatchQueueInit(BatchQueue* q, size_t capacity);
 void BatchQueueDestroy(BatchQueue* q);
 
 bool BatchQueueIsEmpty(BatchQueue* q);
 
-// Return EMPTY if no commands, NO_MEM if queue is full.
-KYGXError BatchQueuePush(BatchQueue* q, const KYGXCmd* commands, size_t numCommands, KYGXBatchCallback cb, void* cbData);
+// Return NO_CMDS if no commands, NO_MEM if queue is full.
+BatchQueueError BatchQueuePush(BatchQueue* q, const KYGXCmd* commands, size_t numCommands, KYGXBatchCallback cb, void* cbData);
 
-// Return EMPTY if queue empty.
+// Return NO_CMDS if queue empty.
 KYGXError BatchQueuePop(BatchQueue* q, KYGXBatchCallback* cb, void** cbData);
 
-// Return EMPTY if queue empty.
+// Return NO_CMDS if queue empty.
 KYGXError CmdIteratorInit(CmdIterator* it, const BatchQueue* q);
 
 // Return number of commands.

@@ -134,17 +134,19 @@ static void onInterrupt(void* param) {
     }
 }
 
-KYGXError GXServerInit(void) {
+void GXServerInit(void) {
     CTR_ASSERT(g_SharedMem == NULL);
 
     // Initialize GSP.
-    if (R_FAILED(gspInit()))
-        return KYGXError_System;
+    Result ret = gspInit();
+    if (R_FAILED(ret)) {
+        CTR_UNREACHABLE("gspInit() failed with error code 0x%08lX", ret);
+    }
 
     g_SharedMem = detectSharedMem(&g_ClientIndex);
     if (!g_SharedMem) {
         gspExit();
-        return KYGXError_System;
+        CTR_UNREACHABLE("Could not detect shared memory");
     }
 
     g_CmdQueue = CMD_QUEUE_PTR(g_SharedMem, g_ClientIndex);
@@ -170,8 +172,6 @@ KYGXError GXServerInit(void) {
     gspSetEventCallback(GSPGPU_EVENT_PPF, onInterrupt, (void*)KYGXIntr_PPF, false);
     gspSetEventCallback(GSPGPU_EVENT_P3D, onInterrupt, (void*)KYGXIntr_P3D, false);
     gspSetEventCallback(GSPGPU_EVENT_DMA, onInterrupt, (void*)KYGXIntr_DMA, false);
-
-    return KYGXError_Success;
 }
 
 void GXServerExit(void) {
@@ -229,7 +229,7 @@ static void addCommandToQueue(const KYGXCmd* cmd) {
     } while (__strex((s32*)g_CmdQueue, header));
 }
 
-static inline KYGXError triggerCommandHandling(void) {
+static inline void triggerCommandHandling(void) {
     CTR_ASSERT(g_CmdQueue);
 
     // Clear status.
@@ -238,10 +238,13 @@ static inline KYGXError triggerCommandHandling(void) {
     } while (__strexb(&g_CmdQueue->status, 0));
 
     // Execute commands.
-    return R_SUCCEEDED(GSPGPU_TriggerCmdReqQueue()) ? KYGXError_Success : KYGXError_System;
+    Result ret = GSPGPU_TriggerCmdReqQueue();
+    if (R_FAILED(ret)) {
+        CTR_UNREACHABLE("GSPGPU_TriggerCmdReqQueue() failed with error code 0x%08lX", ret);
+    }
 }
 
-KYGXError GXServerExec(CmdIterator* it) {
+GXExecState GXServerExec(CmdIterator* it) {
     CTR_ASSERT(g_SharedMem);
     CTR_ASSERT(it);
 
@@ -249,13 +252,13 @@ KYGXError GXServerExec(CmdIterator* it) {
     size_t numCommands = CmdIteratorCount(it);
 
     if (!numCommands)
-        return KYGXError_Empty;
+        return GXExecState_NoCommands;
 
     if (numCommands > MAX_CMDS_IN_QUEUE)
-        return KYGXError_NoMem;
+        return GXExecState_NoMemory;
 
     if (g_CmdQueue->status != CMDQUEUE_STATUS_HALTED)
-        return KYGXError_Busy;
+        return GXExecState_Busy;
 
     // Add commands.
     for (size_t i = 0; i < numCommands; ++i) {
@@ -274,5 +277,6 @@ KYGXError GXServerExec(CmdIterator* it) {
     g_NumPendingCommands = numCommands;
 
     // Execute commands.
-    return triggerCommandHandling();
+    triggerCommandHandling();
+    return GXExecState_Success;
 }

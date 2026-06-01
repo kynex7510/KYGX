@@ -1,4 +1,7 @@
 /**
+ * @file DisplayTransfer.h
+ * @brief Implementation of the DisplayTransfer command.
+ * 
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -222,16 +225,16 @@ CTR_INLINE void kygxMakeDisplayTransferChecked(KYGXCmd* cmd, const void* src, vo
     kygxMakeDisplayTransfer(cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, kygxGetDisplayTransferFlags(flags));
 }
 
-CTR_INLINE KYGXError kygxSyncDisplayTransfer(const void* src, void* dst, uint16_t srcWidth, uint16_t srcHeight, uint16_t dstWidth, uint16_t dstHeight, uint32_t flags) {
+CTR_INLINE void kygxSyncDisplayTransfer(const void* src, void* dst, uint16_t srcWidth, uint16_t srcHeight, uint16_t dstWidth, uint16_t dstHeight, uint32_t flags) {
     KYGXCmd cmd;
     kygxMakeDisplayTransfer(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
-    return kygxExecSync(&cmd);
+    kygxExecSync(&cmd);
 }
 
-CTR_INLINE KYGXError kygxSyncDisplayTransferChecked(const void* src, void* dst, uint16_t srcWidth, uint16_t srcHeight, uint16_t dstWidth, uint16_t dstHeight, const KYGXDisplayTransferFlags* flags) {
+CTR_INLINE void kygxSyncDisplayTransferChecked(const void* src, void* dst, uint16_t srcWidth, uint16_t srcHeight, uint16_t dstWidth, uint16_t dstHeight, const KYGXDisplayTransferFlags* flags) {
     KYGXCmd cmd;
     kygxMakeDisplayTransferChecked(&cmd, src, dst, srcWidth, srcHeight, dstWidth, dstHeight, flags);
-    return kygxExecSync(&cmd);
+    kygxExecSync(&cmd);
 }
 
 #ifdef __cplusplus

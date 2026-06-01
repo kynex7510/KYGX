@@ -14,9 +14,16 @@
 typedef void (*GXOnInterrupt)(KYGXIntr intrID);
 typedef void (*GXOnBatchCompleted)(void);
 
-KYGXError GXServerInit(void);
+typedef enum {
+    GXExecState_Success,
+    GXExecState_NoCommands,
+    GXExecState_NoMemory,
+    GXExecState_Busy,
+} GXExecState;
+
+void GXServerInit(void);
 void GXServerExit(void);
 void GXServerSetCallbacks(GXOnInterrupt onInterrupt, GXOnBatchCompleted onBatchCompleted);
-KYGXError GXServerExec(CmdIterator* it);
+GXExecState GXServerExec(CmdIterator* it);
 
 #endif /* GUARD_KYGX_GXSERVER_H */

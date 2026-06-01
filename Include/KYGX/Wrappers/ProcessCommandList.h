@@ -1,4 +1,7 @@
 /**
+ * @file ProcessCommandList.h
+ * @brief Implementation of the ProcessCommandList command.
+ * 
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -26,10 +29,10 @@ CTR_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size
     cmd->params[6] = flush ? 1 : 0;
 }
 
-CTR_INLINE KYGXError kygxSyncProcessCommandList(void* addr, size_t size, bool updateGasAccMax, bool flush) {
+CTR_INLINE void kygxSyncProcessCommandList(void* addr, size_t size, bool updateGasAccMax, bool flush) {
     KYGXCmd cmd;
     kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
-    return kygxExecSync(&cmd);
+    kygxExecSync(&cmd);
 }
 
 #ifdef __cplusplus

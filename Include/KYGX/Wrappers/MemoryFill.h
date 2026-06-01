@@ -1,4 +1,7 @@
 /**
+ * @file MemoryFill.h
+ * @brief Implementation of the MemoryFill command.
+ * 
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -56,10 +59,10 @@ CTR_INLINE void kygxMakeMemoryFill(KYGXCmd* cmd, const KYGXMemoryFillBuffer* buf
     }
 }
 
-CTR_INLINE KYGXError kygxSyncMemoryFill(const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
+CTR_INLINE void kygxSyncMemoryFill(const KYGXMemoryFillBuffer* buffer0, const KYGXMemoryFillBuffer* buffer1) {
     KYGXCmd cmd;
     kygxMakeMemoryFill(&cmd, buffer0, buffer1);
-    return kygxExecSync(&cmd);
+    kygxExecSync(&cmd);
 }
 
 #ifdef __cplusplus
