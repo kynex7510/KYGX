@@ -1,7 +1,7 @@
-#include <KYGX/Allocator.h>
-#include <KYGX/Wrappers/MemoryFill.h>
-#include <KYGX/Wrappers/DisplayTransfer.h>
-#include <KYGX/Wrappers/TextureCopy.h>
+#include <CTR/Allocator.h>
+#include <KYGX/Command/MemoryFill.h>
+#include <KYGX/Command/DisplayTransfer.h>
+#include <KYGX/Command/TextureCopy.h>
 
 #include <arm11/fmt.h>
 #include <arm11/power.h>
@@ -37,7 +37,6 @@
 #define SCREEN_PIXEL_SIZE 3
 #define FB_SIZE SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_PIXEL_SIZE
 
-static KYGXCmdBuffer g_CmdBuffer;
 static void* g_VRAMBuffer;
 
 static void onCommandsCompleted(void* data) {
@@ -65,15 +64,14 @@ static void clearScreen(void) {
     transferFlags.blockMode32 = false;
 
     // Fill framebuffer with white through VRAM.
-    kygxLock();
-    kygxAddMemoryFill(&g_CmdBuffer, &fill, NULL);
+    KYGXCmd tmp;
+    kygxMakeMemoryFill(&tmp, &fill, NULL);
     
-    // Finalize: the same buffer should not be used with different commands at the same time.
-    kygxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
+    // Split commands, as the same buffer should not be used with different commands at the same time.
+    kygxPushBatch(&tmp, 1, NULL, NULL);
 
-    kygxAddDisplayTransferChecked(&g_CmdBuffer, g_VRAMBuffer, fb, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, &transferFlags);
-    kygxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
-    kygxUnlock(true);
+    kygxMakeDisplayTransferChecked(&tmp, g_VRAMBuffer, fb, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, &transferFlags);
+    kygxPushBatch(&tmp, 1, NULL, NULL);
 }
 
 static void drawRect(u16 x, u16 y, u16 width, u16 height) {
@@ -108,27 +106,23 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
     rect.height = RECT_HEIGHT;
 
     // Draw red rectangle through VRAM.
-    kygxLock();
-    kygxAddMemoryFill(&g_CmdBuffer, NULL, &fill);
+    KYGXCmd tmp;
+    kygxMakeMemoryFill(&tmp, NULL, &fill);
 
-    // Finalize: the same buffer should not be used with different commands at the same time.
-    kygxCmdBufferFinalize(&g_CmdBuffer, NULL, NULL);
+    // Split commands, as the same buffer should not be used with different commands at the same time.
+    kygxPushBatch(&tmp, 1, NULL, NULL);
 
-    kygxAddRectCopy(&g_CmdBuffer, &srcSurface, &rect, &dstSurface, &rect);
-    kygxCmdBufferFinalize(&g_CmdBuffer, onCommandsCompleted, NULL);
-    kygxUnlock(true);
+    kygxMakeRectCopy(&tmp, &srcSurface, &rect, &dstSurface, &rect);
+    kygxPushBatch(&tmp, 1, onCommandsCompleted, NULL);
 }
 
 int main(int argc, char* argv[]) {
     GFX_init(GFX_BGR8, GFX_BGR565, GFX_TOP_2D);
     GFX_setLcdLuminance(80);
     consoleInit(GFX_LCD_BOT, NULL);
-    kygxInit();
+    CTR_BREAK_IF(kygxInit(8) != KYGXError_Success);
 
-    g_VRAMBuffer = kygxAlloc(KYGX_MEM_VRAM, FB_SIZE);
-
-    kygxCmdBufferAlloc(&g_CmdBuffer, CMDBUFFER_CAPACITY);
-    kygxExchangeCmdBuffer(&g_CmdBuffer, true);
+    g_VRAMBuffer = ctrAlloc(CTR_MEM_VRAM, FB_SIZE);
 
     ee_printf("- Rect X: %u\n", RECT_X);
     ee_printf("- Rect Y: %u\n", RECT_Y);
@@ -146,13 +140,10 @@ int main(int argc, char* argv[]) {
 
         clearScreen();
         drawRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
-        kygxWaitVBlank();
+        kygxWaitVBlankTop();
     }
 
-    kygxExchangeCmdBuffer(NULL, true);
-    kygxCmdBufferFree(&g_CmdBuffer);
-
-    kygxFree(g_VRAMBuffer);
+    ctrFree(g_VRAMBuffer);
 
     kygxExit();
     GFX_deinit();

@@ -1,6 +1,6 @@
-#include <KYGX/Allocator.h>
-#include <KYGX/Wrappers/MemoryFill.h>
-#include <KYGX/Wrappers/DisplayTransfer.h>
+#include <CTR/Allocator.h>
+#include <KYGX/Command/MemoryFill.h>
+#include <KYGX/Command/DisplayTransfer.h>
 
 #include <arm11/fmt.h>
 #include <arm11/power.h>
@@ -42,9 +42,9 @@ int main(void) {
     GFX_init(GFX_BGR8, GFX_BGR565, GFX_TOP_2D);
     GFX_setLcdLuminance(80);
     consoleInit(GFX_LCD_BOT, NULL);
-    kygxInit();
+    CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
-    g_VRAMBuffer = kygxAlloc(KYGX_MEM_VRAM, FB_SIZE);
+    g_VRAMBuffer = ctrAlloc(CTR_MEM_VRAM, FB_SIZE);
 
     bool updateConsole = true;
     while (true) {
@@ -79,10 +79,10 @@ int main(void) {
 
         clearScreen();
         GFX_swapBuffers();
-        kygxWaitVBlank();
+        kygxWaitVBlankTop();
     }
 
-    kygxFree(g_VRAMBuffer);
+    ctrFree(g_VRAMBuffer);
 
     kygxExit();
     GFX_deinit();

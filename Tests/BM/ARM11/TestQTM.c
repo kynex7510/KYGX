@@ -1,9 +1,9 @@
 // https://gist.github.com/kynex7510/f760d71de575eae066c0795263703826
 
-#include <KYGX/Allocator.h>
-#include <KYGX/Wrappers/MemoryFill.h>
-#include <KYGX/Wrappers/DisplayTransfer.h>
-#include <KYGX/Wrappers/FlushCacheRegions.h>
+#include <CTR/Allocator.h>
+#include <KYGX/Command/MemoryFill.h>
+#include <KYGX/Command/DisplayTransfer.h>
+#include <KYGX/Command/FlushCacheRegions.h>
 
 #include <arm11/fmt.h>
 #include <arm11/power.h>
@@ -50,9 +50,9 @@ int main(void) {
     GFX_init(GFX_BGR8, GFX_BGR565, GFX_TOP_2D);
     GFX_setLcdLuminance(80);
     consoleInit(GFX_LCD_BOT, NULL);
-    kygxInit();
+    CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
-    g_QTMBuffer = kygxAlloc(KYGX_MEM_QTMRAM, FB_SIZE);
+    g_QTMBuffer = ctrAlloc(CTR_MEM_QTMRAM, FB_SIZE);
 
     bool updateConsole = true;
     while (true) {
@@ -87,10 +87,10 @@ int main(void) {
 
         clearScreen();
         GFX_swapBuffers();
-        kygxWaitVBlank();
+        kygxWaitVBlankTop();
     }
 
-    kygxFree(g_QTMBuffer);
+    ctrFree(g_QTMBuffer);
 
     kygxExit();
     GFX_deinit();
