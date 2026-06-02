@@ -18,6 +18,8 @@ set(GX_SOURCES
 )
 
 if (CTR_BAREMETAL)
+    # We are compiling for ARM11.
+    include(BM/ARM11)
     set(GX_SOURCES ${GX_SOURCES} Source/libn3ds/GXServer.c)
 else()
     set(GX_SOURCES ${GX_SOURCES} Source/libctru/GXServer.c)

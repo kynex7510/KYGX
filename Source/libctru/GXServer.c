@@ -31,12 +31,12 @@ typedef struct {
     KYGXCmd list[MAX_CMDS_IN_QUEUE];
 } GSPCmdQueue;
 
+static GXOnInterrupt g_UserOnInterrupt = NULL;
+static GXOnBatchCompleted g_UserOnBatchCompleted = NULL;
+
 static void* g_SharedMem = NULL;
 static u8 g_ClientIndex = -1;
 static GSPCmdQueue* g_CmdQueue = NULL;
-
-static GXOnInterrupt g_UserOnInterrupt = NULL;
-static GXOnBatchCompleted g_UserOnBatchCompleted = NULL;
 
 static u8 g_NumPendingCommands = 0;
 static bool g_FlushWorkaround = false;
