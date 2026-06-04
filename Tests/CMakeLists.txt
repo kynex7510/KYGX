@@ -1,4 +1,4 @@
-if (CTR_BAREMETAL)
+if (CTR_BM)
     add_subdirectory(BM)
 else()
     add_subdirectory(HOS)

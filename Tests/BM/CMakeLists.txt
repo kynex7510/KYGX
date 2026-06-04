@@ -1,5 +1,3 @@
-include(BM/FIRM)
-
 add_subdirectory(ARM9)
 add_subdirectory(ARM11)
 
@@ -12,19 +10,19 @@ set(ARM11_ENTRYPOINT 0x1FF89034)
 set(ARM11_COPY_METHOD XDMA)
 
 # TestSync
-make_firm(KYGXTestSyncFIRM
+ctr_bm_make_firm(KYGXTestSyncFIRM
     ARM9 Common9_bin ${ARM9_LOAD_ADDRESS} ${ARM9_ENTRYPOINT} ${ARM9_COPY_METHOD}
     ARM11 KYGXTestSync_bin ${ARM11_LOAD_ADDRESS} ${ARM11_ENTRYPOINT} ${ARM11_COPY_METHOD}
 )
 
 # TestAsync
-make_firm(KYGXTestAsyncFIRM
+ctr_bm_make_firm(KYGXTestAsyncFIRM
     ARM9 Common9_bin ${ARM9_LOAD_ADDRESS} ${ARM9_ENTRYPOINT} ${ARM9_COPY_METHOD}
     ARM11 KYGXTestAsync_bin ${ARM11_LOAD_ADDRESS} ${ARM11_ENTRYPOINT} ${ARM11_COPY_METHOD}
 )
 
 # TestQTM
-make_firm(KYGXTestQTMFIRM
+ctr_bm_make_firm(KYGXTestQTMFIRM
     ARM9 Common9_bin ${ARM9_LOAD_ADDRESS} ${ARM9_ENTRYPOINT} ${ARM9_COPY_METHOD}
     ARM11 KYGXTestQTM_bin ${ARM11_LOAD_ADDRESS} ${ARM11_ENTRYPOINT} ${ARM11_COPY_METHOD}
 )

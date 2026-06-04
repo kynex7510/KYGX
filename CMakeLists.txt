@@ -12,26 +12,7 @@ option(KYGX_ENABLE_TESTS "Enable tests compilation" OFF)
 CPMAddPackage("gh:kynex7510/ctrcompat#5b5c68c")
 
 # Setup library.
-set(GX_SOURCES
-    Source/BatchQueue.c
-    Source/StateMachine.c
-)
-
-if (CTR_BAREMETAL)
-    # We are compiling for ARM11.
-    include(BM/ARM11)
-    set(GX_SOURCES ${GX_SOURCES} Source/libn3ds/GXServer.c)
-else()
-    set(GX_SOURCES ${GX_SOURCES} Source/libctru/GXServer.c)
-endif()
-
-add_library(kygx STATIC ${GX_SOURCES})
-target_link_libraries(kygx PUBLIC ctrcompat)
-target_include_directories(kygx PUBLIC Include PRIVATE Source)
-target_compile_options(kygx PRIVATE -Wall -Werror)
-
-install(TARGETS kygx)
-install(DIRECTORY Include/ DESTINATION include)
+add_subdirectory(Source)
 
 # Setup tests.
 if (KYGX_ENABLE_TESTS)
