@@ -45,7 +45,7 @@ static void onInterrupt(KYGXIntr intrID) {
     --g_NumPendingCommands;
 
     // Handle batch termination.
-    if (--g_NumPendingCommands && CTR_LIKELY(g_UserOnBatchCompleted))
+    if (!g_NumPendingCommands && CTR_LIKELY(g_UserOnBatchCompleted))
         g_UserOnBatchCompleted();
 }
 
@@ -59,10 +59,10 @@ static void onInterrupt(KYGXIntr intrID) {
 
 #define NUM_INTRS 6
 
-#define INTR_PDC0 0
-#define INTR_PDC1 1
-#define INTR_PSC0 2
-#define INTR_PSC1 3
+#define INTR_PSC0 0
+#define INTR_PSC1 1
+#define INTR_PDC0 2
+#define INTR_PDC1 3
 #define INTR_PPF 4
 #define INTR_P3D 5
 
@@ -93,8 +93,12 @@ static void intrThread(void* unused) {
         if (g_ExitThread)
             break;
 
-        if (g_PauseIntrHandling)
+        if (g_PauseIntrHandling) {
+            yieldTask();
             continue;
+        }
+
+        clearEvent(g_AnyEvent);
 
         u8 intrFlags[NUM_INTRS];
         memcpy(intrFlags, g_IntrFlags, sizeof(g_IntrFlags));
@@ -121,10 +125,12 @@ static void intrThread(void* unused) {
         }
 
         if (intrFlags[INTR_PPF])
-            g_UserOnInterrupt(KYGXIntr_PPF);
+            onInterrupt(KYGXIntr_PPF);
 
         if (intrFlags[INTR_P3D])
-            g_UserOnInterrupt(KYGXIntr_P3D);
+            onInterrupt(KYGXIntr_P3D);
+
+        yieldTask();
     }
 
     g_ExitedThread = true;
@@ -133,7 +139,7 @@ static void intrThread(void* unused) {
 
 // Keep this as small as possible.
 static void intrHandler(uint32_t isr) {
-    setIntr(isr - 32 - IRQ_PDC0, 1);
+    setIntr(isr - IRQ_PSC0, 1);
     signalEvent(g_AnyEvent, false);
 }
 
@@ -143,15 +149,15 @@ static inline void intrInit(void) {
 
     memset(g_IntrFlags, 0, sizeof(g_IntrFlags));
 
-    g_AnyEvent = createEvent(true);
+    g_AnyEvent = createEvent(false);
     CTR_BREAK_IF(!g_AnyEvent);
 
-    CTR_BREAK_IF(createTask(32, 3, intrThread, NULL));
+    CTR_BREAK_IF(!createTask(0x100, 3, intrThread, NULL));
 
-    IRQ_registerIsr(IRQ_PDC0, 14, 0, intrHandler);
-    IRQ_registerIsr(IRQ_PDC1, 14, 0, intrHandler);
     IRQ_registerIsr(IRQ_PSC0, 14, 0, intrHandler);
     IRQ_registerIsr(IRQ_PSC1, 14, 0, intrHandler);
+    IRQ_registerIsr(IRQ_PDC0, 14, 0, intrHandler);
+    IRQ_registerIsr(IRQ_PDC1, 14, 0, intrHandler);
     IRQ_registerIsr(IRQ_PPF, 14, 0, intrHandler);
     IRQ_registerIsr(IRQ_P3D, 14, 0, intrHandler);
 }
@@ -160,10 +166,10 @@ static inline void intrExit(void) {
     g_ExitThread = true;
     signalEvent(g_AnyEvent, false);
 
-    IRQ_unregisterIsr(IRQ_PDC0);
-    IRQ_unregisterIsr(IRQ_PDC1);
     IRQ_unregisterIsr(IRQ_PSC0);
     IRQ_unregisterIsr(IRQ_PSC1);
+    IRQ_unregisterIsr(IRQ_PDC0);
+    IRQ_unregisterIsr(IRQ_PDC1);
     IRQ_unregisterIsr(IRQ_PPF);
     IRQ_unregisterIsr(IRQ_P3D);
 
@@ -221,7 +227,7 @@ static inline void doMemoryFill(u32 buf0s, u32 buf0v, u32 buf0e, u32 buf1s, u32 
     while (g_HasPSC0 || g_HasPSC1)
         yieldTask();
 
-    while (!(regs->psc_irq_stat & IRQ_STAT_PSC0) || !(regs->psc_irq_stat & IRQ_STAT_PSC1))
+    while ((regs->psc_irq_stat & IRQ_STAT_PSC0) || (regs->psc_irq_stat & IRQ_STAT_PSC1))
         wait_cycles(16);
 
     if (buf0s)
@@ -248,7 +254,7 @@ static inline void doMemoryFill(u32 buf0s, u32 buf0v, u32 buf0e, u32 buf1s, u32 
 static inline void doDisplayTransfer(u32 src, u32 dst, u32 srcDim, u32 dstDim, u32 flags) {
     GxRegs* regs = getGxRegs();
 
-    while (!(regs->psc_irq_stat & IRQ_STAT_PPF))
+    while (regs->psc_irq_stat & IRQ_STAT_PPF)
         wait_cycles(16);
 
     regs->ppf.in_addr = src >> 3;
@@ -263,7 +269,7 @@ static inline void doDisplayTransfer(u32 src, u32 dst, u32 srcDim, u32 dstDim, u
 static inline void doTextureCopy(u32 src, u32 dst, u32 size, u32 srcParam, u32 dstParam, u32 flags) {
     GxRegs* regs = getGxRegs();
 
-    while (!(regs->psc_irq_stat & IRQ_STAT_PPF))
+    while (regs->psc_irq_stat & IRQ_STAT_PPF)
         wait_cycles(16);
 
     regs->ppf.in_addr = src >> 3;
