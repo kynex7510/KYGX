@@ -75,11 +75,13 @@ void kygxExit(void);
  * @brief Clear interrupt state.
  * If an interrupt has been triggered prior to a \ref kygxWaitIntr call the function returns immediately. To avoid
  * this the interrupt must be cleared first.
+ * @param[in] intrID Interrupt ID.
  */
 void kygxClearIntr(KYGXIntr intrID);
 
 /**
  * @brief Wait until the specified interrupt has been triggered.
+ * @param[in] intrID Interrupt ID.
  */
 void kygxWaitIntr(KYGXIntr intrID);
 

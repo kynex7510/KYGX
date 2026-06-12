@@ -9,8 +9,9 @@ Download a [prebuilt](https://github.com/kynex7510/KYGX/releases) version, use a
 ### libctru backend (HOS)
 
 ```sh
-cmake -B BuildHOS -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$DEVKITPRO/cmake/3DS.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_ENABLE_TESTS=ON
+cmake -B BuildHOS -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$DEVKITPRO/cmake/3DS.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_ENABLE_TESTS=ON -DKYGX_ENABLE_DOCS=ON
 cmake --build BuildHOS --config Release
+cmake --build BuildHOS --target docs
 cmake --install BuildHOS --prefix BuildHOS/Release
 ```
 
@@ -19,8 +20,9 @@ cmake --install BuildHOS --prefix BuildHOS/Release
 - [Baremetal toolchain](https://github.com/kynex7510/ctr_bm_cmake_toolchain) required.
 
 ```sh
-cmake -B BuildBM -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$CTR_BM_TOOLCHAIN_ROOT/Toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_ENABLE_TESTS=ON
+cmake -B BuildBM -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="$CTR_BM_TOOLCHAIN_ROOT/Toolchain.cmake" -DCMAKE_BUILD_TYPE=Release -DKYGX_ENABLE_TESTS=ON -DKYGX_ENABLE_DOCS=ON
 cmake --build BuildBM --config Release
+cmake --build BuildBM --target docs
 cmake --install BuildBM --prefix BuildBM/Release
 ```
 
