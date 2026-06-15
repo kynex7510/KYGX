@@ -10,8 +10,7 @@
 
 #include <KYGX/GX.h>
 
-#include "GXServer.h"
-#include "BatchQueue.h"
+#include "BatchRunner.h"
 
 #define NUM_INTRS 6
 
@@ -57,26 +56,26 @@ static size_t indexForIntr(KYGXIntr intrID) {
 }
 
 // Try executing the next batch. Returns NO_CMDS if no commands, BUSY if busy. Note: thread-unsafe.
-static GXExecState tryExecNextBatch(void) {
+static ExecState tryExecNextBatch(void) {
     CmdIterator it;
 
     const BatchQueueError qErr = CmdIteratorInit(&it, &g_BatchQueue);
 
     // Of course, only execute if we have something.
     if (qErr == BatchQueueError_Success) {
-        const GXExecState state = GXServerExec(&it);
+        const ExecState state = BatchRunnerExec(&it);
 
-        if (state == GXExecState_Success) {
+        if (state == ExecState_Success) {
             g_Executing = true;
         } else {
-            CTR_BREAK_IF(state != GXExecState_Busy);
+            CTR_BREAK_IF(state != ExecState_Busy);
         }
 
         return state;
     }
 
     CTR_ASSERT(qErr == BatchQueueError_NoCommands);
-    return GXExecState_NoCommands;
+    return ExecState_NoCommands;
 }
 
 static void onInterrupt(KYGXIntr intrID) {
@@ -108,19 +107,19 @@ static void onBatchCompleted(void) {
         ctrCVBroadcast(g_HaltCV);
     } else {
         // Otherwise, execute the next batch.
-        GXExecState state = tryExecNextBatch();
+        ExecState state = tryExecNextBatch();
         
-        if (state == GXExecState_NoCommands) {
+        if (state == ExecState_NoCommands) {
             // We have executed all batches.
             ctrCVBroadcast(g_CompletionCV);
         } else {
-            while (state == GXExecState_Busy) {
-                // We know batch processing has ended, let's give the server time to update its state.
+            while (state == ExecState_Busy) {
+                // We know batch processing has ended, let's give the runner time to update its state.
                 ctrYield();
                 state = tryExecNextBatch();
             }
 
-            CTR_BREAK_IF(state != GXExecState_Success);
+            CTR_BREAK_IF(state != ExecState_Success);
         }
     }
 
@@ -142,8 +141,8 @@ KYGXError kygxInit(size_t maxCommands) {
         return KYGXError_NoMemory;
     }
 
-    // Init GX server.
-    GXServerInit();
+    // Init batch runner.
+    BatchRunnerInit();
 
     // Allocate resources.
     g_IntrMtx = ctrMtxCreate();
@@ -163,7 +162,7 @@ KYGXError kygxInit(size_t maxCommands) {
     g_Halt = false;
     g_Executing = false;
 
-    GXServerSetCallbacks(onInterrupt, onBatchCompleted);
+    BatchRunnerSetCallbacks(onInterrupt, onBatchCompleted);
     return KYGXError_Success;
 }
 
@@ -172,8 +171,8 @@ void kygxExit(void) {
         return;
 
     kygxSetHalt(true, true);
-
-    GXServerSetCallbacks(NULL, NULL);
+    
+    BatchRunnerSetCallbacks(NULL, NULL);
 
     ctrCVDestroy(g_SyncCV);
     ctrCVDestroy(g_HaltCV);
@@ -181,7 +180,7 @@ void kygxExit(void) {
     ctrMtxDestroy(g_BatchMtx);
     ctrMtxDestroy(g_IntrMtx);
 
-    GXServerExit();
+    BatchRunnerExit();
     BatchQueueDestroy(&g_BatchQueue);
 }
 
@@ -211,8 +210,8 @@ KYGXError kygxPushBatch(const KYGXCmd* commands, size_t numCommands, KYGXBatchCa
 
     // Kickstart execution if needed.
     if (qErr == BatchQueueError_Success && shouldExec) {
-        // Server should not be busy at this point.
-        CTR_BREAK_IF(tryExecNextBatch() != GXExecState_Success);
+        // Runner should not be busy at this point.
+        CTR_BREAK_IF(tryExecNextBatch() != ExecState_Success);
     }
 
     ctrMtxRelease(g_BatchMtx);
@@ -251,13 +250,13 @@ static void doHalt(bool wait) {
 // Note: thread-unsafe.
 static void undoHalt(void) {
     g_Halt = false;
-    const GXExecState state = tryExecNextBatch();
+    const ExecState state = tryExecNextBatch();
 
-    if (state == GXExecState_NoCommands)
+    if (state == ExecState_NoCommands)
         return;
 
-    // Server should not be busy at this point.
-    CTR_BREAK_IF(state != GXExecState_Success);
+    // Runner should not be busy at this point.
+    CTR_BREAK_IF(state != ExecState_Success);
 }
 
 void kygxSetHalt(bool halt, bool wait) {
@@ -286,7 +285,7 @@ void kygxExecSync(const KYGXCmd* command) {
 
     // Halt execution of batches.
     doHalt(true);
-    GXServerSetCallbacks(onInterrupt, execSyncCallback);
+    BatchRunnerSetCallbacks(onInterrupt, execSyncCallback);
 
     // Construct iterator.
     CmdIterator it;
@@ -296,14 +295,14 @@ void kygxExecSync(const KYGXCmd* command) {
     it.queueCapacity = 1;
 
     // Execute command.
-    GXExecState state = GXServerExec(&it);
+    ExecState state = BatchRunnerExec(&it);
     
-    while (state == GXExecState_Busy) {
+    while (state == ExecState_Busy) {
         ctrYield();
-        state = GXServerExec(&it);
+        state = BatchRunnerExec(&it);
     }
 
-    CTR_BREAK_IF(state != GXExecState_Success);
+    CTR_BREAK_IF(state != ExecState_Success);
 
     // Wait for termination.
     g_Executing = true;
@@ -312,7 +311,7 @@ void kygxExecSync(const KYGXCmd* command) {
         ctrCVWait(g_SyncCV, g_BatchMtx);
 
     // Resume processing.
-    GXServerSetCallbacks(onInterrupt, onBatchCompleted);
+    BatchRunnerSetCallbacks(onInterrupt, onBatchCompleted);
     undoHalt();
 
     ctrMtxRelease(g_BatchMtx);

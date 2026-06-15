@@ -5,13 +5,20 @@ endif()
 
 set(GX_SOURCES
     BatchQueue.c
+    BatchRunner.c
     StateMachine.c
 )
 
 if (CTR_BM)
-    set(GX_SOURCES ${GX_SOURCES} libn3ds/GXServer.c)
+    set(GX_SOURCES ${GX_SOURCES}
+        libn3ds/CmdQueue.c
+        libn3ds/Interrupt.c
+    )
 else()
-    set(GX_SOURCES ${GX_SOURCES} libctru/GXServer.c)
+    set(GX_SOURCES ${GX_SOURCES}
+        libctru/CmdQueue.c
+        libctru/Interrupt.c
+    )
 endif()
 
 add_library(kygx STATIC ${GX_SOURCES})
