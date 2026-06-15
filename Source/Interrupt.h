@@ -24,6 +24,9 @@ void IntrExit(void);
 // Set used PSC units.
 void IntrSetPSC(bool unit0, bool unit1);
 
+// Update gas additive results after P3D interrupt.
+void IntrUpdateGasAccMax(bool update);
+
 // Signal flush pseudo interrupt.
 void IntrSignalFlush(void);
 
