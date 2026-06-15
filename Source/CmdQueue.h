@@ -14,10 +14,19 @@
 
 #define CMDQUEUE_MAX_CMDS 15
 
+// Initialize command queue.
 void CmdQueueInit(void);
+
+// Finalize command queue.
 void CmdQueueExit(void);
+
+// Check if command queue is busy.
 bool CmdQueueIsBusy(void);
+
+// Add command.
 void CmdQueueAdd(const KYGXCmd* cmd);
+
+// Handle queued commands.
 void CmdQueueTriggerHandling(void);
 
 #endif /* GUARD_KYGX_CMDQUEUE_H */

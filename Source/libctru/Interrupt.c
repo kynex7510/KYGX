@@ -6,6 +6,7 @@
 
 #include <3ds.h>
 
+#include <CTR/Assert.h>
 #include <CTR/Unreachable.h>
 
 #include "Interrupt.h"
@@ -29,6 +30,8 @@ static void flushHandler(void* unused) {
 }
 
 void IntrInit(void) {
+    CTR_ASSERT(g_FlushThread == NULL);
+
     // Initialize GSP.
     Result ret = gspInit();
     if (R_FAILED(ret)) {
@@ -58,6 +61,8 @@ void IntrInit(void) {
 }
 
 void IntrExit(void) {
+    CTR_ASSERT(g_FlushThread);
+
     // Remove callbacks.
     gspSetEventCallback(GSPGPU_EVENT_VBlank0, NULL, NULL, false);
     gspSetEventCallback(GSPGPU_EVENT_VBlank1, NULL, NULL, false);
@@ -79,5 +84,10 @@ void IntrExit(void) {
     gspExit();
 }
 
-void IntrSetPSC(bool unit0, bool unit1) {}
-void IntrSignalFlush(void) { LightEvent_Signal(&g_FlushEvent); }
+void IntrSetPSC(bool unit0, bool unit1) { CTR_ASSERT(g_FlushThread); }
+
+void IntrSignalFlush(void) {
+    CTR_ASSERT(g_FlushThread);
+
+    LightEvent_Signal(&g_FlushEvent);
+}
