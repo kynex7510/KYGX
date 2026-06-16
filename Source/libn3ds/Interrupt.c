@@ -171,7 +171,7 @@ static void intrHandler(void* unused) {
 }
 
 void IntrInit(void) {
-    CTR_ASSERT(g_AnyEvent == NULL);
+    CTR_ASSERT(!g_AnyEvent);
 
     g_ExitThread = false;
     g_ExitedThread = false;
