@@ -22,7 +22,7 @@ else()
 endif()
 
 add_library(kygx STATIC ${GX_SOURCES})
-target_link_libraries(kygx PUBLIC ctrcompat)
+target_link_libraries(kygx PUBLIC ctr11)
 target_include_directories(kygx PUBLIC ../Include PRIVATE .)
 target_compile_options(kygx PRIVATE -Wall -Werror)
 

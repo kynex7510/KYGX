@@ -6,8 +6,8 @@
 
 #include <3ds.h>
 
-#include <CTR/Assert.h>
-#include <CTR/Unreachable.h>
+#include <CTR11/Assert.h>
+#include <CTR11/Unreachable.h>
 
 #include "Interrupt.h"
 

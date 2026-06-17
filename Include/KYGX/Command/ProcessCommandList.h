@@ -10,7 +10,7 @@
 #ifndef GUARD_KYGX_COMMAND_PROCESSCOMMANDLIST_H
 #define GUARD_KYGX_COMMAND_PROCESSCOMMANDLIST_H
 
-#include <CTR/Assert.h>
+#include <CTR11/Assert.h>
 
 #include <KYGX/GX.h>
 

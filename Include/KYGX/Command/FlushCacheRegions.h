@@ -10,7 +10,7 @@
 #ifndef GUARD_KYGX_COMMAND_FLUSHCACHEREGIONS_H
 #define GUARD_KYGX_COMMAND_FLUSHCACHEREGIONS_H
 
-#include <CTR/Assert.h>
+#include <CTR11/Assert.h>
 
 #include <KYGX/GX.h>
 

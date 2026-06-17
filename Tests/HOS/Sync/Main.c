@@ -1,6 +1,6 @@
 #include <3ds.h>
 
-#include <CTR/Allocator.h>
+#include <CTR11/Allocator.h>
 
 #include <KYGX/Command/MemoryFill.h>
 #include <KYGX/Command/DisplayTransfer.h>
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     consoleInit(GFX_BOTTOM, NULL);
     CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
-    g_VRAMBuffer = ctrAlloc(CTR_MEM_VRAM, FB_SIZE);
+    g_VRAMBuffer = AllocMem(MemType_VRAM, FB_SIZE);
 
     bool updateConsole = true;
     while (aptMainLoop()) {
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
         kygxWaitVBlankTop();
     }
 
-    ctrFree(g_VRAMBuffer);
+    FreeMem(g_VRAMBuffer);
 
     kygxExit();
     gfxExit();

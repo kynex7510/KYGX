@@ -1,4 +1,4 @@
-#include <CTR/Allocator.h>
+#include <CTR11/Allocator.h>
 #include <KYGX/Command/MemoryFill.h>
 #include <KYGX/Command/DisplayTransfer.h>
 #include <KYGX/Command/TextureCopy.h>
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     consoleInit(GFX_LCD_BOT, NULL);
     CTR_BREAK_IF(kygxInit(8) != KYGXError_Success);
 
-    g_VRAMBuffer = ctrAlloc(CTR_MEM_VRAM, FB_SIZE);
+    g_VRAMBuffer = AllocMem(MemType_VRAM, FB_SIZE);
 
     ee_printf("- Rect X: %u\n", RECT_X);
     ee_printf("- Rect Y: %u\n", RECT_Y);
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
         kygxWaitVBlankTop();
     }
 
-    ctrFree(g_VRAMBuffer);
+    FreeMem(g_VRAMBuffer);
 
     kygxExit();
     GFX_deinit();

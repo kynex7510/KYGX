@@ -11,8 +11,8 @@
 #include <arm11/drivers/gpu_regs.h>
 #include <arm11/drivers/interrupt.h>
 
-#include <CTR/Assert.h>
-#include <CTR/Break.h>
+#include <CTR11/Assert.h>
+#include <CTR11/Break.h>
 
 #include "Interrupt.h"
 

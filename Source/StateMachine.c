@@ -4,9 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <CTR/Assert.h>
-#include <CTR/Unreachable.h>
-#include <CTR/Sync.h>
+#include <CTR11/Assert.h>
+#include <CTR11/Unreachable.h>
+#include <CTR11/Sync.h>
+#include <CTR11/Atomic.h>
 
 #include <KYGX/GX.h>
 
@@ -23,16 +24,16 @@
 
 static uint32_t g_Refc;
 
-static CTRMtx* g_IntrMtx;
-static CTRCV* g_IntrCVs[NUM_INTRS];
+static Mutex g_IntrMtx;
+static CV g_IntrCVs[NUM_INTRS];
 static bool g_IntrFlags[NUM_INTRS];
 
-static CTRMtx* g_BatchMtx;
+static Mutex g_BatchMtx;
 static BatchQueue g_BatchQueue;
 
-static CTRCV* g_CompletionCV;
-static CTRCV* g_HaltCV;
-static CTRCV* g_SyncCV;
+static CV g_CompletionCV;
+static CV g_HaltCV;
+static CV g_SyncCV;
 static bool g_Halt = false;
 static bool g_Executing = false;
 
@@ -81,18 +82,18 @@ static ExecState tryExecNextBatch(void) {
 static void onInterrupt(KYGXIntr intrID) {
     const size_t index = indexForIntr(intrID);
 
-    ctrMtxAcquire(g_IntrMtx);
+    AcquireMutex(g_IntrMtx);
 
     if (!g_IntrFlags[index]) {
         g_IntrFlags[index] = true;
-        ctrCVBroadcast(g_IntrCVs[index]);
+        BroadcastCV(g_IntrCVs[index]);
     }
 
-    ctrMtxRelease(g_IntrMtx);
+    ReleaseMutex(g_IntrMtx);
 }
 
 static void onBatchCompleted(void) {
-    ctrMtxAcquire(g_BatchMtx);
+    AcquireMutex(g_BatchMtx);
     
     g_Executing = false;
 
@@ -104,18 +105,18 @@ static void onBatchCompleted(void) {
 
     // If we were asked to halt, do so.
     if (g_Halt) {
-        ctrCVBroadcast(g_HaltCV);
+        BroadcastCV(g_HaltCV);
     } else {
         // Otherwise, execute the next batch.
         ExecState state = tryExecNextBatch();
         
         if (state == ExecState_NoCommands) {
             // We have executed all batches.
-            ctrCVBroadcast(g_CompletionCV);
+            BroadcastCV(g_CompletionCV);
         } else {
             while (state == ExecState_Busy) {
                 // We know batch processing has ended, let's give the runner time to update its state.
-                ctrYield();
+                Yield();
                 state = tryExecNextBatch();
             }
 
@@ -123,7 +124,7 @@ static void onBatchCompleted(void) {
         }
     }
 
-    ctrMtxRelease(g_BatchMtx);
+    ReleaseMutex(g_BatchMtx);
 
     // Execute the callback.
     if (cb)
@@ -131,7 +132,7 @@ static void onBatchCompleted(void) {
 }
 
 KYGXError kygxInit(size_t maxCommands) {
-    if (CTR_ATOMIC_POST_INC(g_Refc))
+    if (AtomicPostIncrement(g_Refc))
         return KYGXError_Success;
 
     // Init batch queue.
@@ -145,15 +146,15 @@ KYGXError kygxInit(size_t maxCommands) {
     BatchRunnerInit();
 
     // Allocate resources.
-    g_IntrMtx = ctrMtxCreate();
+    g_IntrMtx = CreateMutex();
 
     for (size_t i = 0; i < NUM_INTRS; ++i)
-        g_IntrCVs[i] = ctrCVCreate();
+        g_IntrCVs[i] = CreateCV();
 
-    g_BatchMtx = ctrMtxCreate();
-    g_CompletionCV = ctrCVCreate();
-    g_HaltCV = ctrCVCreate();
-    g_SyncCV = ctrCVCreate();
+    g_BatchMtx = CreateMutex();
+    g_CompletionCV = CreateCV();
+    g_HaltCV = CreateCV();
+    g_SyncCV = CreateCV();
 
     // Set initial state.
     for (size_t i = 0; i < NUM_INTRS; ++i)
@@ -167,18 +168,18 @@ KYGXError kygxInit(size_t maxCommands) {
 }
 
 void kygxExit(void) {
-    if (CTR_ATOMIC_PRE_DEC(g_Refc))
+    if (AtomicDecrement(g_Refc))
         return;
 
     kygxSetHalt(true, true);
     
     BatchRunnerSetCallbacks(NULL, NULL);
 
-    ctrCVDestroy(g_SyncCV);
-    ctrCVDestroy(g_HaltCV);
-    ctrCVDestroy(g_CompletionCV);
-    ctrMtxDestroy(g_BatchMtx);
-    ctrMtxDestroy(g_IntrMtx);
+    DestroyCV(g_SyncCV);
+    DestroyCV(g_HaltCV);
+    DestroyCV(g_CompletionCV);
+    DestroyMutex(g_BatchMtx);
+    DestroyMutex(g_IntrMtx);
 
     BatchRunnerExit();
     BatchQueueDestroy(&g_BatchQueue);
@@ -186,24 +187,24 @@ void kygxExit(void) {
 
 void kygxClearIntr(KYGXIntr intrID) {
     const size_t index = indexForIntr(intrID);
-    ctrMtxAcquire(g_IntrMtx);
+    AcquireMutex(g_IntrMtx);
     g_IntrFlags[index] = false;
-    ctrMtxRelease(g_IntrMtx);
+    ReleaseMutex(g_IntrMtx);
 }
 
 void kygxWaitIntr(KYGXIntr intrID) {
     const size_t index = indexForIntr(intrID);
 
-    ctrMtxAcquire(g_IntrMtx);
+    AcquireMutex(g_IntrMtx);
 
     while (!g_IntrFlags[index])
-        ctrCVWait(g_IntrCVs[index], g_IntrMtx);
+        WaitCV(g_IntrCVs[index], g_IntrMtx);
 
-    ctrMtxRelease(g_IntrMtx);
+    ReleaseMutex(g_IntrMtx);
 }
 
 KYGXError kygxPushBatch(const KYGXCmd* commands, size_t numCommands, KYGXBatchCallback cb, void* cbData) {
-    ctrMtxAcquire(g_BatchMtx);
+    AcquireMutex(g_BatchMtx);
 
     const bool shouldExec = !g_Halt && BatchQueueIsEmpty(&g_BatchQueue);
     const BatchQueueError qErr = BatchQueuePush(&g_BatchQueue, commands, numCommands, cb, cbData);
@@ -214,7 +215,7 @@ KYGXError kygxPushBatch(const KYGXCmd* commands, size_t numCommands, KYGXBatchCa
         CTR_BREAK_IF(tryExecNextBatch() != ExecState_Success);
     }
 
-    ctrMtxRelease(g_BatchMtx);
+    ReleaseMutex(g_BatchMtx);
 
     switch (qErr) {
         case BatchQueueError_Success:
@@ -229,12 +230,12 @@ KYGXError kygxPushBatch(const KYGXCmd* commands, size_t numCommands, KYGXBatchCa
 }
 
 void kygxWaitCompletion(void) {
-    ctrMtxAcquire(g_BatchMtx);
+    AcquireMutex(g_BatchMtx);
 
     while (!BatchQueueIsEmpty(&g_BatchQueue))
-        ctrCVWait(g_CompletionCV, g_BatchMtx);
+        WaitCV(g_CompletionCV, g_BatchMtx);
 
-    ctrMtxRelease(g_BatchMtx);
+    ReleaseMutex(g_BatchMtx);
 }
 
 // Note: thread-unsafe.
@@ -243,7 +244,7 @@ static void doHalt(bool wait) {
 
     if (wait) {
         while (g_Executing)
-            ctrCVWait(g_HaltCV, g_BatchMtx);
+            WaitCV(g_HaltCV, g_BatchMtx);
     }
 }
 
@@ -260,7 +261,7 @@ static void undoHalt(void) {
 }
 
 void kygxSetHalt(bool halt, bool wait) {
-    ctrMtxAcquire(g_BatchMtx);
+    AcquireMutex(g_BatchMtx);
 
     if (halt) {
         doHalt(wait);
@@ -268,20 +269,20 @@ void kygxSetHalt(bool halt, bool wait) {
         undoHalt();
     }
 
-    ctrMtxRelease(g_BatchMtx);
+    ReleaseMutex(g_BatchMtx);
 }
 
 static void execSyncCallback(void) {
-    ctrMtxAcquire(g_BatchMtx);
+    AcquireMutex(g_BatchMtx);
     g_Executing = false;
-    ctrCVBroadcast(g_SyncCV);
-    ctrMtxRelease(g_BatchMtx);
+    BroadcastCV(g_SyncCV);
+    ReleaseMutex(g_BatchMtx);
 }
 
 void kygxExecSync(const KYGXCmd* command) {
     CTR_ASSERT(command);
 
-    ctrMtxAcquire(g_BatchMtx);
+    AcquireMutex(g_BatchMtx);
 
     // Halt execution of batches.
     doHalt(true);
@@ -298,7 +299,7 @@ void kygxExecSync(const KYGXCmd* command) {
     ExecState state = BatchRunnerExec(&it);
     
     while (state == ExecState_Busy) {
-        ctrYield();
+        Yield();
         state = BatchRunnerExec(&it);
     }
 
@@ -308,11 +309,11 @@ void kygxExecSync(const KYGXCmd* command) {
     g_Executing = true;
 
     while (g_Executing)
-        ctrCVWait(g_SyncCV, g_BatchMtx);
+        WaitCV(g_SyncCV, g_BatchMtx);
 
     // Resume processing.
     BatchRunnerSetCallbacks(onInterrupt, onBatchCompleted);
     undoHalt();
 
-    ctrMtxRelease(g_BatchMtx);
+    ReleaseMutex(g_BatchMtx);
 }

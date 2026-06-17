@@ -10,7 +10,7 @@
 #ifndef GUARD_KYGX_H
 #define GUARD_KYGX_H
 
-#include <CTR/Defs.h>
+#include <CTR11/Defs.h>
 
 #define KYGX_CMD_REQUESTDMA 0x00
 #define KYGX_CMD_PROCESSCOMMANDLIST 0x01

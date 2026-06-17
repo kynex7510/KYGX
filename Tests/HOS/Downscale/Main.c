@@ -1,6 +1,6 @@
 #include <3ds.h>
 
-#include <CTR/Allocator.h>
+#include <CTR11/Allocator.h>
 
 #include <KYGX/Command/FlushCacheRegions.h>
 #include <KYGX/Command/DisplayTransfer.h>
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     const size_t bpp = 24;
     const size_t imgSize = width * height * bpp >> 3;
 
-    void* img = ctrAlloc(CTR_MEM_LINEAR, imgSize);
+    void* img = AllocMem(MemType_FCRAM, imgSize);
     CTR_BREAK_IF(!img);
 
     FILE* f = fopen("romfs:/EpicSkeleton.data", "rb");
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
         kygxWaitVBlankTop();
     }
 
-    ctrFree(img);
+    FreeMem(img);
 
     kygxExit();
     gfxExit();

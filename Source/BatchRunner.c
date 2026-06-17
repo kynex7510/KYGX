@@ -4,9 +4,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <CTR/Unreachable.h>
-#include <CTR/Assert.h>
-#include <CTR/Sync.h>
+#include <CTR11/Unreachable.h>
+#include <CTR11/Assert.h>
+#include <CTR11/Sync.h>
 
 #include "BatchRunner.h"
 #include "CmdQueue.h"
@@ -39,7 +39,7 @@ void IntrCallback(KYGXIntr intrID) {
         // This can happen if the last command is a flush command, for example.
         // This also handles a batch made of flush commands only.
         while (CmdQueueIsBusy())
-            ctrYield();
+            Yield();
 
         // Invoke callback.
         if (CTR_LIKELY(g_UserOnBatchCompleted))

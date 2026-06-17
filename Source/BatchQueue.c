@@ -4,8 +4,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <CTR/Allocator.h>
-#include <CTR/Assert.h>
+#include <CTR11/Allocator.h>
+#include <CTR11/Assert.h>
 
 #include "BatchQueue.h"
 
@@ -31,7 +31,7 @@ BatchQueueError BatchQueueInit(BatchQueue* q, size_t capacity) {
         return BatchQueueError_Success;
 
     const size_t entryOverhead = sizeof(KYGXCmd) + sizeof(size_t) + sizeof(KYGXBatchCallback) + sizeof(void*);
-    void* buffer = ctrAlloc(CTR_MEM_HEAP, entryOverhead * capacity);
+    void* buffer = AllocMem(MemType_Virtual, entryOverhead * capacity);
     if (!buffer)
         return BatchQueueError_NoMemory;
 
@@ -48,7 +48,7 @@ BatchQueueError BatchQueueInit(BatchQueue* q, size_t capacity) {
 void BatchQueueDestroy(BatchQueue* q) {
     CTR_ASSERT(q);
 
-    ctrFree(q->cmdList);
+    FreeMem(q->cmdList);
     clearQueue(q);
 }
 

@@ -1,6 +1,6 @@
 // https://gist.github.com/kynex7510/f760d71de575eae066c0795263703826
 
-#include <CTR/Allocator.h>
+#include <CTR11/Allocator.h>
 #include <KYGX/Command/MemoryFill.h>
 #include <KYGX/Command/DisplayTransfer.h>
 #include <KYGX/Command/FlushCacheRegions.h>
@@ -52,7 +52,7 @@ int main(void) {
     consoleInit(GFX_LCD_BOT, NULL);
     CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
-    g_QTMBuffer = ctrAlloc(CTR_MEM_QTMRAM, FB_SIZE);
+    g_QTMBuffer = AllocMem(MemType_QTMRAM, FB_SIZE);
 
     bool updateConsole = true;
     while (true) {
@@ -90,7 +90,7 @@ int main(void) {
         kygxWaitVBlankTop();
     }
 
-    ctrFree(g_QTMBuffer);
+    FreeMem(g_QTMBuffer);
 
     kygxExit();
     GFX_deinit();

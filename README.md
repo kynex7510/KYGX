@@ -28,10 +28,10 @@ cmake --install BuildBM --prefix BuildBM/Release
 
 Tested kernel configuration:
 
-- `MAX_TASKS`: 12
-- `MAX_EVENTS`: 32
-- `MAX_MUTEXES`: 16
-- `MAX_SEMAPHORES`: 8
+- `MAX_TASKS`: 4
+- `MAX_EVENTS`: 16
+- `MAX_MUTEXES`: 8
+- `MAX_SEMAPHORES`: 10
 - `MAX_TIMERS`: 0
 
 ## License

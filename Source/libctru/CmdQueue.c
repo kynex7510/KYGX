@@ -6,9 +6,9 @@
 
 #include <3ds.h>
 
-#include <CTR/Assert.h>
-#include <CTR/Unreachable.h>
-#include <CTR/Break.h>
+#include <CTR11/Assert.h>
+#include <CTR11/Unreachable.h>
+#include <CTR11/Break.h>
 
 #include "CmdQueue.h"
 #include "Interrupt.h"

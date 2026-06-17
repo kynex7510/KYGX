@@ -10,9 +10,9 @@
 #include <arm11/drivers/gx.h>
 #include <arm11/drivers/gpu_regs.h>
 
-#include <CTR/Assert.h>
-#include <CTR/Unreachable.h>
-#include <CTR/Sync.h>
+#include <CTR11/Assert.h>
+#include <CTR11/Unreachable.h>
+#include <CTR11/Sync.h>
 
 #include "CmdQueue.h"
 #include "Interrupt.h"
@@ -25,8 +25,8 @@ typedef struct {
 } Batch;
 
 static Batch g_Batch;
-static CTRMtx* g_BatchMtx;
-static CTRCV* g_BatchCV;
+static Mutex g_BatchMtx;
+static CV g_BatchCV;
 static bool g_TerminateWorker = false;
 static bool g_ExitedThread = false; // Join workaround.
 
@@ -152,13 +152,13 @@ static inline size_t batchSize(const Batch* b) {
 
 static void workerThread(void* unused) {
     while (true) {
-        ctrMtxAcquire(g_BatchMtx);
+        AcquireMutex(g_BatchMtx);
 
         while (!batchSize(&g_Batch) && !g_TerminateWorker)
-            ctrCVWait(g_BatchCV, g_BatchMtx);
+            WaitCV(g_BatchCV, g_BatchMtx);
 
         if (g_TerminateWorker) {
-            ctrMtxRelease(g_BatchMtx);
+            ReleaseMutex(g_BatchMtx);
             break;
         }
 
@@ -168,7 +168,7 @@ static void workerThread(void* unused) {
         
         g_Batch.count = 0;
 
-        ctrMtxRelease(g_BatchMtx);
+        ReleaseMutex(g_BatchMtx);
 
         // Execute commands.
         const size_t numCmds = batchSize(&b);
@@ -190,8 +190,8 @@ void CmdQueueInit(void) {
     g_Batch.count = 0;
     g_TerminateWorker = false;
 
-    g_BatchMtx = ctrMtxCreate();
-    g_BatchCV = ctrCVCreate();
+    g_BatchMtx = CreateMutex();
+    g_BatchCV = CreateCV();
 
     CTR_BREAK_IF(!createTask(0x400, 3, workerThread, NULL));
 }
@@ -199,19 +199,19 @@ void CmdQueueInit(void) {
 void CmdQueueExit(void) {
     CTR_ASSERT(g_BatchMtx);
 
-    ctrMtxAcquire(g_BatchMtx);
+    AcquireMutex(g_BatchMtx);
     g_ExitedThread = false;
     g_TerminateWorker = true;
-    ctrCVNotify(g_BatchCV, 1);
-    ctrMtxRelease(g_BatchMtx);
+    NotifyCV(g_BatchCV, 1);
+    ReleaseMutex(g_BatchMtx);
 
     //
     while (!g_ExitedThread)
         yieldTask();
     //
 
-    ctrCVDestroy(g_BatchCV);
-    ctrMtxDestroy(g_BatchMtx);
+    DestroyCV(g_BatchCV);
+    DestroyMutex(g_BatchMtx);
 
     g_BatchCV = NULL;
     g_BatchMtx = NULL;
@@ -221,27 +221,27 @@ bool CmdQueueIsBusy(void) {
     CTR_ASSERT(g_BatchMtx);
 
     // Batch commands are all added in one go, thus the queue becomes busy as soon as we get one.
-    ctrMtxAcquire(g_BatchMtx);
+    AcquireMutex(g_BatchMtx);
     const size_t num = batchSize(&g_Batch);
-    ctrMtxRelease(g_BatchMtx);
+    ReleaseMutex(g_BatchMtx);
     return num > 0;
 }
 
 void CmdQueueAdd(const KYGXCmd* cmd) {
     CTR_ASSERT(g_BatchMtx);
 
-    ctrMtxAcquire(g_BatchMtx);
+    AcquireMutex(g_BatchMtx);
 
     CTR_ASSERT((batchSize(&g_Batch) + 1) < CMDQUEUE_MAX_CMDS);
 
     memcpy(&g_Batch.cmds[g_Batch.count], cmd, sizeof(KYGXCmd));
     ++g_Batch.count;
 
-    ctrMtxRelease(g_BatchMtx);
+    ReleaseMutex(g_BatchMtx);
 }
 
 void CmdQueueTriggerHandling(void) {
     CTR_ASSERT(g_BatchMtx);
 
-    ctrCVNotify(g_BatchCV, 1);
+    NotifyCV(g_BatchCV, 1);
 }
