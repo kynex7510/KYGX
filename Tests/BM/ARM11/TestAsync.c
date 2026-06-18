@@ -48,11 +48,11 @@ static void clearScreen(void) {
     u8* fb = GFX_getBuffer(GFX_LCD_TOP, GFX_SIDE_LEFT);
 
     // Prepare fill structure.
-    KYGXMemoryFillBuffer fill;
+    KYGXFill fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
-    fill.value = KYGX_MEMORYFILL_VALUE_RGB8(0xFF, 0xFF, 0xFF);
-    fill.width = KYGX_MEMORYFILL_WIDTH_24;
+    fill.value = KYGX_RGB8_PIXEL(0xFF, 0xFF, 0xFF);
+    fill.width = KYGXFillWidth_RGB8;
 
     // Prepare transfer flags.
     KYGXDisplayTransferFlags transferFlags;
@@ -78,11 +78,11 @@ static void drawRect(u16 x, u16 y, u16 width, u16 height) {
     u8* fb = GFX_getBuffer(GFX_LCD_TOP, GFX_SIDE_LEFT);
 
     // Prepare fill structure.
-    KYGXMemoryFillBuffer fill;
+    KYGXFill fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
-    fill.value = KYGX_MEMORYFILL_VALUE_RGB8(0xFF, 0x00, 0x00);
-    fill.width = KYGX_MEMORYFILL_WIDTH_24;
+    fill.value = KYGX_RGB8_PIXEL(0xFF, 0x00, 0x00);
+    fill.width = KYGXFillWidth_RGB8;
 
     // Prepare rect params.
     KYGXTextureCopySurface srcSurface;

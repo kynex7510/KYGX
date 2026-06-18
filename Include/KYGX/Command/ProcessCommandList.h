@@ -11,6 +11,7 @@
 #define GUARD_KYGX_COMMAND_PROCESSCOMMANDLIST_H
 
 #include <CTR11/Assert.h>
+#include <CTR11/Align.h>
 
 #include <KYGX/GX.h>
 
@@ -18,8 +19,20 @@
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * @brief Construct a ProcessCommandList command.
+ * This command starts the processing of the specified GPU command list. The GPU command list must reside in FCRAM,
+ * QTMRAM or VRAM. Both address and size must be 8 bytes aligned.
+ * @param[out] cmd Output command.
+ * @param[in] addr GPU command list address.
+ * @param[in] size GPU command list size.
+ * @param[in] updateGasAccMax Whether to update gas additive results after the execution of the GPU command list.
+ * @param[in] flush Whether to flush the source buffer before the command execution.
+ */
 CTR_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
     CTR_ASSERT(cmd);
+    CTR_ASSERT(IsAligned((uint32_t)addr, 8));
+    CTR_ASSERT(IsAligned(size, 8));
 
     cmd->header = KYGX_CMD_PROCESSCOMMANDLIST;
     cmd->params[0] = (uint32_t)addr;
@@ -29,6 +42,13 @@ CTR_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size
     cmd->params[6] = flush ? 1 : 0;
 }
 
+/**
+ * @brief Execute ProcessCommandList synchronously.
+ * @param[in] addr GPU command list address.
+ * @param[in] size GPU command list size.
+ * @param[in] updateGasAccMax Whether to update gas additive results after the execution of the GPU command list.
+ * @param[in] flush Whether to flush the source buffer before the command execution.
+ */
 CTR_INLINE void kygxSyncProcessCommandList(void* addr, size_t size, bool updateGasAccMax, bool flush) {
     KYGXCmd cmd;
     kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);

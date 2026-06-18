@@ -20,11 +20,6 @@ static u8 g_Blue = 0xFF;
 static void clearScreen(void) {
     u8* fb = GFX_getBuffer(GFX_LCD_TOP, GFX_SIDE_LEFT);
 
-    // Prepare flush buffer.
-    KYGXFlushCacheRegionsBuffer flush;
-    flush.addr = g_QTMBuffer;
-    flush.size = FB_SIZE;
-
     // Prepare transfer flags.
     KYGXDisplayTransferFlags transferFlags;
     transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
@@ -42,7 +37,7 @@ static void clearScreen(void) {
         p[i + 2] = g_Blue;
     }
 
-    kygxSyncFlushCacheRegions(&flush, NULL, NULL);
+    kygxSyncFlushSingleRegion(g_QTMBuffer, FB_SIZE);
     kygxSyncDisplayTransferChecked(g_QTMBuffer, fb, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, &transferFlags);
 }
 

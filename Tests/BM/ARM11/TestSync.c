@@ -18,11 +18,11 @@ static void clearScreen(void) {
     u8* fb = GFX_getBuffer(GFX_LCD_TOP, GFX_SIDE_LEFT);
 
     // Prepare fill structure.
-    KYGXMemoryFillBuffer fill;
+    KYGXFill fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
-    fill.value = KYGX_MEMORYFILL_VALUE_RGB8(g_Red, g_Green, g_Blue);
-    fill.width = KYGX_MEMORYFILL_WIDTH_24;
+    fill.value = KYGX_RGB8_PIXEL(g_Red, g_Green, g_Blue);
+    fill.width = KYGXFillWidth_RGB8;
 
     // Prepare transfer flags.
     KYGXDisplayTransferFlags transferFlags;

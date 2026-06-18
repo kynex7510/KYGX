@@ -24,9 +24,9 @@ typedef void (*KYGXBatchCallback)(void* data);
 
 /// @brief Error codes.
 typedef enum {
-    KYGXError_Success = 0,    ///< Success
-    KYGXError_NoMemory = 1,   ///< No memory
-    KYGXError_NoCommands = 2, ///< No commands
+    KYGXError_Success,    ///< Success
+    KYGXError_NoMemory,   ///< No memory
+    KYGXError_NoCommands, ///< No commands
 } KYGXError;
 
 /// @brief GPU interrupts.

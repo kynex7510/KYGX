@@ -14,37 +14,47 @@
 
 #include <KYGX/GX.h>
 
+/// @brief Represents a memory region.
 typedef struct {
-    const void* addr;
-    size_t size;
-} KYGXFlushCacheRegionsBuffer;
+    const void* addr; ///< Region address.
+    size_t size;      ///< Region size.
+} KYGXRegion;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-CTR_INLINE void kygxMakeFlushCacheRegions(KYGXCmd* cmd, const KYGXFlushCacheRegionsBuffer* buffer0, const KYGXFlushCacheRegionsBuffer* buffer1, const KYGXFlushCacheRegionsBuffer* buffer2) {
+/**
+ * @brief Construct a FlushCacheRegions command.
+ * This command flushes the data cache of the specified regions. If a region has size 0 it's skipped,
+ * in that case subsequent regions are not flushed aswell.
+ * @param[out] cmd Output command.
+ * @param[in] region0 First region.
+ * @param[in] region1 Second region.
+ * @param[in] region2 Third region.
+ */
+CTR_INLINE void kygxMakeFlushCacheRegions(KYGXCmd* cmd, const KYGXRegion* region0, const KYGXRegion* region1, const KYGXRegion* region2) {
     CTR_ASSERT(cmd);
 
     cmd->header = KYGX_CMD_FLUSHCACHEREGIONS;
 
-    if (buffer0) {
-        cmd->params[0] = (uint32_t)buffer0->addr;
-        cmd->params[1] = buffer0->size;
+    if (region0) {
+        cmd->params[0] = (uint32_t)region0->addr;
+        cmd->params[1] = region0->size;
     } else {
         cmd->params[0] = cmd->params[1] = 0;
     }
 
-    if (buffer1) {
-        cmd->params[2] = (uint32_t)buffer1->addr;
-        cmd->params[3] = buffer1->size;
+    if (region1) {
+        cmd->params[2] = (uint32_t)region1->addr;
+        cmd->params[3] = region1->size;
     } else {
         cmd->params[2] = cmd->params[3] = 0;
     }
 
-    if (buffer2) {
-        cmd->params[4] = (uint32_t)buffer2->addr;
-        cmd->params[5] = buffer2->size;
+    if (region2) {
+        cmd->params[4] = (uint32_t)region2->addr;
+        cmd->params[5] = region2->size;
     } else {
         cmd->params[4] = cmd->params[5] = 0;
     }
@@ -52,17 +62,27 @@ CTR_INLINE void kygxMakeFlushCacheRegions(KYGXCmd* cmd, const KYGXFlushCacheRegi
     cmd->params[6] = 0;
 }
 
-CTR_INLINE void kygxSyncFlushCacheRegions(const KYGXFlushCacheRegionsBuffer* buffer0, const KYGXFlushCacheRegionsBuffer* buffer1, const KYGXFlushCacheRegionsBuffer* buffer2) {
+/**
+ * @brief Execute FlushCacheRegions synchronously.
+ * @param[in] region0 First region.
+ * @param[in] region1 Second region.
+ * @param[in] region2 Third region.
+ */
+CTR_INLINE void kygxSyncFlushCacheRegions(const KYGXRegion* region0, const KYGXRegion* region1, const KYGXRegion* region2) {
     KYGXCmd cmd;
-    kygxMakeFlushCacheRegions(&cmd, buffer0, buffer1, buffer2);
+    kygxMakeFlushCacheRegions(&cmd, region0, region1, region2);
     kygxExecSync(&cmd);
 }
-
-CTR_INLINE void kygxSyncFlushSingleBuffer(const void* addr, size_t size) {
-    KYGXFlushCacheRegionsBuffer flush;
-    flush.addr = addr;
-    flush.size = size;
-    kygxSyncFlushCacheRegions(&flush, NULL, NULL);
+/**
+ * @brief Execute FlushCacheRegions synchronously for a single region.
+ * @param[in] addr Region address.
+ * @param[in] size Region size.
+ */
+CTR_INLINE void kygxSyncFlushSingleRegion(const void* addr, size_t size) {
+    KYGXRegion region;
+    region.addr = addr;
+    region.size = size;
+    kygxSyncFlushCacheRegions(&region, NULL, NULL);
 }
 
 #ifdef __cplusplus

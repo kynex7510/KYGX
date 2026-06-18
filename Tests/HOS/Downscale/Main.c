@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     fread(img, imgSize, 1, f);
     fclose(f);
 
-    kygxSyncFlushSingleBuffer(img, imgSize);
+    kygxSyncFlushSingleRegion(img, imgSize);
 
     // Prepare transfer flags.
     KYGXDisplayTransferFlags transferFlags;

@@ -18,6 +18,14 @@
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * @brief Construct a RequestDMA command.
+ * @param[out] cmd Output command.
+ * @param[in] src Source address.
+ * @param[in] dst Destination address.
+ * @param[in] size Size.
+ * @param[in] flush Whether to flush the source buffer before the command execution.
+ */
 CTR_INLINE void kygxMakeRequestDMA(KYGXCmd* cmd, const void* src, void* dst, size_t size, bool flush) {
     CTR_ASSERT(cmd);
 
@@ -29,6 +37,13 @@ CTR_INLINE void kygxMakeRequestDMA(KYGXCmd* cmd, const void* src, void* dst, siz
     cmd->params[6] = flush ? 1 : 0;
 }
 
+/**
+ * @brief Execute RequestDMA synchronously.
+ * @param[in] src Source address.
+ * @param[in] dst Destination address.
+ * @param[in] size Size.
+ * @param[in] flush Whether to flush the source buffer before the DMA request.
+ */
 CTR_INLINE void kygxSyncRequestDMA(const void* src, void* dst, size_t size, bool flush) {
     KYGXCmd cmd;
     kygxMakeRequestDMA(&cmd, src, dst, size, flush);
