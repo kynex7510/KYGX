@@ -44,7 +44,7 @@ static void clearScreen(void) {
     transferFlags.mode = KYGXTransferMode_TiledToLinear;
     transferFlags.downscale = KYGXTransferDownscale_None;
     transferFlags.flip = KYGXTransferFlip_None;
-    transferFlags.blockMode = KYGXTransferBlockMode_8;
+    transferFlags.tileSize = KYGXTransferTileSize_8x8;
 
     // Fill framebuffer through VRAM.
     kygxSyncMemoryFill(&fill, NULL);

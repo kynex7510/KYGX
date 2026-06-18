@@ -38,7 +38,7 @@ static void clearScreen(void) {
     transferFlags.mode = KYGXTransferMode_TiledToLinear;
     transferFlags.downscale = KYGXTransferDownscale_None;
     transferFlags.flip = KYGXTransferFlip_None;
-    transferFlags.blockMode = KYGXTransferBlockMode_8;
+    transferFlags.tileSize = KYGXTransferTileSize_8x8;
 
     // Clear buffer.
     u8* p = (u8*)g_QTMRAMBuffer;

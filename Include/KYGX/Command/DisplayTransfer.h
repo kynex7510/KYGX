@@ -12,72 +12,166 @@
 
 #include <CTR11/Assert.h>
 #include <CTR11/Align.h>
+#include <CTR11/Unreachable.h>
 
 #include <KYGX/GX.h>
 
+/// @brief Pixel format for a transfer surface.
 typedef enum {
-    KYGXTransferFormat_RGBA8 = 0,
-    KYGXTransferFormat_RGB8 = 1,
-    KYGXTransferFormat_RGB565 = 2,
-    KYGXTransferFormat_RGB5A1 = 3,
-    KYGXTransferFormat_RGBA4 = 4,
+    KYGXTransferFormat_RGBA8 = 0,  ///< RGBA8
+    KYGXTransferFormat_RGB8 = 1,   ///< RGB8
+    KYGXTransferFormat_RGB565 = 2, ///< RGB565
+    KYGXTransferFormat_RGB5A1 = 3, ///< RGB5A1
+    KYGXTransferFormat_RGBA4 = 4,  ///< RGBA4
 } KYGXTransferFormat;
 
+/// @brief Represents a pixel buffer in a transfer operation.
 typedef struct {
-    void* addr;
-    uint16_t width;
-    uint16_t height;
-    KYGXTransferFormat format;
+    void* addr;                ///< Buffer address.
+    uint16_t width;            ///< Buffer width.
+    uint16_t height;           ///< Buffer height.
+    KYGXTransferFormat format; ///< Pixel format.
 } KYGXTransferSurface;
 
+/// @brief Mode of operation, each mode has different features and constraints.
 typedef enum {
-    KYGXTransferMode_TiledToLinear = 0,
-    KYGXTransferMode_LinearToTiled = (1 << 1),
-    KYGXtransferMode_TiledToTiled = (1 << 5),
+    KYGXTransferMode_TiledToLinear = 0,        ///< Convert the surface from tiled/swizzled to linear.
+    KYGXTransferMode_LinearToTiled = (1 << 1), ///< Convert the surface from linear to tiled/swizzled.
+    KYGXtransferMode_TiledToTiled = (1 << 5),  ///< Assume source and destination are swizzled, and don't do anything.
 } KYGXTransferMode;
 
+/// @brief Scales down the surface using a box filter.
 typedef enum {
-    KYGXTransferDownscale_None = 0,
-    KYGXTransferDownscale_2x1 = 1,
-    KYGXTransferDownscale_2x2 = 2,
+    KYGXTransferDownscale_None = 0, ///< No downscale.
+    KYGXTransferDownscale_2x1 = 1,  ///< 2x1 downscale.
+    KYGXTransferDownscale_2x2 = 2,  ///< 2x2 downscale, effectively halves the surface dimensions.
 } KYGXTransferDownscale;
 
+/// @brief Controls surface flipping.
 typedef enum {
-    KYGXTransferFlip_None = 0,
-    KYGXTransferFlip_Vertical = (1 << 0),
+    KYGXTransferFlip_None = 0,            ///< Don't flip.
+    KYGXTransferFlip_Vertical = (1 << 0), ///< Flip the surface vertically.
 } KYGXTransferFlip;
 
+/// @brief Sets the size of a single tile.
 typedef enum {
-    KYGXTransferBlockMode_8 = 0,
-    KYGXtransferBlockMode_32 = (1 << 16),
-} KYGXTransferBlockMode;
+    KYGXTransferTileSize_8x8 = 0,           ///< 1 tile is 8x8.
+    KYGXtransferTileSize_32x32 = (1 << 16), ///< 1 tile is 32x32.
+} KYGXTransferTileSize;
 
+/// @brief Transfer flags.
 typedef struct {
-    KYGXTransferMode mode;
-    KYGXTransferDownscale downscale;
-    KYGXTransferFlip flip;
-    KYGXTransferBlockMode blockMode;
+    KYGXTransferMode mode;           ///< Mode of operation.
+    KYGXTransferDownscale downscale; ///< Downscale.
+    KYGXTransferFlip flip;           ///< Flip.
+    KYGXTransferTileSize tileSize;   ///< Tile size.
 } KYGXTransferFlags;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * Packs transfer flags into a word.
+ * @param[in] srcFmt Source surface pixel format.
+ * @param[in] dstFmt Destination surface pixel format.
+ * @param[in] flags Transfer flags.
+ * @return Packed transfer flags.
+ */
 CTR_INLINE uint32_t kygxPackDisplayTransferFlags(KYGXTransferFormat srcFmt, KYGXTransferFormat dstFmt, const KYGXTransferFlags* flags) {
     CTR_ASSERT(flags);
     
+#ifndef NDEBUG
+
+    switch (srcFmt) {
+        case KYGXTransferFormat_RGBA8:
+        case KYGXTransferFormat_RGB8:
+        case KYGXTransferFormat_RGB565:
+        case KYGXTransferFormat_RGB5A1:
+        case KYGXTransferFormat_RGBA4:
+            break;
+        default:
+            CTR_UNREACHABLE("Invalid source format");
+    }
+
+    switch (dstFmt) {
+        case KYGXTransferFormat_RGBA8:
+        case KYGXTransferFormat_RGB8:
+        case KYGXTransferFormat_RGB565:
+        case KYGXTransferFormat_RGB5A1:
+        case KYGXTransferFormat_RGBA4:
+            break;
+        default:
+            CTR_UNREACHABLE("Invalid destination format");
+    }
+
+    switch (flags->mode) {
+        case KYGXTransferMode_TiledToLinear:
+        case KYGXTransferMode_LinearToTiled:
+        case KYGXtransferMode_TiledToTiled:
+            break;
+        default:
+            CTR_UNREACHABLE("Invalid transfer mode");
+    }
+
+    switch (flags->downscale) {
+        case KYGXTransferDownscale_None:
+        case KYGXTransferDownscale_2x1:
+        case KYGXTransferDownscale_2x2: 
+            break;
+        default:
+            CTR_UNREACHABLE("Invalid downscale");
+    }
+
+    switch (flags->flip) {
+        case KYGXTransferFlip_None:
+        case KYGXTransferFlip_Vertical:
+            break;
+        default:
+            CTR_UNREACHABLE("Invalid flip mode");
+    }
+
+    switch (flags->tileSize) {
+        case KYGXTransferTileSize_8x8:
+        case KYGXtransferTileSize_32x32:
+            break;
+        default:
+            CTR_UNREACHABLE("Invalid tile size");
+    }
+
+#endif // !NDEBUG
+
     uint32_t ret = (uint32_t)flags->mode;
     ret |= ((uint32_t)srcFmt << 8);
     ret |= ((uint32_t)dstFmt << 12);
     ret |= ((uint32_t)flags->downscale << 24);
     ret |= (uint32_t)flags->flip;
-    ret |= (uint32_t)flags->blockMode;
+    ret |= (uint32_t)flags->tileSize;
 
     return ret;
 }
 
+/**
+ * @brief Construct a DisplayTransfer command.
+ * This command has multiple functionalities, but is generally used for transferring GPU framebuffers into LCD
+ * framebuffers, and for mipmap generation. Both source and destination addresses must be in FCRAM, VRAM or QTMRAM,
+ * and must be aligned to 8 bytes. Additional constraints apply which depend on the performed operation. For more info,
+ * see \ref kygxCheckDisplayTransferParams.
+ * @param[out] cmd Output command.
+ * @param[in] src Source buffer.
+ * @param[in] dst Destination buffer.
+ * @param[in] srcWidth Source width.
+ * @param[in] dstWidth Destination width.
+ * @param[in] srcHeight Source Height.
+ * @param[in] dstHeight Destination height.
+ * @param[in] flags Transfer flags.
+ */
 CTR_INLINE void kygxMakeDisplayTransferRaw(KYGXCmd* cmd, const void* src, void* dst, uint16_t srcWidth, uint16_t srcHeight, uint16_t dstWidth, uint16_t dstHeight, uint32_t flags) {
     CTR_ASSERT(cmd);
+    CTR_ASSERT(IsAligned((uint32_t)src, 8));
+    CTR_ASSERT(IsAligned((uint32_t)dst, 8));
+    CTR_ASSERT(IsMemFCRAM(src) || IsMemVRAM(src) || IsMemQTMRAM(src));
+    CTR_ASSERT(IsMemFCRAM(dst) || IsMemVRAM(dst) || IsMemQTMRAM(dst));
 
     // Set crop bit.
     if (dstWidth < srcWidth)
@@ -92,6 +186,13 @@ CTR_INLINE void kygxMakeDisplayTransferRaw(KYGXCmd* cmd, const void* src, void* 
     cmd->params[4] = flags & ~0x8u; // clear TextureCopy bit.
 }
 
+/**
+ * @brief Checks whether a given combination of surfaces and flags is accepted by the hardware.
+ * @param[in] src Source surface.
+ * @param[in] dst Destination surface.
+ * @param[in] flags Transfer flags.
+ * @return True if the combination is valid, false otherwise.
+ */
 CTR_INLINE bool kygxCheckDisplayTransferParams(const KYGXTransferSurface* src, const KYGXTransferSurface* dst, const KYGXTransferFlags* flags) {
     CTR_ASSERT(src);
     CTR_ASSERT(dst);
@@ -221,6 +322,14 @@ CTR_INLINE bool kygxCheckDisplayTransferParams(const KYGXTransferSurface* src, c
     return true;
 }
 
+/**
+ * @brief Construct a DisplayTransfer command.
+ * This wrapper simplifies command construction and performs checks when compiling in debug mode.
+ * @param[out] cmd Output command.
+ * @param[in] src Source surface.
+ * @param[in] dst Destination surface.
+ * @param[in] flags Transfer flags.
+ */
 CTR_INLINE void kygxMakeDisplayTransfer(KYGXCmd* cmd, const KYGXTransferSurface* src, const KYGXTransferSurface* dst, const KYGXTransferFlags* flags) {
     CTR_ASSERT(cmd);
     CTR_ASSERT(flags);
@@ -230,6 +339,12 @@ CTR_INLINE void kygxMakeDisplayTransfer(KYGXCmd* cmd, const KYGXTransferSurface*
     kygxMakeDisplayTransferRaw(cmd, src->addr, dst->addr, src->width, src->height, dst->width, dst->height, packedFlags);
 }
 
+/**
+ * @brief Execute DisplayTransfer synchronously.
+ * @param[in] src Source surface.
+ * @param[in] dst Destination surface.
+ * @param[in] flags Transfer flags.
+ */
 CTR_INLINE void kygxSyncDisplayTransfer(const KYGXTransferSurface* src, const KYGXTransferSurface* dst, const KYGXTransferFlags* flags) {
     CTR_ASSERT(src);
     CTR_ASSERT(dst);

@@ -15,8 +15,6 @@ static u8 g_Green = 0xFF;
 static u8 g_Blue = 0xFF;
 
 static void clearScreen(void) {
-    u8* fb = GFX_getBuffer(GFX_LCD_TOP, GFX_SIDE_LEFT);
-
     // Prepare fill structure.
     KYGXFill fill;
     fill.addr = g_VRAMBuffer;
@@ -24,18 +22,28 @@ static void clearScreen(void) {
     fill.value = KYGX_RGB8_PIXEL(g_Red, g_Green, g_Blue);
     fill.width = KYGXFillWidth_RGB8;
 
-    // Prepare transfer flags.
-    KYGXDisplayTransferFlags transferFlags;
-    transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
-    transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.downscale = KYGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
-    transferFlags.verticalFlip = false;
-    transferFlags.blockMode32 = false;
+    // Prepare transfer.
+    KYGXTransferSurface transferSrc;
+    transferSrc.addr = g_VRAMBuffer;
+    transferSrc.width = LCD_WIDTH_TOP;
+    transferSrc.height = LCD_HEIGHT_TOP;
+    transferSrc.format = KYGXTransferFormat_RGB8;
+
+    KYGXTransferSurface transferDst;
+    transferDst.addr = GFX_getBuffer(GFX_LCD_TOP, GFX_SIDE_LEFT);
+    transferDst.width = LCD_WIDTH_TOP;
+    transferDst.height = LCD_HEIGHT_TOP;
+    transferDst.format = KYGXTransferFormat_RGB8;
+    
+    KYGXTransferFlags transferFlags;
+    transferFlags.mode = KYGXTransferMode_TiledToLinear;
+    transferFlags.downscale = KYGXTransferDownscale_None;
+    transferFlags.flip = KYGXTransferFlip_None;
+    transferFlags.tileSize = KYGXTransferTileSize_8x8;
 
     // Fill framebuffer through VRAM.
     kygxSyncMemoryFill(&fill, NULL);
-    kygxSyncDisplayTransferChecked(g_VRAMBuffer, fb, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, LCD_WIDTH_TOP, LCD_HEIGHT_TOP, &transferFlags);
+    kygxSyncDisplayTransfer(&transferSrc, &transferDst, &transferFlags);
 }
 
 int main(void) {

@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     transferFlags.mode = KYGXTransferMode_TiledToLinear;
     transferFlags.downscale = KYGXTransferDownscale_2x2;
     transferFlags.flip = KYGXTransferFlip_None;
-    transferFlags.blockMode = KYGXTransferBlockMode_8;
+    transferFlags.tileSize = KYGXTransferTileSize_8x8;
 
     while (aptMainLoop()) {
         hidScanInput();
