@@ -21,14 +21,24 @@ static u8 g_Blue = 0xFF;
 static void clearScreen(void) {
     u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
-    // Prepare transfer flags.
-    KYGXDisplayTransferFlags transferFlags;
-    transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
-    transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.downscale = KYGX_DISPLAYTRANSFER_DOWNSCALE_NONE;
-    transferFlags.verticalFlip = false;
-    transferFlags.blockMode32 = false;
+    // Prepare transfer.
+    KYGXTransferSurface transferSrc;
+    transferSrc.addr = g_QTMRAMBuffer;
+    transferSrc.width = SCREEN_WIDTH;
+    transferSrc.height = SCREEN_HEIGHT;
+    transferSrc.format = KYGXTransferFormat_RGB8;
+
+    KYGXTransferSurface transferDst;
+    transferDst.addr = fb;
+    transferDst.width = SCREEN_WIDTH;
+    transferDst.height = SCREEN_HEIGHT;
+    transferDst.format = KYGXTransferFormat_RGB8;
+
+    KYGXTransferFlags transferFlags;
+    transferFlags.mode = KYGXTransferMode_TiledToLinear;
+    transferFlags.downscale = KYGXTransferDownscale_None;
+    transferFlags.flip = KYGXTransferFlip_None;
+    transferFlags.blockMode = KYGXTransferBlockMode_8;
 
     // Clear buffer.
     u8* p = (u8*)g_QTMRAMBuffer;
@@ -39,7 +49,7 @@ static void clearScreen(void) {
     }
 
     kygxSyncFlushSingleRegion(g_QTMRAMBuffer, FB_SIZE);
-    kygxSyncDisplayTransferChecked(g_QTMRAMBuffer, fb, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, &transferFlags);
+    kygxSyncDisplayTransfer(&transferSrc, &transferDst, &transferFlags);
 }
 
 int main(void) {

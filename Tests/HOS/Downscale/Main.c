@@ -28,14 +28,24 @@ int main(int argc, char* argv[]) {
 
     kygxSyncFlushSingleRegion(img, imgSize);
 
-    // Prepare transfer flags.
-    KYGXDisplayTransferFlags transferFlags;
-    transferFlags.mode = KYGX_DISPLAYTRANSFER_MODE_T2L;
-    transferFlags.srcFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.dstFmt = KYGX_DISPLAYTRANSFER_FMT_RGB8;
-    transferFlags.downscale = KYGX_DISPLAYTRANSFER_DOWNSCALE_2X2;
-    transferFlags.verticalFlip = false;
-    transferFlags.blockMode32 = false;
+    // Prepare transfer.
+    KYGXTransferSurface transferSrc;
+    transferSrc.addr = img;
+    transferSrc.width = width;
+    transferSrc.height = height;
+    transferSrc.format = KYGXTransferFormat_RGB8;
+
+    KYGXTransferSurface transferDst;
+    transferDst.addr = NULL;
+    transferDst.width = width;
+    transferDst.height = height;
+    transferDst.format = KYGXTransferFormat_RGB8;
+
+    KYGXTransferFlags transferFlags;
+    transferFlags.mode = KYGXTransferMode_TiledToLinear;
+    transferFlags.downscale = KYGXTransferDownscale_2x2;
+    transferFlags.flip = KYGXTransferFlip_None;
+    transferFlags.blockMode = KYGXTransferBlockMode_8;
 
     while (aptMainLoop()) {
         hidScanInput();
@@ -43,8 +53,8 @@ int main(int argc, char* argv[]) {
         if (kDown & KEY_START)
             break;
 
-        u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-        kygxSyncDisplayTransferChecked(img, fb, width, height, width, height, &transferFlags);
+        transferDst.addr = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+        kygxSyncDisplayTransfer(&transferSrc, &transferDst, &transferFlags);
         gfxSwapBuffers();
         kygxWaitVBlankTop();
     }
