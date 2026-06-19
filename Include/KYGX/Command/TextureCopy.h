@@ -14,71 +14,85 @@
 
 #include <KYGX/GX.h>
 
-#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGBA8 4
-#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGB8 3
-#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGB565 2
-#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGB5A1 2
-#define KYGX_TEXTURECOPY_PIXEL_SIZE_RGBA4 2
+/// @brief Common pixel sizes.
+typedef enum {
+    KYGXPixelSize_RGBA8 = 4,  ///< 4 bytes.
+    KYGXPixelSize_RGB8 = 3,   ///< 3 bytes.
+    KYGXPixelSize_RGB565 = 2, ///< 2 bytes.
+    KYGXPixelSize_RGB5A1 = 2, ///< 2 bytes.
+    KYGXPixelSize_RGBA4 = 2,  ///< 2 bytes.
+} KYGXPixelSize;
 
+/// @brief Represents a pixel buffer in a copy operation.
 typedef struct {
-    void* addr;
-    uint16_t width;
-    uint16_t height;
-    uint8_t pixelSize;
-    bool rotated; // The surface is rotated 90 degrees CCW.
-} KYGXTextureCopySurface;
+    void* addr;       ///< Buffer address.
+    uint16_t width;   ///< Buffer width.
+    uint16_t height;  ///< Buffer height.
+    size_t pixelSize; ///< Pixel size.
+} KYGXSurface;
 
+/// @brief Represents a sub-rectangle of a surface.
 typedef struct {
-    // Normal: (0, 0) is top left.
-    // Rotated: (0, 0) is bottom left.
-    uint16_t x;
-    uint16_t y;
-    uint16_t width;
-    uint16_t height;
-} KYGXTextureCopyRect;
+    uint16_t x;      ///< Rectangle X, relative to surface X.
+    uint16_t y;      ///< Rectangle Y, relative to surface Y.
+    uint16_t width;  ///< Rectangle width.
+    uint16_t height; ///< Rectangle height.
+} KYGXRect;
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-CTR_INLINE void kygxGetTextureCopyRectParams(const KYGXTextureCopySurface* surface, const KYGXTextureCopyRect* rect, size_t* offset, size_t* size, uint16_t* lineWidth, uint16_t* gap) {
+/**
+ * @brief Construct parameters for a RectCopy.
+ * @param[in] surface Surface.
+ * @param[in] rect Rect.
+ * @param[out] offset Buffer offset.
+ * @param[out] size Buffer size.
+ * @param[out] lineWidth Line width.
+ * @param[out] gap Gap.
+ */
+CTR_INLINE void kygxGetRectCopyParams(const KYGXSurface* surface, const KYGXRect* rect, size_t* offset, size_t* size, uint16_t* lineWidth, uint16_t* gap) {
     CTR_ASSERT(surface);
     CTR_ASSERT(rect);
     CTR_ASSERT(surface->width >= rect->width);
     CTR_ASSERT(surface->height >= rect->height);
 
-    size_t surfaceWidth = 0;
-    size_t rectWidth = 0;
-    size_t xpos = 0;
-    size_t ypos = 0;
-
-    if (surface->rotated) {
-        surfaceWidth = surface->height;
-        rectWidth = rect->height;
-        xpos = rect->y;
-        ypos = rect->x;
-    } else {
-        surfaceWidth = surface->width;
-        rectWidth = rect->width;
-        xpos = rect->x;
-        ypos = rect->y;
-    }
-
     if (offset)
-        *offset = (surfaceWidth * ypos * surface->pixelSize) + (xpos * surface->pixelSize);
+        *offset = (surface->width * rect->y * surface->pixelSize) + (rect->x * surface->pixelSize);
 
     if (size)
         *size = rect->width * rect->height * surface->pixelSize;
 
     if (lineWidth)
-        *lineWidth = (rectWidth * surface->pixelSize) >> 4;
+        *lineWidth = (rect->width * surface->pixelSize) >> 4;
 
     if (gap)
-        *gap = ((surfaceWidth - rectWidth) * surface->pixelSize) >> 4;
+        *gap = ((surface->width - rect->width) * surface->pixelSize) >> 4;
 }
 
+/**
+ * @brief Construct a TextureCopy command.
+ * This command allows to copy memory using the GPU. Both source and destination addresses must be in FCRAM, VRAM
+ * or QTMRAM, and must be aligned to 8 bytes. It's also possible to set a gap between lines, which allows to copy
+ * arbitrary sub-rectangles between differently sized surfaces.
+ * @param[out] cmd Output command.
+ * @param[in] src Source buffer.
+ * @param[in] dst Destination buffer.
+ * @param[in] size Size.
+ * @param[in] srcLineWidth Source line width.
+ * @param[in] srcGap Source gap.
+ * @param[in] dstLineWidth Destination line width.
+ * @param[in] dstGap Destination gap.
+ */
 CTR_INLINE void kygxMakeTextureCopy(KYGXCmd* cmd, const void* src, void* dst, size_t size, uint16_t srcLineWidth, uint16_t srcGap, uint16_t dstLineWidth, uint16_t dstGap) {
     CTR_ASSERT(cmd);
+    CTR_ASSERT(src);
+    CTR_ASSERT(dst);
+    CTR_ASSERT(IsAligned((uint32_t)src, 8));
+    CTR_ASSERT(IsAligned((uint32_t)dst, 8));
+    CTR_ASSERT(IsMemFCRAM(src) || IsMemVRAM(src) || IsMemQTMRAM(src));
+    CTR_ASSERT(IsMemFCRAM(dst) || IsMemVRAM(dst) || IsMemQTMRAM(dst));
 
     uint32_t flags = 0;
     if (srcGap || dstGap) {
@@ -108,44 +122,139 @@ CTR_INLINE void kygxMakeTextureCopy(KYGXCmd* cmd, const void* src, void* dst, si
     cmd->params[6] = 0;
 }
 
-CTR_INLINE void kygxMakeRectCopy(KYGXCmd* cmd, const KYGXTextureCopySurface* srcSurface, const KYGXTextureCopyRect* srcRect, const KYGXTextureCopySurface* dstSurface, const KYGXTextureCopyRect* dstRect) {
+/**
+ * @brief Construct a TextureCopy command.
+ * This wrapper can be used to copy raw buffers.
+ * @param[out] cmd Output command.
+ * @param[in] src Source buffer.
+ * @param[in] dst Destination buffer.
+ * @param[in] size Buffer size.
+ */
+CTR_INLINE void kygxMakeMemoryCopy(KYGXCmd* cmd, const void* src, void* dst, size_t size) {
     CTR_ASSERT(cmd);
-    CTR_ASSERT(srcSurface);
+    CTR_ASSERT(src);
+    CTR_ASSERT(dst);
+    kygxMakeTextureCopy(cmd, src, dst, size, 0, 0, 0, 0);
+}
+
+/**
+ * @brief Construct a TextureCopy command.
+ * This wrapper can be used to copy surfaces.
+ * @param[out] cmd Output command.
+ * @param[in] src Source surface.
+ * @param[in] dst Destination surface.
+ */
+CTR_INLINE void kygxMakeSurfaceCopy(KYGXCmd* cmd, const KYGXSurface* src, const KYGXSurface* dst) {
+    CTR_ASSERT(cmd);
+    CTR_ASSERT(src);
+    CTR_ASSERT(dst);
+
+    const size_t srcSize = src->width * src->height * src->pixelSize;
+    const size_t dstSize = dst->width * dst->height * dst->pixelSize;
+    CTR_ASSERT(srcSize == dstSize);
+
+    kygxMakeTextureCopy(cmd, src->addr, dst->addr, srcSize, 0, 0, 0, 0);
+}
+
+/**
+ * @brief Construct a TextureCopy command.
+ * This wrapper can be used to copy rects between surfaces.
+ * @param[out] cmd Output command.
+ * @param[in] src Source surface.
+ * @param[in] srcRect Source rect.
+ * @param[in] dst Destination surface.
+ * @param[in] dstRect Destination rect.
+ */
+CTR_INLINE void kygxMakeRectCopy(KYGXCmd* cmd, const KYGXSurface* src, const KYGXRect* srcRect, const KYGXSurface* dst, const KYGXRect* dstRect) {
+    CTR_ASSERT(cmd);
+    CTR_ASSERT(src);
     CTR_ASSERT(srcRect);
-    CTR_ASSERT(dstSurface);
+    CTR_ASSERT(dst);
     CTR_ASSERT(dstRect);
 
     size_t srcOffset = 0;
     size_t srcSize = 0;
     uint16_t srcLineWidth = 0;
     uint16_t srcGap = 0;
-    kygxGetTextureCopyRectParams(srcSurface, srcRect, &srcOffset, &srcSize, &srcLineWidth, &srcGap);
+    kygxGetRectCopyParams(src, srcRect, &srcOffset, &srcSize, &srcLineWidth, &srcGap);
 
     size_t dstOffset = 0;
     size_t dstSize = 0;
     uint16_t dstLineWidth = 0;
     uint16_t dstGap = 0;
-    kygxGetTextureCopyRectParams(dstSurface, dstRect, &dstOffset, &dstSize, &dstLineWidth, &dstGap);
+    kygxGetRectCopyParams(dst, dstRect, &dstOffset, &dstSize, &dstLineWidth, &dstGap);
 
     CTR_ASSERT(srcSize == dstSize);
 
-    kygxMakeTextureCopy(cmd, (const uint8_t*)srcSurface->addr + srcOffset, (uint8_t*)dstSurface->addr + dstOffset, srcSize, srcLineWidth, srcGap, dstLineWidth, dstGap);
+    kygxMakeTextureCopy(cmd, (const uint8_t*)src->addr + srcOffset, (uint8_t*)dst->addr + dstOffset, srcSize, srcLineWidth, srcGap, dstLineWidth, dstGap);
 }
 
+/**
+ * @brief Execute TextureCopy synchronously.
+ * @param[in] src Source buffer.
+ * @param[in] dst Destination buffer.
+ * @param[in] size Size.
+ * @param[in] srcLineWidth Source line width.
+ * @param[in] srcGap Source gap.
+ * @param[in] dstLineWidth Destination line width.
+ * @param[in] dstGap Destination gap.
+ */
 CTR_INLINE void kygxSyncTextureCopy(const void* src, void* dst, size_t size, uint16_t srcLineWidth, uint16_t srcGap, uint16_t dstLineWidth, uint16_t dstGap) {
+    CTR_ASSERT(src);
+    CTR_ASSERT(dst);
+    
     KYGXCmd cmd;
     kygxMakeTextureCopy(&cmd, src, dst, size, srcLineWidth, srcGap, dstLineWidth, dstGap);
     kygxExecSync(&cmd);
 }
 
-CTR_INLINE void kygxSyncRectCopy(const KYGXTextureCopySurface* srcSurface, const KYGXTextureCopyRect* srcRect, const KYGXTextureCopySurface* dstSurface, const KYGXTextureCopyRect* dstRect) {
-    CTR_ASSERT(srcSurface);
+/**
+ * @brief Execute TextureCopy synchronously.
+ * This wrapper can be used to copy raw buffers.
+ * @param[in] src Source buffer.
+ * @param[in] dst Destination buffer.
+ * @param[in] size Buffer size.
+ */
+CTR_INLINE void kygxSyncMemoryCopy(const void* src, void* dst, size_t size) {
+    CTR_ASSERT(src);
+    CTR_ASSERT(dst);
+
+    KYGXCmd cmd;
+    kygxMakeMemoryCopy(&cmd, src, dst, size);
+    kygxExecSync(&cmd);
+}
+
+/**
+ * @brief Execute TextureCopy synchronously.
+ * This wrapper can be used to copy surfaces.
+ * @param[in] src Source surface.
+ * @param[in] dst Destination surface.
+ */
+CTR_INLINE void kygxSyncSurfaceCopy(const KYGXSurface* src, const KYGXSurface* dst) {
+    CTR_ASSERT(src);
+    CTR_ASSERT(dst);
+
+    KYGXCmd cmd;
+    kygxMakeSurfaceCopy(&cmd, src, dst);
+    kygxExecSync(&cmd);
+}
+
+/**
+ * @brief Execute TextureCopy synchronously.
+ * This wrapper can be used to copy rects between surfaces.
+ * @param[in] src Source surface.
+ * @param[in] srcRect Source rect.
+ * @param[in] dst Destination surface.
+ * @param[in] dstRect Destination rect.
+ */
+CTR_INLINE void kygxSyncRectCopy(const KYGXSurface* src, const KYGXRect* srcRect, const KYGXSurface* dst, const KYGXRect* dstRect) {
+    CTR_ASSERT(src);
     CTR_ASSERT(srcRect);
-    CTR_ASSERT(dstSurface);
+    CTR_ASSERT(dst);
     CTR_ASSERT(dstRect);
     
     KYGXCmd cmd;
-    kygxMakeRectCopy(&cmd, srcSurface, srcRect, dstSurface, dstRect);
+    kygxMakeRectCopy(&cmd, src, srcRect, dst, dstRect);
     kygxExecSync(&cmd);
 }
 

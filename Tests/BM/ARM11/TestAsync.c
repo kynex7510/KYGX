@@ -8,22 +8,6 @@
 #include <arm11/console.h>
 #include <arm11/drivers/hid.h>
 
-#define CMDBUFFER_CAPACITY 32
-
-#define SCREEN_ROTATED 1
-
-#if SCREEN_ROTATED
-
-#define SCREEN_WIDTH 400
-#define SCREEN_HEIGHT 240
-
-#define RECT_X 100
-#define RECT_Y 80
-#define RECT_WIDTH 200
-#define RECT_HEIGHT 80
-
-#else
-
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 400
 
@@ -32,9 +16,7 @@
 #define RECT_WIDTH 80
 #define RECT_HEIGHT 200
 
-#endif // SCREEN_ROTATED
-
-#define SCREEN_PIXEL_SIZE 3
+#define SCREEN_PIXEL_SIZE KYGXPixelSize_RGB8
 #define FB_SIZE SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_PIXEL_SIZE
 
 static void* g_VRAMBuffer;
@@ -83,31 +65,27 @@ static void clearScreen(void) {
 }
 
 static void drawRect(u16 x, u16 y, u16 width, u16 height) {
-    u8* fb = GFX_getBuffer(GFX_LCD_TOP, GFX_SIDE_LEFT);
-
-    // Prepare fill structure.
+    // Prepare fill.
     KYGXFill fill;
     fill.addr = g_VRAMBuffer;
     fill.size = FB_SIZE;
     fill.value = KYGX_RGB8_PIXEL(0xFF, 0x00, 0x00);
     fill.width = KYGXFillWidth_RGB8;
 
-    // Prepare rect params.
-    KYGXTextureCopySurface srcSurface;
+    // Prepare rect copy.
+    KYGXSurface srcSurface;
     srcSurface.addr = g_VRAMBuffer;
     srcSurface.width = SCREEN_WIDTH;
     srcSurface.height = SCREEN_HEIGHT;
     srcSurface.pixelSize = SCREEN_PIXEL_SIZE;
-    srcSurface.rotated = SCREEN_ROTATED;
 
-    KYGXTextureCopySurface dstSurface;
-    dstSurface.addr = fb;
+    KYGXSurface dstSurface;
+    dstSurface.addr = GFX_getBuffer(GFX_LCD_TOP, GFX_SIDE_LEFT);
     dstSurface.width = SCREEN_WIDTH;
     dstSurface.height = SCREEN_HEIGHT;
     dstSurface.pixelSize = SCREEN_PIXEL_SIZE;
-    dstSurface.rotated = SCREEN_ROTATED;
 
-    KYGXTextureCopyRect rect;
+    KYGXRect rect;
     rect.x = RECT_X;
     rect.y = RECT_Y;
     rect.width = RECT_WIDTH;
@@ -136,7 +114,6 @@ int main(int argc, char* argv[]) {
     ee_printf("- Rect Y: %u\n", RECT_Y);
     ee_printf("- Rect width: %u\n", RECT_WIDTH);
     ee_printf("- Rect height: %u\n", RECT_HEIGHT);
-    ee_printf("- Is rotated? %s\n", (SCREEN_ROTATED ? "Yes" : "No"));
     ee_printf("Press START to exit\n");
 
     while (true) {

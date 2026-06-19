@@ -157,6 +157,7 @@ CTR_INLINE uint32_t kygxPackDisplayTransferFlags(KYGXTransferFormat srcFmt, KYGX
  * framebuffers, and for mipmap generation. Both source and destination addresses must be in FCRAM, VRAM or QTMRAM,
  * and must be aligned to 8 bytes. Additional constraints apply which depend on the performed operation. For more info,
  * see \ref kygxCheckDisplayTransferParams.
+ * @warning This function should not be used; see \ref kygxMakeDisplayTransfer instead.
  * @param[out] cmd Output command.
  * @param[in] src Source buffer.
  * @param[in] dst Destination buffer.
@@ -168,6 +169,8 @@ CTR_INLINE uint32_t kygxPackDisplayTransferFlags(KYGXTransferFormat srcFmt, KYGX
  */
 CTR_INLINE void kygxMakeDisplayTransferRaw(KYGXCmd* cmd, const void* src, void* dst, uint16_t srcWidth, uint16_t srcHeight, uint16_t dstWidth, uint16_t dstHeight, uint32_t flags) {
     CTR_ASSERT(cmd);
+    CTR_ASSERT(src);
+    CTR_ASSERT(dst);
     CTR_ASSERT(IsAligned((uint32_t)src, 8));
     CTR_ASSERT(IsAligned((uint32_t)dst, 8));
     CTR_ASSERT(IsMemFCRAM(src) || IsMemVRAM(src) || IsMemQTMRAM(src));
@@ -332,6 +335,8 @@ CTR_INLINE bool kygxCheckDisplayTransferParams(const KYGXTransferBuffer* src, co
  */
 CTR_INLINE void kygxMakeDisplayTransfer(KYGXCmd* cmd, const KYGXTransferBuffer* src, const KYGXTransferBuffer* dst, const KYGXTransferFlags* flags) {
     CTR_ASSERT(cmd);
+    CTR_ASSERT(src);
+    CTR_ASSERT(dst);
     CTR_ASSERT(flags);
     CTR_ASSERT(kygxCheckDisplayTransferParams(src, dst, flags));
 
