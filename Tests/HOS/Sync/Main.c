@@ -28,13 +28,13 @@ static void clearScreen(void) {
     fill.width = KYGXFillWidth_RGB8;
 
     // Prepare transfer.
-    KYGXTransferSurface transferSrc;
+    KYGXTransferBuffer transferSrc;
     transferSrc.addr = g_VRAMBuffer;
     transferSrc.width = SCREEN_WIDTH;
     transferSrc.height = SCREEN_HEIGHT;
     transferSrc.format = KYGXTransferFormat_RGB8;
 
-    KYGXTransferSurface transferDst;
+    KYGXTransferBuffer transferDst;
     transferDst.addr = fb;
     transferDst.width = SCREEN_WIDTH;
     transferDst.height = SCREEN_HEIGHT;

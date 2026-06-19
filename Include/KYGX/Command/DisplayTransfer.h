@@ -16,7 +16,7 @@
 
 #include <KYGX/GX.h>
 
-/// @brief Pixel format for a transfer surface.
+/// @brief Pixel format for a transfer buffer.
 typedef enum {
     KYGXTransferFormat_RGBA8 = 0,  ///< RGBA8
     KYGXTransferFormat_RGB8 = 1,   ///< RGB8
@@ -31,26 +31,26 @@ typedef struct {
     uint16_t width;            ///< Buffer width.
     uint16_t height;           ///< Buffer height.
     KYGXTransferFormat format; ///< Pixel format.
-} KYGXTransferSurface;
+} KYGXTransferBuffer;
 
 /// @brief Mode of operation, each mode has different features and constraints.
 typedef enum {
-    KYGXTransferMode_TiledToLinear = 0,        ///< Convert the surface from tiled/swizzled to linear.
-    KYGXTransferMode_LinearToTiled = (1 << 1), ///< Convert the surface from linear to tiled/swizzled.
+    KYGXTransferMode_TiledToLinear = 0,        ///< Convert the buffer from tiled/swizzled to linear.
+    KYGXTransferMode_LinearToTiled = (1 << 1), ///< Convert the buffer from linear to tiled/swizzled.
     KYGXtransferMode_TiledToTiled = (1 << 5),  ///< Assume source and destination are swizzled, and don't do anything.
 } KYGXTransferMode;
 
-/// @brief Scales down the surface using a box filter.
+/// @brief Scales down the buffer using a box filter.
 typedef enum {
     KYGXTransferDownscale_None = 0, ///< No downscale.
-    KYGXTransferDownscale_2x1 = 1,  ///< 2x1 downscale.
-    KYGXTransferDownscale_2x2 = 2,  ///< 2x2 downscale, effectively halves the surface dimensions.
+    KYGXTransferDownscale_2x1 = 1,  ///< 2x1 downscale, halves the buffer width.
+    KYGXTransferDownscale_2x2 = 2,  ///< 2x2 downscale, halves the buffer dimensions.
 } KYGXTransferDownscale;
 
-/// @brief Controls surface flipping.
+/// @brief Controls buffer flipping.
 typedef enum {
     KYGXTransferFlip_None = 0,            ///< Don't flip.
-    KYGXTransferFlip_Vertical = (1 << 0), ///< Flip the surface vertically.
+    KYGXTransferFlip_Vertical = (1 << 0), ///< Flip the buffer vertically.
 } KYGXTransferFlip;
 
 /// @brief Sets the size of a single tile.
@@ -73,8 +73,8 @@ extern "C" {
 
 /**
  * Packs transfer flags into a word.
- * @param[in] srcFmt Source surface pixel format.
- * @param[in] dstFmt Destination surface pixel format.
+ * @param[in] srcFmt Source buffer format.
+ * @param[in] dstFmt Destination buffer format.
  * @param[in] flags Transfer flags.
  * @return Packed transfer flags.
  */
@@ -187,13 +187,13 @@ CTR_INLINE void kygxMakeDisplayTransferRaw(KYGXCmd* cmd, const void* src, void* 
 }
 
 /**
- * @brief Checks whether a given combination of surfaces and flags is accepted by the hardware.
- * @param[in] src Source surface.
- * @param[in] dst Destination surface.
+ * @brief Checks whether a given combination of buffers and flags is accepted by the hardware.
+ * @param[in] src Source buffer.
+ * @param[in] dst Destination buffer.
  * @param[in] flags Transfer flags.
  * @return True if the combination is valid, false otherwise.
  */
-CTR_INLINE bool kygxCheckDisplayTransferParams(const KYGXTransferSurface* src, const KYGXTransferSurface* dst, const KYGXTransferFlags* flags) {
+CTR_INLINE bool kygxCheckDisplayTransferParams(const KYGXTransferBuffer* src, const KYGXTransferBuffer* dst, const KYGXTransferFlags* flags) {
     CTR_ASSERT(src);
     CTR_ASSERT(dst);
     CTR_ASSERT(flags);
@@ -326,11 +326,11 @@ CTR_INLINE bool kygxCheckDisplayTransferParams(const KYGXTransferSurface* src, c
  * @brief Construct a DisplayTransfer command.
  * This wrapper simplifies command construction and performs checks when compiling in debug mode.
  * @param[out] cmd Output command.
- * @param[in] src Source surface.
- * @param[in] dst Destination surface.
+ * @param[in] src Source buffer.
+ * @param[in] dst Destination buffer.
  * @param[in] flags Transfer flags.
  */
-CTR_INLINE void kygxMakeDisplayTransfer(KYGXCmd* cmd, const KYGXTransferSurface* src, const KYGXTransferSurface* dst, const KYGXTransferFlags* flags) {
+CTR_INLINE void kygxMakeDisplayTransfer(KYGXCmd* cmd, const KYGXTransferBuffer* src, const KYGXTransferBuffer* dst, const KYGXTransferFlags* flags) {
     CTR_ASSERT(cmd);
     CTR_ASSERT(flags);
     CTR_ASSERT(kygxCheckDisplayTransferParams(src, dst, flags));
@@ -341,11 +341,11 @@ CTR_INLINE void kygxMakeDisplayTransfer(KYGXCmd* cmd, const KYGXTransferSurface*
 
 /**
  * @brief Execute DisplayTransfer synchronously.
- * @param[in] src Source surface.
- * @param[in] dst Destination surface.
+ * @param[in] src Source buffer.
+ * @param[in] dst Destination buffer.
  * @param[in] flags Transfer flags.
  */
-CTR_INLINE void kygxSyncDisplayTransfer(const KYGXTransferSurface* src, const KYGXTransferSurface* dst, const KYGXTransferFlags* flags) {
+CTR_INLINE void kygxSyncDisplayTransfer(const KYGXTransferBuffer* src, const KYGXTransferBuffer* dst, const KYGXTransferFlags* flags) {
     CTR_ASSERT(src);
     CTR_ASSERT(dst);
     CTR_ASSERT(flags);

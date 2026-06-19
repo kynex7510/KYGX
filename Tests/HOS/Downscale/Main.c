@@ -29,13 +29,13 @@ int main(int argc, char* argv[]) {
     kygxSyncFlushSingleRegion(img, imgSize);
 
     // Prepare transfer.
-    KYGXTransferSurface transferSrc;
+    KYGXTransferBuffer transferSrc;
     transferSrc.addr = img;
     transferSrc.width = width;
     transferSrc.height = height;
     transferSrc.format = KYGXTransferFormat_RGB8;
 
-    KYGXTransferSurface transferDst;
+    KYGXTransferBuffer transferDst;
     transferDst.addr = NULL;
     transferDst.width = width;
     transferDst.height = height;

@@ -22,13 +22,13 @@ static void clearScreen(void) {
     u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
     // Prepare transfer.
-    KYGXTransferSurface transferSrc;
+    KYGXTransferBuffer transferSrc;
     transferSrc.addr = g_QTMRAMBuffer;
     transferSrc.width = SCREEN_WIDTH;
     transferSrc.height = SCREEN_HEIGHT;
     transferSrc.format = KYGXTransferFormat_RGB8;
 
-    KYGXTransferSurface transferDst;
+    KYGXTransferBuffer transferDst;
     transferDst.addr = fb;
     transferDst.width = SCREEN_WIDTH;
     transferDst.height = SCREEN_HEIGHT;
