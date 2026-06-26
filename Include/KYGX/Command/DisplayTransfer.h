@@ -153,11 +153,10 @@ CTR_INLINE uint32_t kygxPackDisplayTransferFlags(KYGXTransferFormat srcFmt, KYGX
 
 /**
  * @brief Construct a DisplayTransfer command.
- * This command has multiple functionalities, but is generally used for transferring GPU framebuffers into LCD
- * framebuffers, and for mipmap generation. Both source and destination addresses must be in FCRAM, VRAM or QTMRAM,
- * and must be aligned to 8 bytes. Additional constraints apply which depend on the performed operation. For more info,
- * see \ref kygxCheckDisplayTransferParams.
- * @warning This function should not be used; see \ref kygxMakeDisplayTransfer instead.
+ * This command has multiple functionalities, but is generally used for transferring GPU framebuffers into LCD framebuffers,
+ * and for mipmap generation. Both source and destination addresses must be aligned to 8 bytes. Additional constraints
+ * apply which depend on the performed operation. For more info, see \ref kygxCheckDisplayTransferParams.
+ * @warning This function should not be used; use \ref kygxMakeDisplayTransfer instead.
  * @param[out] cmd Output command.
  * @param[in] src Source buffer.
  * @param[in] dst Destination buffer.
@@ -173,8 +172,46 @@ CTR_INLINE void kygxMakeDisplayTransferRaw(KYGXCmd* cmd, const void* src, void* 
     CTR_ASSERT(dst);
     CTR_ASSERT(IsAligned((uint32_t)src, 8));
     CTR_ASSERT(IsAligned((uint32_t)dst, 8));
-    CTR_ASSERT(IsMemFCRAM(src) || IsMemVRAM(src) || IsMemQTMRAM(src));
-    CTR_ASSERT(IsMemFCRAM(dst) || IsMemVRAM(dst) || IsMemQTMRAM(dst));
+
+    size_t srcPixelSize = 0;
+
+    switch ((flags >> 8) & 0xF) {
+        case KYGXTransferFormat_RGBA8:
+            srcPixelSize = 4;
+            break;
+        case KYGXTransferFormat_RGB8:
+            srcPixelSize = 3;
+            break;
+        case KYGXTransferFormat_RGB565:
+        case KYGXTransferFormat_RGB5A1:
+        case KYGXTransferFormat_RGBA4:
+            srcPixelSize = 2;
+            break;
+        default:
+            CTR_UNREACHABLE("Invalid format!");
+    }
+
+    CTR_ASSERT(IsGPUAccessible(src, srcWidth * srcHeight * srcPixelSize, MemAccess_Read));
+
+    size_t dstPixelSize = 0;
+
+    switch ((flags >> 12) & 0xF) {
+        case KYGXTransferFormat_RGBA8:
+            dstPixelSize = 4;
+            break;
+        case KYGXTransferFormat_RGB8:
+            dstPixelSize = 3;
+            break;
+        case KYGXTransferFormat_RGB565:
+        case KYGXTransferFormat_RGB5A1:
+        case KYGXTransferFormat_RGBA4:
+            dstPixelSize = 2;
+            break;
+        default:
+            CTR_UNREACHABLE("Invalid format!");
+    }
+
+    CTR_ASSERT(IsGPUAccessible(dst, dstWidth * dstHeight * dstPixelSize, MemAccess_Write));
 
     // Set crop bit.
     if (dstWidth < srcWidth)

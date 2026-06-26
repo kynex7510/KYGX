@@ -10,7 +10,7 @@ option(KYGX_ENABLE_TESTS "Enable tests compilation" OFF)
 option(KYGX_ENABLE_DOCS "Enable docs generation" OFF)
 
 # Setup dependencies.
-CPMAddPackage("gh:kynex7510/ctr11#fda17f2")
+CPMAddPackage("gh:kynex7510/ctr11#c033ed1")
 find_package(Doxygen)
 
 # Setup docs.

@@ -70,7 +70,7 @@ CTR_INLINE void kygxMakeMemoryFill(KYGXCmd* cmd, const KYGXFill* fill0, const KY
     cmd->header = KYGX_CMD_MEMORYFILL;
 
     if (fill0 && fill0->size) {
-        CTR_ASSERT(IsMemVRAM(fill0->addr));
+        CTR_ASSERT(IsMemVRAM(fill0->addr, fill0->size));
         CTR_ASSERT(IsAligned((uint32_t)fill0->addr, 8));
         CTR_ASSERT(IsAligned(fill0->size, 8));
 
@@ -83,7 +83,7 @@ CTR_INLINE void kygxMakeMemoryFill(KYGXCmd* cmd, const KYGXFill* fill0, const KY
     }
 
     if (fill1 && fill1->size) {
-        CTR_ASSERT(IsMemVRAM(fill1->addr));
+        CTR_ASSERT(IsMemVRAM(fill1->addr, fill1->size));
         CTR_ASSERT(IsAligned((uint32_t)fill1->addr, 8));
         CTR_ASSERT(IsAligned(fill1->size, 8));
 

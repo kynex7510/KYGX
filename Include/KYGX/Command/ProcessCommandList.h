@@ -22,8 +22,7 @@ extern "C" {
 
 /**
  * @brief Construct a ProcessCommandList command.
- * This command starts the processing of the specified GPU command list. The GPU command list must reside in FCRAM,
- * VRAM or QTMRAM. Both address and size must be 8 bytes aligned.
+ * This command starts the processing of the specified GPU command list. Both address and size must be 8 bytes aligned.
  * @param[out] cmd Output command.
  * @param[in] addr GPU command list address.
  * @param[in] size GPU command list size.
@@ -34,7 +33,7 @@ CTR_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size
     CTR_ASSERT(cmd);
     CTR_ASSERT(IsAligned((uint32_t)addr, 8));
     CTR_ASSERT(IsAligned(size, 8));
-    CTR_ASSERT(IsMemFCRAM(addr) || IsMemVRAM(addr) || IsMemQTMRAM(addr));
+    CTR_ASSERT(IsGPUAccessible(addr, size, MemAccess_Read));
 
     cmd->header = KYGX_CMD_PROCESSCOMMANDLIST;
     cmd->params[0] = (uint32_t)addr;

@@ -91,8 +91,8 @@ CTR_INLINE void kygxMakeTextureCopy(KYGXCmd* cmd, const void* src, void* dst, si
     CTR_ASSERT(dst);
     CTR_ASSERT(IsAligned((uint32_t)src, 8));
     CTR_ASSERT(IsAligned((uint32_t)dst, 8));
-    CTR_ASSERT(IsMemFCRAM(src) || IsMemVRAM(src) || IsMemQTMRAM(src));
-    CTR_ASSERT(IsMemFCRAM(dst) || IsMemVRAM(dst) || IsMemQTMRAM(dst));
+    CTR_ASSERT(IsGPUAccessible(src, size, MemAccess_Read));
+    CTR_ASSERT(IsGPUAccessible(dst, size, MemAccess_Write));
 
     uint32_t flags = 0;
     if (srcGap || dstGap) {
