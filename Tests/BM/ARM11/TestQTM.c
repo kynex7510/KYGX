@@ -1,6 +1,10 @@
-// https://gist.github.com/kynex7510/f760d71de575eae066c0795263703826
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
-#include <CTR11/Allocator.h>
+#include <CTR11/Memory.h>
 #include <KYGX/Command/MemoryFill.h>
 #include <KYGX/Command/DisplayTransfer.h>
 #include <KYGX/Command/FlushCacheRegions.h>
