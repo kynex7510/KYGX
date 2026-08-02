@@ -6,15 +6,15 @@ set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 project(kygx C CXX ASM)
 
-option(KYGX_ENABLE_TESTS "Enable tests compilation" OFF)
-option(KYGX_ENABLE_DOCS "Enable docs generation" OFF)
+option(KYGX_COMPILE_TESTS "Enable tests compilation" OFF)
+option(KYGX_GENERATE_DOCS "Enable docs generation" OFF)
 
 # Setup dependencies.
 CPMAddPackage("gh:kynex7510/ctr11#1686cb2")
 find_package(Doxygen)
 
 # Setup docs.
-if (KYGX_ENABLE_DOCS)
+if (KYGX_GENERATE_DOCS)
     if (DOXYGEN_FOUND)
         set(DOXYGEN_GENERATE_HTML YES)
         set(DOXYGEN_GENERATE_LATEX NO)
@@ -35,6 +35,6 @@ endif()
 add_subdirectory(Source)
 
 # Setup tests.
-if (KYGX_ENABLE_TESTS)
+if (KYGX_COMPILE_TESTS)
     add_subdirectory(Tests)
 endif()
