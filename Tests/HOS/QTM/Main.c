@@ -63,7 +63,7 @@ int main(void) {
     consoleInit(GFX_BOTTOM, NULL);
     CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
-    g_QTMRAMBuffer = AllocMem(MemType_QTMRAM, FB_SIZE);
+    g_QTMRAMBuffer = AllocTypedMem(FB_SIZE, MemType_QTMRAM);
     if (!g_QTMRAMBuffer) {
         printf("QTMRAM buffer allocation failed\n");
         printf("NOTE: this test is for N3DS only\n");

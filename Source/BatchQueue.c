@@ -31,7 +31,7 @@ BatchQueueError BatchQueueInit(BatchQueue* q, size_t capacity) {
         return BatchQueueError_Success;
 
     const size_t entryOverhead = sizeof(KYGXCmd) + sizeof(size_t) + sizeof(KYGXBatchCallback) + sizeof(void*);
-    void* buffer = AllocMem(MemType_AppHeap, entryOverhead * capacity);
+    void* buffer = AllocTypedMem(entryOverhead * capacity, MemType_AppHeap);
     if (!buffer)
         return BatchQueueError_NoMemory;
 

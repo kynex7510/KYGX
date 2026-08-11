@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     consoleInit(GFX_BOTTOM, NULL);
     CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
-    g_VRAMBuffer = AllocMem(MemType_VRAM, FB_SIZE);
+    g_VRAMBuffer = AllocTypedMem(FB_SIZE, MemType_VRAM);
 
     bool updateConsole = true;
     while (aptMainLoop()) {

@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     const size_t bpp = 24;
     const size_t imgSize = width * height * bpp >> 3;
 
-    void* img = AllocMem(MemType_FCRAM, imgSize);
+    void* img = AllocTypedMem(imgSize, MemType_FCRAM);
     CTR_BREAK_IF(!img);
 
     FILE* f = fopen("romfs:/EpicSkeleton.data", "rb");

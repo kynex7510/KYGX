@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     consoleInit(GFX_LCD_BOT, NULL);
     CTR_BREAK_IF(kygxInit(8) != KYGXError_Success);
 
-    g_VRAMBuffer = AllocMem(MemType_VRAM, FB_SIZE);
+    g_VRAMBuffer = AllocTypedMem(FB_SIZE, MemType_VRAM);
 
     ee_printf("- Rect X: %u\n", RECT_X);
     ee_printf("- Rect Y: %u\n", RECT_Y);

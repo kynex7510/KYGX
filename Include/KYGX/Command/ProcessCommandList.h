@@ -12,7 +12,7 @@
 
 #include <CTR11/Assert.h>
 #include <CTR11/Align.h>
-#include <CTR11/Allocator.h>
+#include <CTR11/Memory.h>
 
 #include <KYGX/GX.h>
 
@@ -33,7 +33,7 @@ CTR_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size
     CTR_ASSERT(cmd);
     CTR_ASSERT(IsAligned((uint32_t)addr, 8));
     CTR_ASSERT(IsAligned(size, 8));
-    CTR_ASSERT(IsGPUAccessible(addr, size, MemAccess_Read));
+    CTR_ASSERT(IsAccessible(addr, size, MemAccess_GPURead));
 
     cmd->header = KYGX_CMD_PROCESSCOMMANDLIST;
     cmd->params[0] = (uint32_t)addr;

@@ -58,7 +58,7 @@ int main(void) {
     consoleInit(GFX_LCD_BOT, NULL);
     CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
-    g_VRAMBuffer = AllocMem(MemType_VRAM, FB_SIZE);
+    g_VRAMBuffer = AllocTypedMem(FB_SIZE, MemType_VRAM);
 
     bool updateConsole = true;
     while (true) {

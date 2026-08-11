@@ -191,7 +191,7 @@ CTR_INLINE void kygxMakeDisplayTransferRaw(KYGXCmd* cmd, const void* src, void* 
             CTR_UNREACHABLE("Invalid format!");
     }
 
-    CTR_ASSERT(IsGPUAccessible(src, srcWidth * srcHeight * srcPixelSize, MemAccess_Read));
+    CTR_ASSERT(IsAccessible(src, srcWidth * srcHeight * srcPixelSize, MemAccess_GPURead));
 
     size_t dstPixelSize = 0;
 
@@ -211,7 +211,7 @@ CTR_INLINE void kygxMakeDisplayTransferRaw(KYGXCmd* cmd, const void* src, void* 
             CTR_UNREACHABLE("Invalid format!");
     }
 
-    CTR_ASSERT(IsGPUAccessible(dst, dstWidth * dstHeight * dstPixelSize, MemAccess_Write));
+    CTR_ASSERT(IsAccessible(dst, dstWidth * dstHeight * dstPixelSize, MemAccess_GPUWrite));
 
     // Set crop bit.
     if (dstWidth < srcWidth)

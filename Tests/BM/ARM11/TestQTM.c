@@ -59,7 +59,7 @@ int main(void) {
     consoleInit(GFX_LCD_BOT, NULL);
     CTR_BREAK_IF(kygxInit(0) != KYGXError_Success);
 
-    g_QTMBuffer = AllocMem(MemType_QTMRAM, FB_SIZE);
+    g_QTMBuffer = AllocTypedMem(FB_SIZE, MemType_QTMRAM);
 
     bool updateConsole = true;
     while (true) {
