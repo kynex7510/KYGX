@@ -13,6 +13,7 @@
 #include <CTR11/Assert.h>
 #include <CTR11/Align.h>
 #include <CTR11/Unreachable.h>
+#include <CTR11/Memory.h>
 
 #include <KYGX/GX.h>
 

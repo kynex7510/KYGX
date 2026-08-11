@@ -11,6 +11,8 @@
 #define GUARD_KYGX_COMMAND_TEXTURECOPY_H
 
 #include <CTR11/Assert.h>
+#include <CTR11/Align.h>
+#include <CTR11/Memory.h>
 
 #include <KYGX/GX.h>
 
