@@ -89,6 +89,5 @@ void IntrUpdateGasAccMax(bool update) { CTR_ASSERT(g_FlushThread); }
 
 void IntrSignalFlush(void) {
     CTR_ASSERT(g_FlushThread);
-
     LightEvent_Signal(&g_FlushEvent);
 }

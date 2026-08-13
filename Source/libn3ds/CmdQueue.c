@@ -146,7 +146,6 @@ static inline void executeCmd(const KYGXCmd* cmd) {
 
 static inline size_t batchSize(const Batch* b) {
     CTR_ASSERT(b);
-
     return b->count;
 }
 
@@ -242,6 +241,5 @@ void CmdQueueAdd(const KYGXCmd* cmd) {
 
 void CmdQueueTriggerHandling(void) {
     CTR_ASSERT(g_BatchMtx);
-
     NotifyCV(g_BatchCV, 1);
 }

@@ -227,7 +227,6 @@ void IntrSetPSC(bool unit0, bool unit1) {
 
 void IntrUpdateGasAccMax(bool update) {
     CTR_ASSERT(g_AnyEvent);
-
     g_UpdateGasAccMax = update;
 }
 
