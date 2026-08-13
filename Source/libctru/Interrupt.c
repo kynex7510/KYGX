@@ -85,6 +85,7 @@ void IntrExit(void) {
 }
 
 void IntrSetPSC(bool unit0, bool unit1) { CTR_ASSERT(g_FlushThread); }
+void IntrUpdateGasAccMax(bool update) { CTR_ASSERT(g_FlushThread); }
 
 void IntrSignalFlush(void) {
     CTR_ASSERT(g_FlushThread);
