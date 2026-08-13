@@ -27,4 +27,4 @@ target_include_directories(kygx PUBLIC ../Include PRIVATE .)
 target_compile_options(kygx PRIVATE -Wall -Werror)
 
 install(TARGETS kygx)
-install(DIRECTORY Include/ DESTINATION include)
+install(DIRECTORY ../Include/ DESTINATION include)
