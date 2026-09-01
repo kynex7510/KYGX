@@ -29,7 +29,7 @@ extern "C" {
  * @param[in] updateGasAccMax Whether to update gas additive results after the execution of the GPU command list.
  * @param[in] flush Whether to flush the source buffer before the command execution.
  */
-CTR_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size, bool updateGasAccMax, bool flush) {
+CTR_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, const void* addr, size_t size, bool updateGasAccMax, bool flush) {
     CTR_ASSERT(cmd);
     CTR_ASSERT(IsAligned((uint32_t)addr, 8));
     CTR_ASSERT(IsAligned(size, 8));
@@ -50,7 +50,7 @@ CTR_INLINE void kygxMakeProcessCommandList(KYGXCmd* cmd, void* addr, size_t size
  * @param[in] updateGasAccMax Whether to update gas additive results after the execution of the GPU command list.
  * @param[in] flush Whether to flush the source buffer before the command execution.
  */
-CTR_INLINE void kygxSyncProcessCommandList(void* addr, size_t size, bool updateGasAccMax, bool flush) {
+CTR_INLINE void kygxSyncProcessCommandList(const void* addr, size_t size, bool updateGasAccMax, bool flush) {
     KYGXCmd cmd;
     kygxMakeProcessCommandList(&cmd, addr, size, updateGasAccMax, flush);
     kygxExecSync(&cmd);
