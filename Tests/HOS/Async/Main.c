@@ -1,0 +1,142 @@
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+#include <3ds.h>
+
+#include <CTR11/Memory.h>
+
+#include <KYGX/Command/MemoryFill.h>
+#include <KYGX/Command/DisplayTransfer.h>
+#include <KYGX/Command/TextureCopy.h>
+
+#include <stdio.h>
+
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 400
+
+#define RECT_X 80
+#define RECT_Y 100
+#define RECT_WIDTH 80
+#define RECT_HEIGHT 200
+
+#define SCREEN_PIXEL_SIZE KYGXPixelSize_RGB8
+#define FB_SIZE SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_PIXEL_SIZE
+
+static void* g_VRAMBuffer;
+
+static void onCommandsCompleted(void* data) {
+    (void)data;
+    gfxScreenSwapBuffers(GFX_TOP, false);
+}
+
+static void clearScreen(void) {
+    // Prepare fill.
+    KYGXFill fill;
+    fill.addr = g_VRAMBuffer;
+    fill.size = FB_SIZE;
+    fill.value = KYGX_RGB8_PIXEL(0xFF, 0xFF, 0xFF);
+    fill.width = KYGXFillWidth_RGB8;
+
+    // Prepare transfer.
+    KYGXTransferBuffer transferSrc;
+    transferSrc.addr = g_VRAMBuffer;
+    transferSrc.width = SCREEN_WIDTH;
+    transferSrc.height = SCREEN_HEIGHT;
+    transferSrc.format = KYGXTransferFormat_RGB8;
+
+    KYGXTransferBuffer transferDst;
+    transferDst.addr = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+    transferDst.width = SCREEN_WIDTH;
+    transferDst.height = SCREEN_HEIGHT;
+    transferDst.format = KYGXTransferFormat_RGB8;
+
+    KYGXTransferFlags transferFlags;
+    transferFlags.mode = KYGXTransferMode_TiledToLinear;
+    transferFlags.downscale = KYGXTransferDownscale_None;
+    transferFlags.flip = KYGXTransferFlip_None;
+    transferFlags.tileSize = KYGXTransferTileSize_8x8;
+
+    // Fill framebuffer with white through VRAM.
+    KYGXCmd tmp;
+    kygxMakeMemoryFill(&tmp, &fill, NULL);
+
+    // Split commands, as the same buffer should not be used with different commands at the same time.
+    kygxPushBatch(&tmp, 1, NULL, NULL);
+
+    kygxMakeDisplayTransfer(&tmp, &transferSrc, &transferDst, &transferFlags);
+    kygxPushBatch(&tmp, 1, NULL, NULL);
+}
+
+static void drawRect(u16 x, u16 y, u16 width, u16 height) {
+    // Prepare fill structure.
+    KYGXFill fill;
+    fill.addr = g_VRAMBuffer;
+    fill.size = FB_SIZE;
+    fill.value = KYGX_RGB8_PIXEL(0xFF, 0x00, 0x00);
+    fill.width = KYGXFillWidth_RGB8;
+
+    // Prepare rect params.
+    KYGXSurface srcSurface;
+    srcSurface.addr = g_VRAMBuffer;
+    srcSurface.width = SCREEN_WIDTH;
+    srcSurface.height = SCREEN_HEIGHT;
+    srcSurface.pixelSize = SCREEN_PIXEL_SIZE;
+
+    KYGXSurface dstSurface;
+    dstSurface.addr = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+    dstSurface.width = SCREEN_WIDTH;
+    dstSurface.height = SCREEN_HEIGHT;
+    dstSurface.pixelSize = SCREEN_PIXEL_SIZE;
+
+    KYGXRect rect;
+    rect.x = RECT_X;
+    rect.y = RECT_Y;
+    rect.width = RECT_WIDTH;
+    rect.height = RECT_HEIGHT;
+
+    // Draw a red rectangle through VRAM.
+    KYGXCmd tmp;
+    kygxMakeMemoryFill(&tmp, NULL, &fill);
+
+    // Split commands, as the same buffer should not be used with different commands at the same time.
+    kygxPushBatch(&tmp, 1, NULL, NULL);
+
+    kygxMakeRectCopy(&tmp, &srcSurface, &rect, &dstSurface, &rect);
+    kygxPushBatch(&tmp, 1, onCommandsCompleted, NULL);
+}
+
+int main(int argc, char* argv[]) {
+    gfxInitDefault();
+    consoleInit(GFX_BOTTOM, NULL);
+    CTR_BREAK_IF(kygxInit(8) != KYGXError_Success);
+
+    g_VRAMBuffer = AllocTypedMem(FB_SIZE, MemType_VRAM);
+
+    printf("- Rect X: %u\n", RECT_X);
+    printf("- Rect Y: %u\n", RECT_Y);
+    printf("- Rect width: %u\n", RECT_WIDTH);
+    printf("- Rect height: %u\n", RECT_HEIGHT);
+    printf("Press START to exit\n");
+
+    while (aptMainLoop()) {
+        hidScanInput();
+        const u32 kDown = hidKeysDown();
+
+        if (kDown & KEY_START)
+            break;
+
+        clearScreen();
+        drawRect(RECT_X, RECT_Y, RECT_WIDTH, RECT_HEIGHT);
+
+        kygxWaitVBlankTop();
+    }
+
+    FreeMem(g_VRAMBuffer);
+
+    kygxExit();
+    gfxExit();
+    return 0;
+}

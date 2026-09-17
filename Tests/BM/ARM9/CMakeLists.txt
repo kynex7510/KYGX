@@ -1,0 +1,5 @@
+ctr_bm_enable_arm9()
+add_executable(Common9 Main.c)
+ctr_bm_link_libn3ds(Common9)
+target_link_options(Common9 PRIVATE -T ${CTR_BM_TOOLCHAIN_ROOT}/Linker/Default9.ld)
+ctr_bm_add_firm_binary(Common9_bin Common9)
